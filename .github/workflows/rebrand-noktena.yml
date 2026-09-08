@@ -2,9 +2,10 @@ name: Rebrand site to Noktena
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
     paths:
-      - '.github/workflows/rebrand-noktena.yml'
+      - .github/workflows/rebrand-noktena.yml
 
 permissions:
   contents: write
@@ -13,11 +14,12 @@ jobs:
   rebrand:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
       - name: Rebrand index.html
-        shell: python
         run: |
+          python - <<'PY'
           from pathlib import Path
           import re
 
@@ -30,12 +32,12 @@ jobs:
           text = text.replace('Точка Сна', 'НОКТЕНА')
 
           pattern = re.compile(r'<a class="brand brand-logo" href="#top" aria-label="[^"]+"><img[^>]+></a>')
-          replacement = '''<a class="brand brand-logo" href="#top" aria-label="НОКТЕНА"><span class="noktena-emblem" aria-hidden="true"></span><span class="noktena-lockup"><span class="noktena-word">НОКТЕНА</span><span class="noktena-sub">Федеральная онлайн-сеть</span></span></a>'''
+          replacement = '<a class="brand brand-logo" href="#top" aria-label="НОКТЕНА"><span class="noktena-emblem" aria-hidden="true"></span><span class="noktena-lockup"><span class="noktena-word">НОКТЕНА</span><span class="noktena-sub">Федеральная онлайн-сеть</span></span></a>'
           text, count = pattern.subn(replacement, text, count=1)
           if count != 1:
               raise SystemExit(f'Expected exactly one header logo, replaced {count}')
 
-          css = r'''
+          css = '''
 
 /* noktena-brand-v1 */
 .brand.brand-logo{display:inline-flex;align-items:center;gap:12px;flex:0 0 auto;text-decoration:none}
@@ -51,8 +53,9 @@ jobs:
           if '/* noktena-brand-v1 */' not in text:
               text = text.replace('</style>', css + '\n</style>', 1)
 
-          if '<link rel="canonical" href="https://noktena.ru/">' not in text:
-              text = text.replace('<meta name="theme-color" content="#0A8D55">', '<meta name="theme-color" content="#0A8D55">\n<link rel="canonical" href="https://noktena.ru/">', 1)
+          canonical = '<link rel="canonical" href="https://noktena.ru/">'
+          if canonical not in text:
+              text = text.replace('<meta name="theme-color" content="#0A8D55">', '<meta name="theme-color" content="#0A8D55">\n' + canonical, 1)
 
           if 'Точка Сна' in text:
               raise SystemExit('Old brand text remains after replacement')
@@ -60,8 +63,9 @@ jobs:
               raise SystemExit('New brand markers were not written')
 
           path.write_text(text, encoding='utf-8')
+          PY
 
-      - name: Remove one-time workflow and commit
+      - name: Commit rebrand and remove workflow
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
