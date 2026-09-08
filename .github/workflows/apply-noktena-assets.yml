@@ -1,0 +1,68 @@
+name: Apply verified Noktena assets
+
+on:
+  push:
+    branches: [asset-final]
+    paths:
+      - '.github/workflows/apply-noktena-assets.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: asset-final
+
+      - name: Patch logo and hero only
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          p = Path('index.html')
+          s = p.read_text(encoding='utf-8')
+
+          # Replace the CSS-generated Noktena lockup with the approved image logo.
+          pat = re.compile(r'<a class="brand brand-logo" href="#top" aria-label="НОКТЕНА"><span class="noktena-emblem".*?</a>')
+          repl = '<a class="brand brand-logo" href="#top" aria-label="НОКТЕНА"><img class="noktena-logo-img" src="assets/logo-noktena.webp?v=20260908-final1" alt="НОКТЕНА — федеральная онлайн-сеть" width="360" height="113"></a>'
+          s, n = pat.subn(repl, s, count=1)
+          if n != 1:
+              raise SystemExit(f'Header logo replacement count: {n}')
+
+          old_hero = '<img src="assets/hero-consultant-mattress.webp?v=20260905-hero-crop13" alt="Консультант НОКТЕНА рядом с матрасом" width="720" height="678" loading="eager" fetchpriority="high">'
+          new_hero = '<img src="assets/hero-noktena.webp?v=20260908-final1" alt="Консультант НОКТЕНА рядом с матрасом" width="520" height="477" loading="eager" fetchpriority="high">'
+          if old_hero not in s:
+              raise SystemExit('Expected old hero image tag was not found')
+          s = s.replace(old_hero, new_hero, 1)
+
+          css = '''
+
+/* noktena-image-brand-v1 */
+.brand.brand-logo{display:flex;align-items:center;flex:0 0 auto;text-decoration:none;max-width:285px;min-width:0}
+.noktena-logo-img{display:block;width:265px;max-width:100%;height:auto;object-fit:contain}
+@media(max-width:900px){.brand.brand-logo{max-width:235px}.noktena-logo-img{width:225px}}
+@media(max-width:620px){.brand.brand-logo{max-width:190px}.noktena-logo-img{width:180px}}
+'''
+          if '/* noktena-image-brand-v1 */' not in s:
+              s = s.replace('</style>', css + '\n</style>', 1)
+
+          if 'assets/logo-noktena.webp?v=20260908-final1' not in s:
+              raise SystemExit('New logo reference missing')
+          if 'assets/hero-noktena.webp?v=20260908-final1' not in s:
+              raise SystemExit('New hero reference missing')
+
+          p.write_text(s, encoding='utf-8')
+          PY
+
+      - name: Commit final asset switch
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git rm .github/workflows/apply-noktena-assets.yml
+          git add index.html
+          git commit -m 'Use verified Noktena logo and hero'
+          git push origin HEAD:asset-final
