@@ -1,0 +1,71 @@
+name: Rebrand site to Noktena
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/rebrand-noktena.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  rebrand:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Rebrand index.html
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+
+          path = Path('index.html')
+          text = path.read_text(encoding='utf-8')
+
+          if 'Точка Сна' not in text:
+              raise SystemExit('Expected old brand text was not found')
+
+          text = text.replace('Точка Сна', 'НОКТЕНА')
+
+          pattern = re.compile(r'<a class="brand brand-logo" href="#top" aria-label="[^"]+"><img[^>]+></a>')
+          replacement = '''<a class="brand brand-logo" href="#top" aria-label="НОКТЕНА"><span class="noktena-emblem" aria-hidden="true"></span><span class="noktena-lockup"><span class="noktena-word">НОКТЕНА</span><span class="noktena-sub">Федеральная онлайн-сеть</span></span></a>'''
+          text, count = pattern.subn(replacement, text, count=1)
+          if count != 1:
+              raise SystemExit(f'Expected exactly one header logo, replaced {count}')
+
+          css = r'''
+
+/* noktena-brand-v1 */
+.brand.brand-logo{display:inline-flex;align-items:center;gap:12px;flex:0 0 auto;text-decoration:none}
+.noktena-emblem{position:relative;display:block;flex:0 0 48px;width:48px;height:48px;border-radius:16px;background:linear-gradient(145deg,#08784a,#13a868);box-shadow:0 10px 24px rgba(10,141,85,.20)}
+.noktena-emblem:before{content:"";position:absolute;width:23px;height:23px;border-radius:50%;background:#fff;left:11px;top:10px;box-shadow:7px 3px 0 0 #0d955b;transform:rotate(-18deg)}
+.noktena-emblem:after{content:"";position:absolute;width:6px;height:6px;border-radius:50%;background:#f5c542;right:9px;top:9px;box-shadow:0 0 0 2px rgba(255,255,255,.35)}
+.noktena-lockup{display:flex;flex-direction:column;justify-content:center;gap:3px;min-width:0}
+.noktena-word{font-size:29px;line-height:1;font-weight:950;letter-spacing:.075em;color:#0b5d45;white-space:nowrap}
+.noktena-sub{font-size:9.5px;line-height:1.2;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#74877e;white-space:nowrap}
+@media(max-width:760px){.noktena-emblem{width:44px;height:44px;flex-basis:44px;border-radius:14px}.noktena-emblem:before{width:21px;height:21px;left:10px;top:9px}.noktena-word{font-size:25px}.noktena-sub{font-size:8.5px}}
+@media(max-width:520px){.brand.brand-logo{gap:9px}.noktena-emblem{width:40px;height:40px;flex-basis:40px;border-radius:13px}.noktena-emblem:before{width:19px;height:19px;left:9px;top:8px}.noktena-emblem:after{width:5px;height:5px;right:8px;top:8px}.noktena-word{font-size:22px;letter-spacing:.06em}.noktena-sub{font-size:7.5px;letter-spacing:.06em}}
+'''
+          if '/* noktena-brand-v1 */' not in text:
+              text = text.replace('</style>', css + '\n</style>', 1)
+
+          if '<link rel="canonical" href="https://noktena.ru/">' not in text:
+              text = text.replace('<meta name="theme-color" content="#0A8D55">', '<meta name="theme-color" content="#0A8D55">\n<link rel="canonical" href="https://noktena.ru/">', 1)
+
+          if 'Точка Сна' in text:
+              raise SystemExit('Old brand text remains after replacement')
+          if 'НОКТЕНА' not in text or 'noktena-brand-v1' not in text:
+              raise SystemExit('New brand markers were not written')
+
+          path.write_text(text, encoding='utf-8')
+
+      - name: Remove one-time workflow and commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/rebrand-noktena.yml
+          git add index.html
+          git commit -m "Rebrand site as NOKTENA"
+          git push
