@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 250" role="img" aria-labelledby="t d">
+<title id="t">НОКТЕНА</title><desc id="d">Товары для комфортного сна</desc>
+<defs>
+  <linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#79b98f"/><stop offset=".45" stop-color="#0a7650"/><stop offset="1" stop-color="#054d3b"/></linearGradient>
+  <linearGradient id="p" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f7fbf7"/><stop offset="1" stop-color="#b9d8c2"/></linearGradient>
+</defs>
+<g transform="translate(8 3)">
+  <path d="M150 10c-67 11-119 65-119 130 0 52 31 96 75 116-21-23-33-53-33-86 0-63 42-117 99-137-7-9-14-16-22-23z" fill="url(#g)"/>
+  <path d="M29 190c46 28 112 26 160-5 14-9 26-20 36-32-9 35-36 66-72 84-48 24-100 19-124-8z" fill="url(#g)"/>
+  <path d="M69 147c31-25 57-30 86-18 24 10 48 8 72-7-10 35-38 58-77 61-34 3-62-8-81-36z" fill="url(#p)" stroke="#e9f4ec" stroke-width="2"/>
+  <path d="M51 210c46 10 93 3 136-23-18 31-55 52-97 50-19-1-32-9-39-27z" fill="#0a7650" opacity=".9"/>
+  <path d="M138 64l6 15 15 6-15 6-6 15-6-15-15-6 15-6z" fill="#0a8d55"/>
+  <path d="M183 93l9 22 22 9-22 9-9 22-9-22-22-9 22-9z" fill="#0a8d55"/>
+  <path d="M102 99l5 12 12 5-12 5-5 12-5-12-12-5 12-5z" fill="#0a8d55"/>
+</g>
+<text x="258" y="145" fill="#074f3d" font-family="Georgia,'Times New Roman',serif" font-size="118" font-weight="700" letter-spacing="3">НОКТЕНА</text>
+<text x="266" y="203" fill="#0b5b49" font-family="Arial,'Segoe UI',sans-serif" font-size="24" font-weight="500" letter-spacing="10">ТОВАРЫ ДЛЯ КОМФОРТНОГО СНА</text>
+</svg>
