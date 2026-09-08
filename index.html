@@ -121,7 +121,68 @@ input:focus,select:focus{border-color:var(--brand-green);box-shadow:0 0 0 3px rg
 @media(max-width:760px){.noktena-logo-img{height:52px;max-width:205px}}
 @media(max-width:520px){.noktena-logo-img{height:44px;max-width:174px}}
 
-</style>
+/* catalog-card-alignment-v1 */
+.cardtop{
+  display:grid;
+  grid-template-rows:32px 52px 58px minmax(43px,auto);
+  gap:10px;
+}
+
+.cardtop>.tag{
+  height:24px;
+  min-height:24px;
+  align-self:start;
+  margin:0;
+  white-space:nowrap;
+}
+
+.cardtop>.hit-ribbon{
+  display:block;
+  width:auto;
+  height:32px;
+  max-width:165px;
+  object-fit:contain;
+  object-position:left center;
+  align-self:start;
+  margin:0;
+}
+
+.body h3{
+  height:52px;
+  min-height:52px;
+}
+
+.firmness{
+  height:58px;
+  min-height:58px;
+  max-height:58px;
+  overflow:hidden;
+}
+
+.cardtop>.spec{
+  min-height:43px;
+}
+
+.variantbox{
+  height:69px;
+  min-height:69px;
+}
+
+@media(max-width:620px){
+  .cardtop{
+    grid-template-rows:32px 49px 58px minmax(43px,auto);
+  }
+
+  .body h3{
+    height:49px;
+    min-height:49px;
+  }
+
+  .cardtop>.hit-ribbon{
+    height:32px;
+    max-width:145px;
+  }
+}</style>
 </head>
 <body>
 <div class="top"><div class="wrap"><span><b>НОКТЕНА</b> · федеральная онлайн-сеть товаров для сна</span><span>Екатеринбургский филиал · региональный склад: г. Берёзовский</span></div></div>
