@@ -23,15 +23,18 @@ jobs:
           p = Path('index.html')
           s = p.read_text(encoding='utf-8')
           marker = '<meta name="theme-color" content="#0A8D55">'
-          block = '''<meta name="theme-color" content="#0A8D55">
-<link rel="icon" href="/favicon.ico" sizes="any">
-<link rel="icon" type="image/png" sizes="48x48" href="/favicon-48x48.png">
-<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-<link rel="manifest" href="/site.webmanifest">
-<meta name="msapplication-TileColor" content="#0A8D55">
-<meta name="msapplication-config" content="/browserconfig.xml">'''
+          lines = [
+              marker,
+              '<link rel="icon" href="/favicon.ico" sizes="any">',
+              '<link rel="icon" type="image/png" sizes="48x48" href="/favicon-48x48.png">',
+              '<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">',
+              '<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">',
+              '<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">',
+              '<link rel="manifest" href="/site.webmanifest">',
+              '<meta name="msapplication-TileColor" content="#0A8D55">',
+              '<meta name="msapplication-config" content="/browserconfig.xml">',
+          ]
+          block = '\n'.join(lines)
           assert s.count(marker) == 1, f'theme marker count={s.count(marker)}'
           assert '/favicon.ico' not in s, 'favicons already connected'
           s = s.replace(marker, block)
