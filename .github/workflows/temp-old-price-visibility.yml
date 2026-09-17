@@ -1,0 +1,35 @@
+name: Temporary old price visibility update
+
+on:
+  push:
+    paths:
+      - '.github/workflows/temp-old-price-visibility.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  update-old-price:
+    if: github.event.head_commit.message == 'Add temporary old price visibility updater'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Improve crossed-out price visibility
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('index.html')
+          s = p.read_text(encoding='utf-8')
+          old = '.old-price{font-size:18px;color:#111;text-decoration:line-through;text-decoration-thickness:2px;font-weight:800}'
+          new = '.old-price{font-size:20px;line-height:1.05;color:#2b2b2b;text-decoration-line:line-through;text-decoration-color:#e5323d;text-decoration-thickness:2.5px;text-decoration-skip-ink:none;font-weight:900;white-space:nowrap}'
+          if old not in s:
+              raise SystemExit('Expected old-price CSS not found')
+          p.write_text(s.replace(old, new, 1), encoding='utf-8')
+          PY
+      - name: Commit update
+        run: |
+          git config user.name 'rebrops-del'
+          git config user.email 'rebrops@gmail.com'
+          git add index.html
+          git commit -m 'Improve crossed-out price visibility'
+          git push
