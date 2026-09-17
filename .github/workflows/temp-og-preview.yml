@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   update-og:
-    if: github.event.head_commit.message == 'Add temporary OG preview updater'
+    if: github.event.head_commit.message == 'Fix temporary OG preview updater'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -23,24 +23,26 @@ jobs:
           marker = '<link rel="canonical" href="https://noktena.ru/">'
           if 'property="og:image"' in s:
               raise SystemExit('OG metadata already present')
-          block = '''<link rel="canonical" href="https://noktena.ru/">
-<meta property="og:type" content="website">
-<meta property="og:locale" content="ru_RU">
-<meta property="og:site_name" content="НОКТЕНА">
-<meta property="og:title" content="НОКТЕНА — федеральная онлайн-сеть товаров для сна">
-<meta property="og:description" content="Онлайн-магазин матрасов и товаров для сна. Подберём подходящий вариант по размеру, жёсткости и бюджету. Доставка по городам России.">
-<meta property="og:url" content="https://noktena.ru/">
-<meta property="og:image" content="https://noktena.ru/assets/hero-noktena-final.png?v=20260917-og1">
-<meta property="og:image:secure_url" content="https://noktena.ru/assets/hero-noktena-final.png?v=20260917-og1">
-<meta property="og:image:type" content="image/png">
-<meta property="og:image:alt" content="НОКТЕНА — матрасы и товары для сна">
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="НОКТЕНА — федеральная онлайн-сеть товаров для сна">
-<meta name="twitter:description" content="Онлайн-магазин матрасов и товаров для сна. Подберём подходящий вариант по размеру, жёсткости и бюджету.">
-<meta name="twitter:image" content="https://noktena.ru/assets/hero-noktena-final.png?v=20260917-og1">'''
+          lines = [
+              marker,
+              '<meta property="og:type" content="website">',
+              '<meta property="og:locale" content="ru_RU">',
+              '<meta property="og:site_name" content="НОКТЕНА">',
+              '<meta property="og:title" content="НОКТЕНА — федеральная онлайн-сеть товаров для сна">',
+              '<meta property="og:description" content="Онлайн-магазин матрасов и товаров для сна. Подберём подходящий вариант по размеру, жёсткости и бюджету. Доставка по городам России.">',
+              '<meta property="og:url" content="https://noktena.ru/">',
+              '<meta property="og:image" content="https://noktena.ru/assets/hero-noktena-final.png?v=20260917-og1">',
+              '<meta property="og:image:secure_url" content="https://noktena.ru/assets/hero-noktena-final.png?v=20260917-og1">',
+              '<meta property="og:image:type" content="image/png">',
+              '<meta property="og:image:alt" content="НОКТЕНА — матрасы и товары для сна">',
+              '<meta name="twitter:card" content="summary_large_image">',
+              '<meta name="twitter:title" content="НОКТЕНА — федеральная онлайн-сеть товаров для сна">',
+              '<meta name="twitter:description" content="Онлайн-магазин матрасов и товаров для сна. Подберём подходящий вариант по размеру, жёсткости и бюджету.">',
+              '<meta name="twitter:image" content="https://noktena.ru/assets/hero-noktena-final.png?v=20260917-og1">',
+          ]
           if marker not in s:
               raise SystemExit('Canonical marker not found')
-          p.write_text(s.replace(marker, block, 1), encoding='utf-8')
+          p.write_text(s.replace(marker, '\n'.join(lines), 1), encoding='utf-8')
           PY
       - name: Commit update
         run: |
