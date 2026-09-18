@@ -1,0 +1,34 @@
+name: Backfill complete furniture galleries
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/backfill-full-furniture-images.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  backfill:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Install dependencies
+        run: pip install requests beautifulsoup4
+      - name: Fetch every Berhouse furniture image
+        run: python scripts/enrich_furniture_all_images.py
+      - name: Commit complete galleries
+        run: |
+          if git diff --quiet -- data/furniture.json; then
+            echo 'No gallery changes'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add data/furniture.json
+          git commit -m 'Add complete Berhouse bed and sofa galleries'
+          git pull --rebase origin main
+          git push origin main
