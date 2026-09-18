@@ -6,6 +6,7 @@ on:
     paths:
       - 'scripts/import_berhouse_furniture.py'
       - 'scripts/enrich_furniture_color_images.py'
+      - 'scripts/enrich_furniture_all_images.py'
       - 'scripts/sanitize_noktena_catalog.py'
       - 'scripts/polish_catalog_copy.py'
       - 'scripts/manual_catalog_overrides.py'
@@ -33,6 +34,8 @@ jobs:
         run: python scripts/import_berhouse_furniture.py
       - name: Add exact color-specific product photos
         run: python scripts/enrich_furniture_color_images.py
+      - name: Add complete Berhouse product galleries
+        run: python scripts/enrich_furniture_all_images.py
       - name: Sanitize public NOKTENA catalog
         run: python scripts/sanitize_noktena_catalog.py
       - name: Polish catalog copy and presentation text
@@ -45,7 +48,7 @@ jobs:
         run: python scripts/refresh_sofa_colors.py
       - name: Validate scripts
         run: |
-          python -m py_compile scripts/import_berhouse_furniture.py scripts/enrich_furniture_color_images.py scripts/sanitize_noktena_catalog.py scripts/polish_catalog_copy.py scripts/manual_catalog_overrides.py scripts/fix_furniture_colors.py scripts/refresh_sofa_colors.py
+          python -m py_compile scripts/import_berhouse_furniture.py scripts/enrich_furniture_color_images.py scripts/enrich_furniture_all_images.py scripts/sanitize_noktena_catalog.py scripts/polish_catalog_copy.py scripts/manual_catalog_overrides.py scripts/fix_furniture_colors.py scripts/refresh_sofa_colors.py
       - name: Commit imported catalog
         run: |
           git config user.name 'rebrops-del'
@@ -55,6 +58,6 @@ jobs:
             echo 'No catalog changes'
             exit 0
           fi
-          git commit -m 'Sync, sanitize and polish NOKTENA product catalog'
+          git commit -m 'Sync complete Berhouse furniture galleries'
           git pull --rebase origin main
           git push origin main
