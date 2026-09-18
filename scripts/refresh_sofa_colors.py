@@ -97,12 +97,9 @@ def main():
         product['variants']=fresh_variants
         product['colorImages']=new_map
 
-        images=list(product.get('images') or [])
-        for color in fresh_colors:
-            image=new_map[color]
-            if image not in images:
-                images.append(image)
-        product['images']=images
+        # colorImages is used when a customer selects a shade. Do not append
+        # those same-pose color/size variant images to the thumbnail gallery.
+        # The main gallery is rebuilt separately from Berhouse's real angles.
 
         if before != (product.get('colors'), product.get('variants'), product.get('colorImages')):
             changed += 1
