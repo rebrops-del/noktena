@@ -11,7 +11,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from import_berhouse_furniture import parse_product, clean, get
 
 DATA = Path('data/furniture.json')
-COLOR_RE = re.compile(r'(?:Цвет фасада|Цвет корпуса|Цвет)\s*:\s*([^;\n<]+)', re.I)
+COLOR_RE = re.compile(r'(?:Цвет фасада|Цвет корпуса|Цвет)\s*:\s*(.*?)(?=\s*;|\s+Наличие\s*:|$)', re.I)
 
 
 def uniq(values):
