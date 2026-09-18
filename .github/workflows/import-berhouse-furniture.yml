@@ -6,12 +6,12 @@ on:
     paths:
       - 'scripts/import_berhouse_furniture.py'
       - 'scripts/enrich_furniture_color_images.py'
-      - 'scripts/enrich_furniture_all_images.py'
       - 'scripts/sanitize_noktena_catalog.py'
       - 'scripts/polish_catalog_copy.py'
       - 'scripts/manual_catalog_overrides.py'
       - 'scripts/fix_furniture_colors.py'
       - 'scripts/refresh_sofa_colors.py'
+      - 'scripts/clean_furniture_galleries.py'
       - '.github/workflows/import-berhouse-furniture.yml'
 
 permissions:
@@ -34,8 +34,6 @@ jobs:
         run: python scripts/import_berhouse_furniture.py
       - name: Add exact color-specific product photos
         run: python scripts/enrich_furniture_color_images.py
-      - name: Add complete Berhouse product galleries
-        run: python scripts/enrich_furniture_all_images.py
       - name: Sanitize public NOKTENA catalog
         run: python scripts/sanitize_noktena_catalog.py
       - name: Polish catalog copy and presentation text
@@ -46,9 +44,11 @@ jobs:
         run: python scripts/fix_furniture_colors.py
       - name: Restore exact Berhouse sofa color names and exact variant photos
         run: python scripts/refresh_sofa_colors.py
+      - name: Remove duplicate size/color gallery photos
+        run: python scripts/clean_furniture_galleries.py
       - name: Validate scripts
         run: |
-          python -m py_compile scripts/import_berhouse_furniture.py scripts/enrich_furniture_color_images.py scripts/enrich_furniture_all_images.py scripts/sanitize_noktena_catalog.py scripts/polish_catalog_copy.py scripts/manual_catalog_overrides.py scripts/fix_furniture_colors.py scripts/refresh_sofa_colors.py
+          python -m py_compile scripts/import_berhouse_furniture.py scripts/enrich_furniture_color_images.py scripts/sanitize_noktena_catalog.py scripts/polish_catalog_copy.py scripts/manual_catalog_overrides.py scripts/fix_furniture_colors.py scripts/refresh_sofa_colors.py scripts/clean_furniture_galleries.py
       - name: Commit imported catalog
         run: |
           git config user.name 'rebrops-del'
@@ -58,6 +58,6 @@ jobs:
             echo 'No catalog changes'
             exit 0
           fi
-          git commit -m 'Sync complete Berhouse furniture galleries'
+          git commit -m 'Sync Berhouse furniture without duplicate gallery photos'
           git pull --rebase origin main
           git push origin main
