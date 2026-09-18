@@ -236,3 +236,4 @@
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});
   else init();
 })();
+// deployment refresh 2026-09-18
