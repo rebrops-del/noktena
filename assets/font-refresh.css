@@ -11,7 +11,7 @@ body{font-weight:400!important;font-feature-settings:"kern" 1,"liga" 1;text-rend
 .cta h2{font-size:30px!important;font-weight:600!important;letter-spacing:-.025em!important;line-height:1.08!important}
 .step b{font-size:17px!important;font-weight:600!important;line-height:1.25!important}
 .d b{font-size:23px!important;font-weight:600!important}
-.body h3,.f-card h3{font-size:21px!important;font-weight:600!important;letter-spacing:-.022em!important;line-height:1.18!important}
+.body h3,.f-card h3{font-size:20px!important;font-weight:600!important;letter-spacing:-.022em!important;line-height:1.18!important}
 .price,.f-price{font-size:30px!important;font-weight:650!important;letter-spacing:-.03em!important}
 .shop-tab b{font-weight:600!important}.shop-tab small{font-weight:400!important}
 .btn,.product-more-link,.navlinks,.top,.label,.tag,.hit-badge{font-weight:600!important}
@@ -19,22 +19,40 @@ body{font-weight:400!important;font-feature-settings:"kern" 1,"liga" 1;text-rend
 .f-card-summary,.networkbox p,.guidehead p,.step span,.speccontent{font-weight:400!important}
 .f-premium-specs b,.f-option-head b{font-weight:600!important}
 
-/* Product page */
-.pd-info-card h1{font-size:clamp(34px,3.4vw,47px)!important;font-weight:600!important;letter-spacing:-.035em!important;line-height:1.02!important}
-.pd-section-title h2{font-size:27px!important;font-weight:600!important;letter-spacing:-.025em!important;line-height:1.08!important}
-.pd-help-box h2{font-size:30px!important;font-weight:600!important}
-.pd-price{font-size:34px!important;font-weight:650!important;letter-spacing:-.035em!important}
-.pd-subtitle,.pd-description{font-weight:400!important}
-.pd-primary-btn,.pd-max-btn,.pd-back-top,.pd-color,.pd-size,.pd-select,.pd-spec b{font-weight:600!important}
-.pd-tag,.pd-kicker,.pd-price-caption,.pd-choice-head label{font-weight:600!important}
+/* Product page — compact, editorial and easy to scan. */
+.pd-info-card{padding:28px!important}
+.pd-info-card h1{font-size:clamp(31px,3vw,42px)!important;font-weight:600!important;letter-spacing:-.035em!important;line-height:1.06!important;margin-bottom:12px!important}
+.pd-kicker{font-size:9px!important;font-weight:500!important;letter-spacing:.14em!important}
+.pd-tag{font-size:9px!important;font-weight:500!important;letter-spacing:.06em!important}
+.pd-subtitle{font-size:12.5px!important;font-weight:400!important;line-height:1.75!important;color:#64756d!important;margin-bottom:20px!important}
+.pd-section-title h2{font-size:25px!important;font-weight:600!important;letter-spacing:-.025em!important;line-height:1.1!important}
+.pd-help-box h2{font-size:28px!important;font-weight:600!important}
+.pd-price{font-size:33px!important;font-weight:650!important;letter-spacing:-.035em!important}
+.pd-price-caption,.pd-choice-head label{font-weight:500!important}
+.pd-old-price{font-weight:500!important}
+.pd-discount{font-weight:600!important}
+.pd-status{font-weight:500!important}
+.pd-description{font-size:12.5px!important;line-height:1.85!important;color:#586b62!important;font-weight:400!important}
+.pd-spec{font-size:11px!important;padding:11px 0!important}
+.pd-spec span{color:#83918b!important;font-weight:400!important}
+.pd-spec b{color:#2f4d42!important;font-weight:500!important}
+.pd-primary-btn,.pd-max-btn,.pd-back-top,.pd-size,.pd-select{font-weight:500!important}
+
+/* Color is selected only inside an opened product; show elegant text labels instead of decorative dots. */
+.pd-color-dot{display:none!important}
+.pd-color{min-height:39px!important;padding:0 13px!important;border-radius:11px!important;font-size:10.5px!important;font-weight:500!important;background:#fff!important;color:#405a50!important}
+.pd-color.is-active{background:#173e32!important;color:#fff!important;border-color:#173e32!important;box-shadow:none!important}
+.pd-size{font-weight:500!important}
+.pd-select{font-weight:500!important}
 
 .hero-note{font-family:var(--noktena-font)!important;font-style:normal!important;font-weight:500!important;letter-spacing:-.018em!important}
 
 @media(max-width:620px){
   .hero h1{font-size:40px!important}
   .deliverybox h2,.networkbox h2,.guidehead h2,.head h2,.home-hits-head h2,.f-head h2{font-size:32px!important}
-  .body h3,.f-card h3{font-size:20px!important}
-  .pd-info-card h1{font-size:33px!important}
-  .pd-section-title h2{font-size:24px!important}
-  .pd-price{font-size:31px!important}
+  .body h3,.f-card h3{font-size:19px!important}
+  .pd-info-card{padding:21px!important}
+  .pd-info-card h1{font-size:29px!important}
+  .pd-section-title h2{font-size:23px!important}
+  .pd-price{font-size:30px!important}
 }
