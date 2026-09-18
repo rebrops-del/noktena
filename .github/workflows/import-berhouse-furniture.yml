@@ -6,6 +6,7 @@ on:
     paths:
       - 'scripts/import_berhouse_furniture.py'
       - 'scripts/enrich_furniture_color_images.py'
+      - 'scripts/sanitize_noktena_catalog.py'
       - '.github/workflows/import-berhouse-furniture.yml'
 
 permissions:
@@ -16,6 +17,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -23,18 +27,22 @@ jobs:
         run: pip install requests beautifulsoup4
       - name: Import beds and sofas
         run: python scripts/import_berhouse_furniture.py
-      - name: Add color-specific product photos
+      - name: Add exact color-specific product photos
         run: python scripts/enrich_furniture_color_images.py
+      - name: Sanitize public NOKTENA catalog
+        run: python scripts/sanitize_noktena_catalog.py
+      - name: Validate scripts
+        run: |
+          python -m py_compile scripts/import_berhouse_furniture.py scripts/enrich_furniture_color_images.py scripts/sanitize_noktena_catalog.py
       - name: Commit imported catalog
         run: |
           git config user.name 'rebrops-del'
           git config user.email 'rebrops@gmail.com'
-          git add data/furniture.json
+          git add data/furniture.json data/data1.json data/data2.json data/data3.json data/data4.json data/data5.json data/data6.json
           if git diff --cached --quiet; then
             echo 'No catalog changes'
             exit 0
           fi
-          git commit -m 'Sync Berhouse beds and sofas'
+          git commit -m 'Sync and sanitize NOKTENA product catalog'
           git pull --rebase origin main
           git push origin main
-# Premium catalog refresh 2026-09-18
