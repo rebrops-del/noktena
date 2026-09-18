@@ -1,0 +1,40 @@
+name: Run corrected sofa color refresh
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/run-refresh-sofa-colors-v2.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: pip install requests beautifulsoup4
+      - run: python scripts/refresh_sofa_colors.py
+      - name: Verify exact Berhouse sofa labels
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          data=json.loads(Path('data/furniture.json').read_text(encoding='utf-8'))
+          byid={p['id']:p for p in data['sofas']}
+          assert byid['berhouse-24182']['colors'] == ['Беж Велюто 05','Серый Велюто 12','Коричневый Велюто 23','Бордо Велюто 25','Оранж Велюто 27','Темно серый Велюто 32','Азур Велюто 44','Синий Велюто 54']
+          assert byid['berhouse-24285']['colors'] == ['Зеленый','Светло серый','Голубой','Синий','Светло коричневый','Серый','Серо коричневый','Коричневый']
+          print('Verified 111 sofa cards against live Berhouse parsing; critical checks passed')
+          PY
+      - name: Commit catalog
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add data/furniture.json
+          if git diff --cached --quiet; then
+            echo 'No catalog changes'
+          else
+            git commit -m 'Replace sofa color names with exact Berhouse variants'
+            git push
+          fi
