@@ -1,0 +1,13 @@
+/* NOKTENA — card display refinements */
+.hit-badge,
+.f-card-overlay-tags .hit{
+  background:#e5323d!important;
+  border-color:#e5323d!important;
+  color:#fff!important;
+}
+
+/* Product cards show one clean static image. Full gallery remains on product detail pages. */
+.f-card .f-gallery-nav,
+.f-card .f-gallery-count{
+  display:none!important;
+}
