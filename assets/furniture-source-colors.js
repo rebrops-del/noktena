@@ -97,16 +97,13 @@
     return mapping;
   }
 
-  function normalizeProduct(product) {
+  function normalizeBed(product) {
     if (!product || !Array.isArray(product.variants)) return product;
     const variants = product.variants;
     const variantColors = unique(variants.map(v => v?.color));
     const imageKeys = Object.keys(product.colorImages || {}).filter(Boolean);
     if (!imageKeys.length) return product;
 
-    // enrich_furniture_color_images writes the real Berhouse selector labels first.
-    // A previous sync may have appended internal aliases afterwards, so keep only
-    // the first selector-sized group as the customer-facing source of truth.
     const sourceCount = variantColors.length || imageKeys.length;
     const sourceColors = unique(imageKeys.slice(0, Math.min(sourceCount, imageKeys.length)));
     if (!sourceColors.length) return product;
@@ -125,12 +122,20 @@
     return { ...product, colors: sourceColors, variants: nextVariants };
   }
 
+  function preserveSofa(product) {
+    if (!product || !Array.isArray(product.variants)) return product;
+    const variantColors = unique(product.variants.map(v => v?.color));
+    return variantColors.length ? { ...product, colors: variantColors } : product;
+  }
+
   function normalizeCatalog(data) {
     if (!data || typeof data !== 'object') return data;
     return {
       ...data,
-      beds: Array.isArray(data.beds) ? data.beds.map(normalizeProduct) : [],
-      sofas: Array.isArray(data.sofas) ? data.sofas.map(normalizeProduct) : []
+      beds: Array.isArray(data.beds) ? data.beds.map(normalizeBed) : [],
+      // Sofa names in Berhouse variants are already the concise customer labels.
+      // Do not replace them with gallery captions such as «Серо бежевый».
+      sofas: Array.isArray(data.sofas) ? data.sofas.map(preserveSofa) : []
     };
   }
 
