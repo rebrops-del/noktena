@@ -1,0 +1,35 @@
+name: Inspect sofa color DOM
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/inspect-sofa-color-dom.yml'
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: pip install requests beautifulsoup4
+      - name: Inspect representative Berhouse sofa pages
+        run: |
+          python - <<'PY'
+          import requests,re
+          from bs4 import BeautifulSoup
+          for pid, needles in {
+            '24182':['Беж Велюто 05','Серый Велюто 12','Бордо Велюто 25','Азур Велюто 44'],
+            '24148':['Азур','Кемел','Биттер','Грей','Кофе'],
+          }.items():
+            url=f'https://m.berhouse.ru/eshop/item/{pid}/'
+            r=requests.get(url,headers={'User-Agent':'Mozilla/5.0'},timeout=30)
+            r.encoding=r.apparent_encoding
+            html=r.text
+            print('\n===== PRODUCT',pid,'=====')
+            print('len',len(html))
+            for needle in needles:
+              i=html.find(needle)
+              print('\n---',needle,'at',i,'---')
+              if i>=0:
+                snippet=html[max(0,i-1500):i+2500]
+                snippet=re.sub(r'\s+',' ',snippet)
+                print(snippet[:4000])
+          PY
