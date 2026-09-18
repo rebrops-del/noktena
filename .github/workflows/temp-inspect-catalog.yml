@@ -1,0 +1,27 @@
+name: Temporary catalog quality check
+
+on:
+  push:
+    paths:
+      - '.github/workflows/temp-inspect-catalog.yml'
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Inspect imported product data
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('data/furniture.json',encoding='utf-8'))
+          for p in [d['beds'][0], next(x for x in d['beds'] if 'Горизонт Мини' in x['title']), d['sofas'][0]]:
+              print('---')
+              print('TITLE:',p['title'])
+              print('SUMMARY:',p.get('summary'))
+              print('DESCRIPTION:',p.get('description','')[:1200].replace('\n',' | '))
+              print('COLORS:',p.get('colors'))
+              print('SIZES:',p.get('sizes'))
+              print('SPECS:',p.get('specs'))
+              print('VARIANT0:',(p.get('variants') or [None])[0])
+          PY
