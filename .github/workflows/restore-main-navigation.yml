@@ -1,0 +1,36 @@
+name: Restore main navigation
+on:
+  push:
+    paths:
+      - '.github/workflows/restore-main-navigation.yml'
+permissions:
+  contents: write
+jobs:
+  restore:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Restore header and catalog tabs mount
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          p = Path('index.html')
+          text = p.read_text(encoding='utf-8')
+          if 'id="shopTabsMount"' not in text:
+              marker = '<header class="hero" id="top">'
+              nav = '''<nav class="nav"><div class="wrap navin"><a class="brand" href="#top" aria-label="НОКТЕНА"><img class="noktena-logo-img" src="assets/logo-noktena-final.png?v=20260908-final2" alt="НОКТЕНА — федеральная онлайн-сеть" width="1500" height="460"></a><div class="navlinks"><a href="#catalog">Каталог</a><a href="#guide">Как выбрать</a><a href="#delivery">Доставка</a><a href="#about">О сети</a></div><a class="btn max-btn" href="https://max.ru/u/f9LHodD0cOKZqie3BJvn11xgsNvxJK_kFOqYtKyFuZ2uMitoxZIwNaH8-NY" target="_blank" rel="noopener"><img class="max-icon" src="https://max.ru/s/img/big-logo.png" alt="" aria-hidden="true"><span>Написать в MAX</span></a></div></nav>\n<div id="shopTabsMount"></div>\n'''
+              if marker not in text:
+                  raise SystemExit('Hero marker not found')
+              text = text.replace(marker, nav + marker, 1)
+              p.write_text(text, encoding='utf-8')
+          PY
+      - name: Commit restoration and remove workflow
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          if ! git diff --cached --quiet; then git commit -m "Restore header navigation and catalog tabs"; fi
+          git rm .github/workflows/restore-main-navigation.yml
+          git commit -m "Remove temporary navigation restore workflow"
+          git push
