@@ -1,4 +1,4 @@
-name: Temporary finalize furniture color photos
+name: Temporary correct furniture color photos
 
 on:
   push:
@@ -7,112 +7,78 @@ on:
 
 permissions:
   contents: write
-  actions: read
 
 jobs:
-  finalize:
+  correct:
     runs-on: ubuntu-latest
     steps:
-      - name: Wait for earlier furniture import
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          set -euo pipefail
-          RUN_ID=35336870844
-          for i in $(seq 1 180); do
-            status=$(curl -fsSL \
-              -H "Authorization: Bearer ${GH_TOKEN}" \
-              -H "Accept: application/vnd.github+json" \
-              "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/runs/${RUN_ID}" \
-              | python -c "import sys,json; print(json.load(sys.stdin).get('status','unknown'))")
-            echo "Earlier import status: ${status}"
-            if [ "${status}" = "completed" ]; then
-              break
-            fi
-            sleep 10
-          done
-          if [ "${status}" != "completed" ]; then
-            echo "Earlier import did not finish in time"
-            exit 1
-          fi
-
       - uses: actions/checkout@v4
         with:
           ref: main
           fetch-depth: 0
-
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-
       - name: Install dependencies
         run: pip install requests beautifulsoup4
-
-      - name: Remove intentionally excluded beds
+      - name: Correct source color label handling
         run: |
           python - <<'PY'
-          import json
           from pathlib import Path
-
-          path=Path('data/furniture.json')
-          data=json.loads(path.read_text(encoding='utf-8'))
-          excluded=[
-              'горизонт мини','екатеринбург мини','стандарт мини',
-              'мета с матрасом','эко стандарт','эко екатеринбург',
-          ]
-          def low(v): return str(v or '').lower().replace('ё','е')
-          before=len(data.get('beds',[]))
-          data['beds']=[p for p in data.get('beds',[]) if not any(x in low(p.get('title')) for x in excluded)]
-          after=len(data['beds'])
-          path.write_text(json.dumps(data,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
-          print(f'Beds: {before} -> {after}; removed {before-after}')
-          leftovers=[p.get('title') for p in data['beds'] if any(x in low(p.get('title')) for x in excluded)]
-          if leftovers:
-              raise SystemExit(f'Excluded beds remain: {leftovers}')
+          p=Path('scripts/enrich_furniture_color_images.py')
+          s=p.read_text(encoding='utf-8')
+          old='''def selected_label_from_block(block, control_name, value, known_label=""):\n    for control in parse_controls(block):\n        if control["name"] != control_name or "цвет" not in control["caption"].lower():\n            continue\n        for option in control["options"]:\n            if option["value"] == str(value) and option["label"]:\n                return option["label"]\n        for option in control["options"]:\n            if option["selected"] and option["label"]:\n                return option["label"]\n        caption = control["caption"]\n        low = caption.lower().replace("ё", "е")\n        prefixes = ["цвет фасада", "цвет корпуса", "цвет обивки", "цвет ткани", "цвет"]\n        for prefix in prefixes:\n            if low.startswith(prefix):\n                rest = clean(caption[len(prefix):].lstrip(" :-"))\n                if rest:\n                    return rest\n    return clean(known_label)\n'''
+          new='''def selected_label_from_block(block, control_name, value, known_label=""):\n    # When the source control already exposes a label (select option/title), it is\n    # the authoritative name for the value we just posted. Returned Berhouse\n    # markup may preselect the next option, so reading its selected label first\n    # can shift color names by one position.\n    known = clean(known_label)\n    generic = {"цвет", "фасада", "корпуса", "обивки", "ткани", "цвет фасада", "цвет корпуса", "цвет обивки", "цвет ткани"}\n    if known and known.lower().replace("ё", "е") not in generic:\n        return known\n\n    for control in parse_controls(block):\n        if control["name"] != control_name or "цвет" not in control["caption"].lower():\n            continue\n        caption = control["caption"]\n        low = caption.lower().replace("ё", "е")\n        prefixes = ["цвет фасада", "цвет корпуса", "цвет обивки", "цвет ткани", "цвет"]\n        for prefix in prefixes:\n            if low.startswith(prefix):\n                rest = clean(caption[len(prefix):].lstrip(" :-"))\n                if rest and rest.lower().replace("ё", "е") not in generic:\n                    return rest\n        for option in control["options"]:\n            if option["value"] == str(value) and option["label"]:\n                return option["label"]\n        for option in control["options"]:\n            if option["selected"] and option["label"]:\n                return option["label"]\n    return known\n'''
+          if old not in s:
+              if 'authoritative name for the value we just posted' not in s:
+                  raise SystemExit('Expected label function not found')
+          else:
+              s=s.replace(old,new,1)
+          p.write_text(s,encoding='utf-8')
           PY
-
-      - name: Map selectable colors to source product photos
+      - name: Rebuild exact color to photo mappings
         run: python scripts/enrich_furniture_color_images.py
-
-      - name: Validate final furniture data
+      - name: Validate mappings
         run: |
           python - <<'PY'
           import json
           from pathlib import Path
-
           data=json.loads(Path('data/furniture.json').read_text(encoding='utf-8'))
-          beds=data.get('beds',[]); sofas=data.get('sofas',[]); allp=beds+sofas
-          excluded=['горизонт мини','екатеринбург мини','стандарт мини','мета с матрасом','эко стандарт','эко екатеринбург']
-          def low(v): return str(v or '').lower().replace('ё','е')
-          bad=[p.get('title') for p in beds if any(x in low(p.get('title')) for x in excluded)]
+          beds=data.get('beds',[]);sofas=data.get('sofas',[]);allp=beds+sofas
           mapped=[p for p in allp if p.get('colorImages')]
-          mappings=sum(len(p.get('colorImages') or {}) for p in mapped)
+          total=sum(len(p.get('colorImages') or {}) for p in mapped)
+          excluded=['горизонт мини','екатеринбург мини','стандарт мини','мета с матрасом','эко стандарт','эко екатеринбург']
+          bad=[p.get('title') for p in beds if any(x in str(p.get('title','')).lower().replace('ё','е') for x in excluded)]
+          if bad: raise SystemExit(f'Excluded beds returned: {bad}')
+          if len(mapped)<150 or total<1000: raise SystemExit(f'Too few mappings: {len(mapped)}, {total}')
           sample=next((p for p in allp if str(p.get('sourceId'))=='24190'),None)
-          print('Beds:',len(beds),'Sofas:',len(sofas),'Mapped products:',len(mapped),'Color-photo mappings:',mappings)
           if sample:
-              print('Sample 24190 mappings:',sample.get('colorImages'))
-          if bad:
-              raise SystemExit(f'Excluded beds found: {bad}')
-          if len(mapped) < 10 or mappings < 30:
-              raise SystemExit('Too few verified color-photo mappings')
-          if sample and len(sample.get('colorImages') or {}) < 4:
-              raise SystemExit('Known sample 24190 has too few color mappings')
-          for product in mapped:
-              images=set(product.get('images') or [])
-              missing=[url for url in (product.get('colorImages') or {}).values() if url not in images]
-              if missing:
-                  raise SystemExit(f"Color images not in gallery for {product.get('title')}: {missing[:2]}")
+              m=sample.get('colorImages') or {}
+              expected={
+                'Бежевый':'24190_420811.jpg',
+                'Белый':'24190_420791.jpg',
+                'Бирюзовый':'24190_420796.jpg',
+                'Бордо':'24190_420792.jpg',
+                'Коричневый':'24190_420813.jpg',
+                'Светло серый':'24190_420793.jpg',
+                'Серый':'24190_420789.jpg',
+                'Темно серый':'24190_420790.jpg',
+              }
+              print('Sample 24190:',m)
+              for color,ending in expected.items():
+                  if color not in m or not str(m[color]).endswith(ending):
+                      raise SystemExit(f'Incorrect 24190 mapping for {color}: {m.get(color)}')
+          for p in mapped:
+              images=set(p.get('images') or [])
+              if any(url not in images for url in (p.get('colorImages') or {}).values()):
+                  raise SystemExit(f"Mapped photo missing from detail gallery: {p.get('title')}")
+          print(f'Validated beds={len(beds)}, sofas={len(sofas)}, mapped_products={len(mapped)}, mappings={total}')
           PY
-
-      - name: Commit final catalog
+      - name: Commit corrected mappings
         run: |
           git config user.name 'rebrops-del'
           git config user.email 'rebrops@gmail.com'
-          git add data/furniture.json
-          if git diff --cached --quiet; then
-            echo 'No furniture data changes'
-            exit 0
-          fi
-          git commit -m 'Map furniture colors to source product photos'
+          git add scripts/enrich_furniture_color_images.py data/furniture.json
+          git commit -m 'Correct furniture color photo mappings'
           git pull --rebase origin main
           git push origin main
