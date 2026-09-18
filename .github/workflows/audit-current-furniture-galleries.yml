@@ -21,13 +21,14 @@ jobs:
           from urllib.parse import urlparse
           data=json.load(open('data/furniture.json',encoding='utf-8'))
           products=list(data.get('beds',[]))+list(data.get('sofas',[]))
-          for sid in ['13131','20778','24182']:
+          for sid in ['13131','20778','24182','13128']:
               p=next((x for x in products if str(x.get('sourceId'))==sid),None)
               print('\n===',sid,p.get('title') if p else 'NOT FOUND','===')
               if not p: continue
               imgs=p.get('images') or []
-              print('images',len(imgs))
-              for u in imgs: print(' IMG',urlparse(u).path.rsplit('/',1)[-1])
+              names=[urlparse(u).path.rsplit('/',1)[-1] for u in imgs]
+              print('images',len(imgs),'unique_urls',len(set(imgs)),'unique_names',len(set(names)))
+              for name in names: print(' IMG',name)
               print('colors',len(p.get('colors') or []),p.get('colors'))
               cmap=p.get('colorImages') or {}
               print('colorImages',len(cmap))
