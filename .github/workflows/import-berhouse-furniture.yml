@@ -34,4 +34,4 @@ jobs:
           git commit -m 'Sync Berhouse beds and sofas'
           git pull --rebase origin main
           git push origin main
-# Gallery importer refreshed 2026-09-18
+# Clean gallery refresh 2026-09-18
