@@ -133,3 +133,4 @@ function mattressDetailsMarkup(x){const d=mattressDetailsData(x);const compositi
           git rm .github/workflows/format-mattress-specs.yml
           git commit -m 'Structure mattress composition and characteristics'
           git push origin main
+# trigger
