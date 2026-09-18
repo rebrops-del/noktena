@@ -1,0 +1,35 @@
+name: Audit current furniture galleries
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/audit-current-furniture-galleries.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Print representative gallery composition
+        run: |
+          python - <<'PY'
+          import json
+          from urllib.parse import urlparse
+          data=json.load(open('data/furniture.json',encoding='utf-8'))
+          products=list(data.get('beds',[]))+list(data.get('sofas',[]))
+          for sid in ['13131','20778','24182']:
+              p=next((x for x in products if str(x.get('sourceId'))==sid),None)
+              print('\n===',sid,p.get('title') if p else 'NOT FOUND','===')
+              if not p: continue
+              imgs=p.get('images') or []
+              print('images',len(imgs))
+              for u in imgs: print(' IMG',urlparse(u).path.rsplit('/',1)[-1])
+              print('colors',len(p.get('colors') or []),p.get('colors'))
+              cmap=p.get('colorImages') or {}
+              print('colorImages',len(cmap))
+              for k,u in cmap.items(): print(' CLR',k,'=>',urlparse(u).path.rsplit('/',1)[-1])
+          PY
