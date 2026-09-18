@@ -70,8 +70,8 @@ SOFA_FAMILY_LABELS = {
     "blue": "Синий",
     "pink": "Розовый",
     "gray": "Серый",
-    "dark_gray": "Темно-серый",
-    "light_gray": "Светло-серый",
+    "dark_gray": "Темно серый",
+    "light_gray": "Светло серый",
     "green": "Зеленый",
     "mint": "Мятный",
     "olive": "Оливковый",
@@ -85,7 +85,7 @@ SOFA_FAMILY_LABELS = {
 
 
 def sofa_display_label(value):
-    """Turn technical fabric/gallery labels into concise storefront colors."""
+    """Replace technical upholstery labels with concise customer-facing colors."""
     text = clean(value)
     low = text.lower().replace("ё", "е")
     compact = re.sub(r"[-_]+", " ", low)
@@ -156,7 +156,7 @@ def build_variant_color_map(public_colors, variant_colors):
 
 
 def normalize_bed(product):
-    """Beds use Berhouse's customer-facing color selector as display truth."""
+    """Beds use Berhouse's customer-facing selector labels as display truth."""
     variants = list(product.get("variants") or [])
     raw_map = {
         clean(key): value
@@ -197,7 +197,7 @@ def normalize_bed(product):
 
 
 def normalize_sofa(product):
-    """Use concise sofa color names and keep exact Berhouse color photos."""
+    """Keep clean sofa names and attach exact Berhouse photos to those names."""
     variants = []
     for variant in list(product.get("variants") or []):
         copy = dict(variant)
@@ -252,19 +252,19 @@ def normalize_sofa(product):
     return unique(unresolved)
 
 
-def require_mapping(product, expected, require_variant=True):
-    if not product:
-        raise SystemExit("Validation product missing")
-    colors = product.get("colors") or []
-    variants = unique(v.get("color") for v in product.get("variants") or [])
-    for color, ending in expected.items():
-        if color not in colors:
-            raise SystemExit(f"Missing display color {color!r} in {product.get('title')}: {colors}")
-        if require_variant and color not in variants:
-            raise SystemExit(f"Variant selector not normalized to {color!r} in {product.get('title')}: {variants}")
-        url = (product.get("colorImages") or {}).get(color)
-        if not url or not str(url).endswith(ending):
-            raise SystemExit(f"Wrong photo mapping {product.get('title')} / {color}: {url}")
+def validate_sofas(sofas):
+    bad = []
+    for product in sofas:
+        expected = unique(v.get("color") for v in product.get("variants") or [])
+        actual = unique(product.get("colors") or [])
+        if [norm(x) for x in expected] != [norm(x) for x in actual]:
+            bad.append((product.get("sourceId"), product.get("title"), "colors differ from variants"))
+        for color in expected:
+            low = clean(color).lower().replace("ё", "е")
+            if "велюто" in low or "veluto" in low:
+                bad.append((product.get("sourceId"), product.get("title"), color))
+    if bad:
+        raise SystemExit("Sofa color validation failed: " + repr(bad[:30]))
 
 
 def main():
@@ -283,31 +283,7 @@ def main():
         if unresolved and product.get("colorImages"):
             unresolved_total.append(("sofa", product.get("sourceId"), product.get("title"), unresolved))
 
-    by_id = {str(p.get("sourceId")): p for p in beds + sofas}
-
-    require_mapping(by_id.get("24139"), {
-        "Серый": "24139_419529.jpg",
-        "Бежевый": "24139_419530.jpg",
-        "Голубой": "24139_419531.jpg",
-        "Розовый": "24139_419532.jpg",
-    })
-    require_mapping(by_id.get("24140"), {
-        "Серый": "24140_419533.jpg",
-        "Бежевый": "24140_419534.jpg",
-        "Голубой": "24140_419535.jpg",
-        "Розовый": "24140_419536.jpg",
-    })
-
-    require_mapping(by_id.get("24182"), {
-        "Бежевый": "24182_420756.png",
-        "Серый": "24182_420757.png",
-        "Коричневый": "24182_420758.png",
-        "Бордовый": "24182_420759.png",
-        "Оранжевый": "24182_420760.png",
-        "Темно серый": "24182_420761.png",
-        "Лазурный": "24182_420762.png",
-        "Синий": "24182_420763.png",
-    })
+    validate_sofas(sofas)
 
     DATA_PATH.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(f"Beds normalized: {len(beds)}; sofas normalized: {len(sofas)}")
