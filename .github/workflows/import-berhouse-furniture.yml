@@ -8,6 +8,7 @@ on:
       - 'scripts/enrich_furniture_color_images.py'
       - 'scripts/sanitize_noktena_catalog.py'
       - 'scripts/polish_catalog_copy.py'
+      - 'scripts/manual_catalog_overrides.py'
       - '.github/workflows/import-berhouse-furniture.yml'
 
 permissions:
@@ -34,9 +35,11 @@ jobs:
         run: python scripts/sanitize_noktena_catalog.py
       - name: Polish catalog copy and presentation text
         run: python scripts/polish_catalog_copy.py
+      - name: Apply manual product copy overrides
+        run: python scripts/manual_catalog_overrides.py
       - name: Validate scripts
         run: |
-          python -m py_compile scripts/import_berhouse_furniture.py scripts/enrich_furniture_color_images.py scripts/sanitize_noktena_catalog.py scripts/polish_catalog_copy.py
+          python -m py_compile scripts/import_berhouse_furniture.py scripts/enrich_furniture_color_images.py scripts/sanitize_noktena_catalog.py scripts/polish_catalog_copy.py scripts/manual_catalog_overrides.py
       - name: Commit imported catalog
         run: |
           git config user.name 'rebrops-del'
