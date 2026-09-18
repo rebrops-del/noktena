@@ -9,21 +9,18 @@ jobs:
   inspect:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
       - name: Inspect color JavaScript
         run: |
+          curl -fsSL 'https://m.berhouse.ru/files/js/full.js?v=230404094100' -o /tmp/full.js
           python - <<'PY'
-          import requests
-          js=requests.get('https://m.berhouse.ru/files/js/full.js?v=230404094100',headers={'User-Agent':'Mozilla/5.0'},timeout=30).text
+          js=open('/tmp/full.js',encoding='utf-8',errors='replace').read()
           print('LEN',len(js))
           for key in ['cobmos','combination_id','product-price','attribute_select','data-value','/eshop/','color']:
               print('\n===',key,'===')
               pos=0
-              for _ in range(12):
+              for _ in range(15):
                   i=js.lower().find(key.lower(),pos)
                   if i<0: break
-                  print(js[max(0,i-900):i+1800])
+                  print(js[max(0,i-1000):i+2200])
                   pos=i+len(key)
           PY
