@@ -1,0 +1,35 @@
+name: Clean furniture galleries
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/clean-furniture-galleries.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  clean:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Install dependencies
+        run: pip install requests beautifulsoup4
+      - name: Rebuild galleries without duplicate size/color combinations
+        run: python scripts/clean_furniture_galleries.py
+      - name: Commit cleaned galleries
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add data/furniture.json
+          if git diff --cached --quiet; then
+            echo 'No gallery cleanup needed'
+            exit 0
+          fi
+          git commit -m 'Remove duplicate furniture gallery photos'
+          git pull --rebase origin main
+          git push origin main
