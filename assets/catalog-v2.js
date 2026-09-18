@@ -3,7 +3,7 @@
   const MAX_LINK='https://max.ru/u/f9LHodD0cOKZqie3BJvn11xgsNvxJK_kFOqYtKyFuZ2uMitoxZIwNaH8-NY';
   const MAX_ICON='https://max.ru/s/img/big-logo.png';
   const PAGE_SIZE=12;
-  const views=new Set(['home','mattresses','beds','sofas','guide']);
+  const views=new Set(['home','mattresses','beds','sofas','delivery','guide']);
   const state={data:{beds:[],sofas:[]},page:{beds:1,sofas:1},query:{beds:'',sofas:''},sort:{beds:'price-asc',sofas:'price-asc'},subtype:'',gallery:new Map(),loaded:false};
   const $=(s,r=document)=>r.querySelector(s);
   const $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
@@ -25,6 +25,7 @@
       <a class="shop-tab" data-shop-view="mattresses" href="#mattresses"><span class="shop-tab-icon">${ICONS.mattress}</span><span><b>Матрасы</b><small>для сна</small></span></a>
       <a class="shop-tab" data-shop-view="beds" href="#beds"><span class="shop-tab-icon">${ICONS.bed}</span><span><b>Кровати</b><small>для спальни</small></span></a>
       <a class="shop-tab" data-shop-view="sofas" href="#sofas"><span class="shop-tab-icon">${ICONS.sofa}</span><span><b>Диваны</b><small>для отдыха</small></span></a>
+      <a class="shop-tab" data-shop-view="delivery" href="#delivery"><span class="shop-tab-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6.5h11v10H3z"/><path d="M14 10h3.4l3.1 3.2v3.3H14z"/><circle cx="7" cy="18" r="1.8"/><circle cx="17.5" cy="18" r="1.8"/></svg></span><span><b>Доставка</b><small>и подъём</small></span></a>
       <a class="shop-tab" data-shop-view="guide" href="#guide"><span class="shop-tab-icon">${ICONS.guide}</span><span><b>Как выбрать</b><small>инструкция</small></span></a>
     </div></div>`;
   }
@@ -34,7 +35,7 @@
   function show(el,on){if(el)el.classList.toggle('shop-view-hidden',!on)}
   function applyView(view,{scroll=true}={}){
     if(!views.has(view))view='home';const s=sections();
-    show(s.hero,view==='home');show(s.delivery,view==='home');show(s.about,view==='home');show(s.guide,view==='guide');show(s.hits,view==='home');show(s.catalog,view==='mattresses');show(s.furniture,view==='beds'||view==='sofas');show(s.cta,true);
+    show(s.hero,view==='home');show(s.delivery,view==='delivery');show(s.about,view==='home');show(s.guide,view==='guide');show(s.hits,view==='home');show(s.catalog,view==='mattresses');show(s.furniture,view==='beds'||view==='sofas');show(s.cta,true);
     $$('[data-shop-view]').forEach(a=>a.classList.toggle('is-active',a.dataset.shopView===view));document.body.dataset.shopView=view;
     if(view==='beds'||view==='sofas')renderFurniture(view);if(view==='home')renderHomeHits();if(scroll)window.scrollTo({top:0,behavior:'smooth'});
   }
