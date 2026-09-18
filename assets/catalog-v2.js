@@ -53,6 +53,13 @@
     const vars=Array.isArray(product.variants)?product.variants:[];
     return vars.find(v=>(!color||v.color===color)&&(!size||v.size===size))||vars.find(v=>(!size||v.size===size))||vars.find(v=>(!color||v.color===color))||null;
   }
+  function cardDetailsMarkup(product){
+    const entries=Object.entries(product.specs||{}).filter(([k,v])=>k&&v);
+    const description=String(product.description||'').trim();
+    if(!entries.length&&!description)return '';
+    return `<details class="f-card-details"><summary><span>Описание и характеристики</span><span class="f-card-details-plus">+</span></summary><div class="f-card-details-body">${description?`<p>${esc(description)}</p>`:''}${entries.length?`<dl>${entries.map(([k,v])=>`<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>`:''}<a href="${esc(detailUrl(product))}" class="f-card-details-link">Все данные о модели →</a></div></details>`;
+  }
+
   function cardMarkup(product){
     const imgs=uniq(product.images);const first=imgs[0]||'assets/hero-noktena-final.png?v=20260908-final2';const quick=chooseSpecs(product);const category=product.category==='beds'?'Кровать':'Диван';const link=detailUrl(product);
     const colors=uniq(product.colors?.length?product.colors:(product.variants||[]).map(v=>v.color));const sizes=uniq(product.sizes?.length?product.sizes:(product.variants||[]).map(v=>v.size));const initial=preferredVariant(product,colors[0]||'',sizes[0]||'');const price=initial?.price||product.price;
@@ -70,6 +77,7 @@
         <h3 title="${esc(product.title)}">${esc(product.title)}</h3>
         ${shortText(product)?`<p class="f-card-summary">${esc(shortText(product))}</p>`:''}
         ${quick.length?`<div class="f-premium-specs">${quick.map(([k,v])=>`<div><span>${esc(k)}</span><b>${esc(v)}</b></div>`).join('')}</div>`:''}
+        ${cardDetailsMarkup(product)}
         ${colors.length?`<div class="f-option"><div class="f-option-head"><span>Цвет</span><b class="f-color-name">${esc(colors[0])}</b></div><div class="f-color-list">${colors.slice(0,8).map((c,i)=>`<button type="button" class="f-color ${i===0?'is-active':''}" data-card-color="${esc(c)}" title="${esc(c)}" aria-label="Цвет ${esc(c)}" style="--swatch:${colorCss(c)}"></button>`).join('')}${colors.length>8?`<span class="f-more-options">+${colors.length-8}</span>`:''}</div></div>`:''}
         ${sizes.length?`<div class="f-option"><div class="f-option-head"><span>${product.category==='beds'?'Спальное место':'Размер'}</span><b>${sizes.length} ${sizes.length===1?'вариант':'вариантов'}</b></div><select class="f-size-select" data-card-size>${sizes.map((s,i)=>`<option value="${esc(s)}" ${i===0?'selected':''}>${esc(s)}</option>`).join('')}</select></div>`:''}
         <div class="f-card-bottom">
