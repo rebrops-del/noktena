@@ -88,7 +88,14 @@
   }
 
   function updateFurnitureSelection(){
-    if(!furnitureProduct)return;updateFurnitureImage();const variant=variantFor(furnitureProduct,selectedColor,selectedSize);const price=furniturePrice(furnitureProduct,variant,selectedSize);const p=$('#pdFurniturePrice'),op=$('#pdFurnitureOldPrice');if(p)p.textContent=rub(price);if(op)op.textContent=rub(oldPrice(price));const extra=$('#pdVariantSpecs');if(extra){const attrs=variant?.attributes||{};const entries=Object.entries(attrs).filter(([k,v])=>k&&v&&!['Цвет фасада','Спальное место','Размер'].includes(k)&&!/производител|артикул|sku/i.test(k));extra.innerHTML=entries.length?`<div class="pd-variant-note"><b>Выбранный вариант</b><div>${selectedColor?`<span>Цвет: ${esc(selectedColor)}</span>`:''}${selectedSize?`<span>Размер: ${esc(selectedSize)}</span>`:''}${entries.slice(0,4).map(([k,v])=>`<span>${esc(k)}: ${esc(v)}</span>`).join('')}</div></div>`:'';}
+    if(!furnitureProduct)return;updateFurnitureImage();const variant=variantFor(furnitureProduct,selectedColor,selectedSize);const price=furniturePrice(furnitureProduct,variant,selectedSize);const p=$('#pdFurniturePrice'),op=$('#pdFurnitureOldPrice');if(p)p.textContent=rub(price);if(op)op.textContent=rub(oldPrice(price));
+    const subtitle=$('.pd-subtitle');
+    if(subtitle&&furnitureProduct.category==='beds'&&selectedSize){
+      const base=String(furnitureProduct.summary||String(furnitureProduct.description||'').split(/(?<=[.!?])\s+/)[0]||'').trim();
+      const synced=base.match(/Спальное место\s*[—-]/i)?base.replace(/Спальное место\s*[—-]\s*[^.]+\.?\s*/i,`Спальное место — ${selectedSize}. `):`Спальное место — ${selectedSize}. ${base}`;
+      subtitle.textContent=synced.trim();
+    }
+    const extra=$('#pdVariantSpecs');if(extra){const attrs=variant?.attributes||{};const entries=Object.entries(attrs).filter(([k,v])=>k&&v&&!['Цвет фасада','Спальное место','Размер'].includes(k)&&!/производител|артикул|sku/i.test(k));extra.innerHTML=entries.length?`<div class="pd-variant-note"><b>Выбранный вариант</b><div>${selectedColor?`<span>Цвет: ${esc(selectedColor)}</span>`:''}${selectedSize?`<span>Размер: ${esc(selectedSize)}</span>`:''}${entries.slice(0,4).map(([k,v])=>`<span>${esc(k)}: ${esc(v)}</span>`).join('')}</div></div>`:'';}
   }
 
   function renderMattress(product){
