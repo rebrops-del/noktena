@@ -1,4 +1,4 @@
-name: Temporary Berhouse color mapping test
+name: Temporary Berhouse sequential combo test
 
 on:
   push:
@@ -10,56 +10,35 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
+        with: {python-version: '3.12'}
       - run: pip install requests beautifulsoup4
-      - name: Test color mappings
+      - name: Test sequential combos
         run: |
           python - <<'PY'
-          import requests, re
+          import requests
           from bs4 import BeautifulSoup
           from urllib.parse import urljoin
-          S=requests.Session();S.headers['User-Agent']='Mozilla/5.0'
-          for pid in ['23284','24190']:
-            url=f'https://m.berhouse.ru/eshop/item/{pid}/'
-            html=S.get(url,timeout=30).text;soup=BeautifulSoup(html,'html.parser')
-            photos={a.get('id','')[5:]:urljoin(url,a.get('href')) for a in soup.select('.thumbs a[id^="color"]') if a.get('href')}
-            block=soup.select_one('#cobmos')
-            print('\nPID',pid,'photos',len(photos))
-            controls=[]
-            if block:
-              for node in block.select('.attribute_select, .list'):
-                caption=''
-                prev=node.find_previous_sibling(class_='caption')
-                if prev: caption=' '.join(prev.get_text(' ',strip=True).split())
-                if 'attribute_select' in (node.get('class') or []):
-                  sel=node.find('select')
-                  if sel:
-                    opts=[(o.get('value',''), ' '.join(o.get_text(' ',strip=True).split())) for o in sel.find_all('option')]
-                    controls.append((caption,sel.get('name'),opts,'select'))
-                elif 'list' in (node.get('class') or []):
-                  hidden=node.find('input',{'type':'hidden'})
-                  if hidden:
-                    opts=[]
-                    for a in node.find_all('a'):
-                      val=a.get('data-value'); lab=a.get('title') or ' '.join(a.get_text(' ',strip=True).split())
-                      if val: opts.append((val,lab))
-                    controls.append((caption,hidden.get('name'),opts,'list'))
-            for i,(cap,name,opts,kind) in enumerate(controls): print(i,cap,name,kind,opts[:8])
-            ci=next((i for i,c in enumerate(controls) if 'цвет' in c[0].lower()),None)
-            if ci is None: continue
-            base={}
-            for j in range(ci):
-              cap,name,opts,kind=controls[j]
-              if opts: base[name]=opts[0][0]
-            cap,cname,copts,kind=controls[ci]
-            print('COLOR CONTROL',cap,cname,'base',base)
-            for val,lab in copts[:8]:
-              fields={**base,cname:val}
-              files={k:(None,str(v)) for k,v in fields.items()}
-              r=S.post(f'https://m.berhouse.ru/eshop/getcombo/{pid}',files=files,timeout=30)
-              try: d=r.json()
-              except Exception: print('ERR',lab,r.status_code,r.text[:300]);continue
-              cid=str(d.get('combinationId',''))
-              print(lab,'=> cid',cid,'photo',photos.get(cid),'price',d.get('price'),'avail',d.get('avail'))
+          S=requests.Session();S.headers.update({'User-Agent':'Mozilla/5.0','X-Requested-With':'XMLHttpRequest'})
+          pid='23284'; url=f'https://m.berhouse.ru/eshop/item/{pid}/'; html=S.get(url,timeout=30).text
+          soup=BeautifulSoup(html,'html.parser'); photos={a.get('id','')[5:]:urljoin(url,a.get('href')) for a in soup.select('.thumbs a[id^="color"]') if a.get('href')}
+          def post(fields):
+            files={k:(None,str(v)) for k,v in fields.items()}
+            d=S.post(f'https://m.berhouse.ru/eshop/getcombo/{pid}',files=files,timeout=30).json()
+            print('POST',fields,'CID',d.get('combinationId'),'PRICE',d.get('price'),'AVAIL',d.get('avail'))
+            b=BeautifulSoup(d.get('cominationsBlock') or '', 'html.parser')
+            for sel in b.select('select'):
+              print(' SELECT',sel.get('name'),[(o.get('value'),o.get_text(' ',strip=True)) for o in sel.find_all('option')][:12])
+            for li in b.select('.list'):
+              h=li.find('input',{'type':'hidden'});print(' LIST',h.get('name') if h else None,[(a.get('data-value'),a.get('title')) for a in li.find_all('a')][:12])
+            return d,b
+          d,b=post({'attr11':'5759'})
+          d,b=post({'attr11':'5759','attr7':'3020'})
+          # get colors from returned block after material
+          li=b.select_one('.list');
+          if li:
+            h=li.find('input',{'type':'hidden'}); name=h.get('name')
+            for a in li.find_all('a')[:10]:
+              val=a.get('data-value');lab=a.get('title');
+              if val:
+                d2,_=post({'attr11':'5759','attr7':'3020',name:val});cid=str(d2.get('combinationId',''));print('MAP',lab,cid,photos.get(cid))
           PY
