@@ -1,4 +1,4 @@
-name: Temporary Berhouse color control inspect
+name: Temporary Berhouse color JS inspect
 
 on:
   push:
@@ -12,28 +12,18 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Install dependencies
-        run: pip install requests beautifulsoup4
-      - name: Inspect source markup and scripts
+      - name: Inspect color JavaScript
         run: |
           python - <<'PY'
-          import re, requests
-          from bs4 import BeautifulSoup
-          url='https://m.berhouse.ru/eshop/item/23284/'
-          html=requests.get(url,headers={'User-Agent':'Mozilla/5.0'},timeout=30).text
-          soup=BeautifulSoup(html,'html.parser')
-          block=soup.select_one('#cobmos')
-          print('=== COBMOS ===')
-          print(str(block)[:15000])
-          print('\n=== SCRIPT SRCS ===')
-          for s in soup.find_all('script',src=True): print(s['src'])
-          print('\n=== INLINE HINTS ===')
-          for key in ['cobmos','attr12','data-value','color0','eshop/item','ajax']:
-              print('\nKEY',key)
+          import requests
+          js=requests.get('https://m.berhouse.ru/files/js/full.js?v=230404094100',headers={'User-Agent':'Mozilla/5.0'},timeout=30).text
+          print('LEN',len(js))
+          for key in ['cobmos','combination_id','product-price','attribute_select','data-value','/eshop/','color']:
+              print('\n===',key,'===')
               pos=0
-              for _ in range(6):
-                  i=html.lower().find(key.lower(),pos)
+              for _ in range(12):
+                  i=js.lower().find(key.lower(),pos)
                   if i<0: break
-                  print(html[max(0,i-700):i+1200].replace('\n',' ')[:1900])
+                  print(js[max(0,i-900):i+1800])
                   pos=i+len(key)
           PY
