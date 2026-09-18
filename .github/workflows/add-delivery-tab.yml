@@ -1,0 +1,71 @@
+name: Add delivery tab
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/add-delivery-tab.yml'
+permissions:
+  contents: write
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Update delivery navigation and content
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+
+          js_path=Path('assets/catalog-v2.js')
+          html_path=Path('index.html')
+          js=js_path.read_text(encoding='utf-8')
+          html=html_path.read_text(encoding='utf-8')
+
+          js=js.replace("const views=new Set(['home','mattresses','beds','sofas','guide']);", "const views=new Set(['home','mattresses','beds','sofas','delivery','guide']);")
+
+          delivery_tab='''      <a class="shop-tab" data-shop-view="delivery" href="#delivery"><span class="shop-tab-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6.5h11v10H3z"/><path d="M14 10h3.4l3.1 3.2v3.3H14z"/><circle cx="7" cy="18" r="1.8"/><circle cx="17.5" cy="18" r="1.8"/></svg></span><span><b>Доставка</b><small>и подъём</small></span></a>\n'''
+          guide_tab='''      <a class="shop-tab" data-shop-view="guide" href="#guide"><span class="shop-tab-icon">${ICONS.guide}</span><span><b>Как выбрать</b><small>инструкция</small></span></a>'''
+          if 'data-shop-view="delivery"' not in js:
+              if guide_tab not in js:
+                  raise SystemExit('guide tab marker not found')
+              js=js.replace(guide_tab, delivery_tab+guide_tab, 1)
+
+          js=js.replace("show(s.hero,view==='home');show(s.delivery,view==='home');show(s.about,view==='home');", "show(s.hero,view==='home');show(s.delivery,view==='delivery');show(s.about,view==='home');")
+          js_path.write_text(js,encoding='utf-8')
+
+          delivery_section='''<section class="section delivery" id="delivery"><div class="wrap"><div class="deliverybox"><h2>Доставка и подъём</h2><p class="delivery-lead">Условия доставки и подъёма заказов по Екатеринбургу. Стоимость подъёма зависит от способа подъёма и типа товара.</p><div class="dgrid"><div class="d">Доставка<b>1 500 ₽</b><small>до подъезда по г. Екатеринбург</small></div><div class="d">Грузовой лифт<b>600 ₽</b><small>подъём на этаж при наличии грузового лифта</small></div><div class="d">По лестнице<b>300 ₽ / этаж</b><small>ручной подъём по лестнице</small></div><div class="d">Подъём дивана<b>+400 ₽</b><small>разовая доплата к базовой стоимости подъёма дивана — на грузовом лифте или по лестнице</small></div><div class="d">График<b>Вторник / Пятница</b><small>плановые дни доставки</small></div></div></div></div></section>'''
+          html,new_count=re.subn(r'<section class="section delivery" id="delivery">.*?</section>',delivery_section,html,count=1,flags=re.S)
+          if new_count!=1:
+              raise SystemExit('delivery section not found')
+
+          html=html.replace('.dgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}', '.dgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}')
+          if '.delivery-lead{' not in html:
+              html=html.replace('.deliverybox h2{font-size:31px;margin:0 0 18px}', '.deliverybox h2{font-size:31px;margin:0 0 8px}.delivery-lead{margin:0 0 20px;color:#667a70;font-size:13px;line-height:1.55;max-width:760px}')
+          html=re.sub(r'assets/catalog-v2\.js\?v=[^"\']+', 'assets/catalog-v2.js?v=20260918-deliverytab1', html, count=1)
+          html_path.write_text(html,encoding='utf-8')
+          PY
+
+          node --check assets/catalog-v2.js
+          python - <<'PY'
+          import re
+          from pathlib import Path
+          html=Path('index.html').read_text(encoding='utf-8')
+          scripts=re.findall(r'<script>(.*?)</script>',html,re.S)
+          Path('/tmp/index-inline.js').write_text('\n'.join(scripts),encoding='utf-8')
+          PY
+          node --check /tmp/index-inline.js
+          grep -q 'data-shop-view="delivery"' assets/catalog-v2.js
+          grep -q 'Подъём дивана' index.html
+      - name: Commit changes and remove temporary workflow
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html assets/catalog-v2.js
+          git rm .github/workflows/add-delivery-tab.yml
+          git commit -m 'Add delivery and lift tab'
+          git push origin main
