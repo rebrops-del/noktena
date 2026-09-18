@@ -17,89 +17,27 @@ jobs:
         run: |
           python - <<'PY'
           from pathlib import Path
-          p=Path('scripts/import_berhouse_furniture.py')
-          s=p.read_text(encoding='utf-8')
-          start=s.index('def image_urls(')
-          end=s.index('\ndef parse_specs',start)
-          new=r'''def image_urls(soup, page_url, title, product_id):
-    found = {}
-    title_low = title.lower()
-
-    def add(raw, score=0):
-        if not raw:
-            return
-        raws = [str(raw)]
-        if ',' in str(raw) and ' ' in str(raw):
-            raws = [part.strip().split(' ')[0] for part in str(raw).split(',') if part.strip()]
-        for candidate in raws:
-            candidate = candidate.strip().strip('"\'')
-            if not candidate or candidate.startswith('data:'):
-                continue
-            if candidate.startswith('//'):
-                candidate = 'https:' + candidate
-            u = urljoin(page_url, candidate)
-            low = u.lower()
-            if any(x in low for x in ['logo', 'favicon', 'icon', 'sprite', 'counter', 'pixel', 'captcha', 'banner']):
-                continue
-            if not re.search(r'\.(?:jpe?g|png|webp)(?:\?|$)', low):
-                continue
-            if '/files/eshop/big/' in low:
-                score += 70
-            elif '/files/eshop/small/' in low:
-                score += 15
-            if product_id and product_id in low:
-                score += 30
-            key = u.split('#', 1)[0]
-            if score > found.get(key, -10**9):
-                found[key] = score
-
-    og = soup.find('meta', attrs={'property': 'og:image'})
-    if og:
-        add(og.get('content'), 120)
-
-    for tag in soup.find_all(True):
-        cls = ' '.join(tag.get('class', []))
-        parent = tag.parent
-        parent_cls = ' '.join(parent.get('class', [])) if parent and hasattr(parent, 'get') else ''
-        gallery_score = 35 if re.search(r'product|item|gallery|photo|image|slider|thumb|fancybox', cls + ' ' + parent_cls, re.I) else 0
-        alt = clean(tag.get('alt')).lower() if hasattr(tag, 'get') else ''
-        title_score = 55 if title_low and alt and (title_low[:20] in alt or alt[:20] in title_low) else 0
-        for attr in ['src','href','data-src','data-original','data-lazy','data-srcset','srcset','data-image','data-zoom','data-large','data-full','data-fancybox']:
-            raw = tag.get(attr) if hasattr(tag, 'get') else None
-            if raw:
-                add(raw, gallery_score + title_score)
-        style = tag.get('style') if hasattr(tag, 'get') else None
-        if style:
-            for m in re.finditer(r'url\(["\']?([^"\')]+)', style, re.I):
-                add(m.group(1), gallery_score + title_score)
-
-    raw_html = str(soup)
-    for m in re.finditer(r'(?P<u>(?:https?:)?//[^"\'<>\s]+/files/eshop/(?:big|small)/[^"\'<>\s]+?\.(?:jpe?g|png|webp)(?:\?[^"\'<>\s]*)?|/files/eshop/(?:big|small)/[^"\'<>\s]+?\.(?:jpe?g|png|webp)(?:\?[^"\'<>\s]*)?)', raw_html, re.I):
-        add(m.group('u'), 45)
-
-    ranked = sorted(found.items(), key=lambda x: (-x[1], x[0]))
-    result = []
-    seen_name = set()
-    for u, score in ranked:
-        low = u.lower().split('?',1)[0]
-        name = low.rsplit('/',1)[-1]
-        # If the same file is available in big and small, keep the big version only.
-        if name in seen_name and '/small/' in low:
-            continue
-        if '/big/' in low:
-            seen_name.add(name)
-        result.append(u)
-        if len(result) >= 30:
-            break
-    return result
-'''
-          p.write_text(s[:start]+new+s[end:],encoding='utf-8')
+          p = Path('scripts/import_berhouse_furniture.py')
+          s = p.read_text(encoding='utf-8')
+          old = 'srcs = [img.get(k) for k in ["src", "data-src", "data-original", "data-lazy", "data-srcset"]]'
+          new = 'srcs = [img.get(k) for k in ["src", "data-src", "data-original", "data-lazy", "data-srcset", "srcset", "data-image", "data-zoom", "data-large"]]'
+          if old in s:
+              s = s.replace(old, new, 1)
+          old = 'if product_id in href and re.search(r"\\.(?:jpe?g|png|webp)(?:\\?|$)", href, re.I):'
+          new = 'if re.search(r"\\.(?:jpe?g|png|webp)(?:\\?|$)", href, re.I) and (product_id in href or "/files/eshop/" in href):'
+          if old in s:
+              s = s.replace(old, new, 1)
+          old = 'return [u for _, u in found[:10]]'
+          if old not in s:
+              raise SystemExit('Image limit marker not found')
+          s = s.replace(old, 'return [u for _, u in found[:30]]', 1)
+          p.write_text(s, encoding='utf-8')
           PY
       - name: Commit image importer fix
         run: |
           git config user.name 'rebrops-del'
           git config user.email 'rebrops@gmail.com'
           git add scripts/import_berhouse_furniture.py
-          git commit -m 'Import complete furniture photo galleries'
+          git commit -m 'Import more furniture gallery photos'
           git pull --rebase origin main
           git push origin main
