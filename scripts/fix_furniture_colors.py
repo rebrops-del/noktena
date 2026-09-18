@@ -114,7 +114,8 @@ def build_variant_color_map(public_colors, variant_colors):
     return mapping
 
 
-def normalize_product(product):
+def normalize_bed(product):
+    """Beds use Berhouse's customer-facing color selector as display truth."""
     variants = list(product.get("variants") or [])
     raw_map = {
         clean(key): value
@@ -122,8 +123,6 @@ def normalize_product(product):
         if clean(key) and value
     }
 
-    # colorImages is built directly from the customer-facing Berhouse "Цвет"
-    # selector and therefore is the source of truth for labels shown in NOKTENA.
     if raw_map:
         public_colors = unique(raw_map.keys())
     else:
@@ -156,15 +155,61 @@ def normalize_product(product):
     return unique(unresolved)
 
 
-def require_mapping(product, expected):
+def normalize_sofa(product):
+    """Keep the clean Berhouse sofa variant names and attach photos to them.
+
+    The colorImages keys are gallery/selector captions and can be different
+    phrases (for example, «Серо бежевый») for the same fabric color. They must
+    not replace the concise color names used in the sofa variants.
+    """
+    variants = list(product.get("variants") or [])
+    variant_colors = unique(v.get("color") for v in variants)
+    if not variant_colors:
+        variant_colors = unique(product.get("colors") or [])
+    product["colors"] = variant_colors
+
+    raw_map = {
+        clean(key): value
+        for key, value in (product.get("colorImages") or {}).items()
+        if clean(key) and value
+    }
+    if not raw_map or not variant_colors:
+        return []
+
+    source_colors = unique(raw_map.keys())
+    mapping = build_variant_color_map(source_colors, variant_colors)
+    combined = dict(raw_map)
+    unresolved = []
+
+    for color in variant_colors:
+        exact = next((key for key in raw_map if norm(key) == norm(color)), None)
+        if exact:
+            combined[color] = raw_map[exact]
+            continue
+        source = mapping.get(norm(color))
+        if source and source in raw_map:
+            combined[color] = raw_map[source]
+        else:
+            unresolved.append(color)
+
+    product["colorImages"] = combined
+    images = list(product.get("images") or [])
+    for url in combined.values():
+        if url and url not in images:
+            images.append(url)
+    product["images"] = images
+    return unique(unresolved)
+
+
+def require_mapping(product, expected, require_variant=True):
     if not product:
         raise SystemExit("Validation product missing")
     colors = product.get("colors") or []
     variants = unique(v.get("color") for v in product.get("variants") or [])
     for color, ending in expected.items():
         if color not in colors:
-            raise SystemExit(f"Missing Berhouse public color {color!r} in {product.get('title')}: {colors}")
-        if color not in variants:
+            raise SystemExit(f"Missing display color {color!r} in {product.get('title')}: {colors}")
+        if require_variant and color not in variants:
             raise SystemExit(f"Variant selector not normalized to {color!r} in {product.get('title')}: {variants}")
         url = (product.get("colorImages") or {}).get(color)
         if not url or not str(url).endswith(ending):
@@ -173,27 +218,38 @@ def require_mapping(product, expected):
 
 def main():
     data = json.loads(DATA_PATH.read_text(encoding="utf-8"))
-    products = list(data.get("beds", [])) + list(data.get("sofas", []))
+    beds = list(data.get("beds", []))
+    sofas = list(data.get("sofas", []))
     unresolved_total = []
 
-    for product in products:
-        unresolved = normalize_product(product)
+    for product in beds:
+        unresolved = normalize_bed(product)
         if unresolved and product.get("colorImages"):
-            unresolved_total.append((product.get("sourceId"), product.get("title"), unresolved))
+            unresolved_total.append(("bed", product.get("sourceId"), product.get("title"), unresolved))
 
-    by_id = {str(p.get("sourceId")): p for p in products}
+    for product in sofas:
+        unresolved = normalize_sofa(product)
+        if unresolved and product.get("colorImages"):
+            unresolved_total.append(("sofa", product.get("sourceId"), product.get("title"), unresolved))
+
+    by_id = {str(p.get("sourceId")): p for p in beds + sofas}
+
+    # These two sofas are a regression guard: concise names must stay in the
+    # selector, while each name still points to the exact Berhouse color photo.
     require_mapping(by_id.get("24139"), {
-        "Серо бежевый": "24139_419530.jpg",
-        "Серо синий": "24139_419531.jpg",
         "Серый": "24139_419529.jpg",
-        "Ярко розовый": "24139_419532.jpg",
+        "Бежевый": "24139_419530.jpg",
+        "Голубой": "24139_419531.jpg",
+        "Розовый": "24139_419532.jpg",
     })
     require_mapping(by_id.get("24140"), {
-        "Серо бежевый": "24140_419534.jpg",
-        "Серо синий": "24140_419535.jpg",
         "Серый": "24140_419533.jpg",
-        "Ярко розовый": "24140_419536.jpg",
+        "Бежевый": "24140_419534.jpg",
+        "Голубой": "24140_419535.jpg",
+        "Розовый": "24140_419536.jpg",
     })
+
+    # Beds keep the public Berhouse selector naming that was already corrected.
     require_mapping(by_id.get("24182"), {
         "Бежевый": "24182_420756.png",
         "Серый": "24182_420757.png",
@@ -206,8 +262,8 @@ def main():
     })
 
     DATA_PATH.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    print(f"Products normalized: {len(products)}")
-    print(f"Products with unresolved selector colors: {len(unresolved_total)}")
+    print(f"Beds normalized: {len(beds)}; sofas preserved: {len(sofas)}")
+    print(f"Products with unresolved color-photo aliases: {len(unresolved_total)}")
     for item in unresolved_total[:30]:
         print("UNRESOLVED", item)
 
