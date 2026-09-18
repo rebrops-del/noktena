@@ -1,0 +1,80 @@
+name: Audit bed color counts
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/audit-bed-color-counts.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Build bed color audit
+        run: |
+          python - <<'PY'
+          import json, re
+          from pathlib import Path
+
+          p = Path('data/furniture.json')
+          data = json.loads(p.read_text(encoding='utf-8'))
+          beds = data.get('beds') or []
+          out = []
+          for x in beds:
+              variants = x.get('variants') or []
+              colors = []
+              seen = set()
+              for v in variants:
+                  c = str(v.get('color') or '').strip()
+                  k = re.sub(r'\s+', ' ', c).lower().replace('ё','е')
+                  if c and k not in seen:
+                      seen.add(k); colors.append(c)
+              declared = None
+              text = ' '.join(str(x.get(k) or '') for k in ('summary','description'))
+              m = re.search(r'(\d+)\s+цвет', text, re.I)
+              if m:
+                  declared = int(m.group(1))
+              map_keys = [str(k).strip() for k in (x.get('colorImages') or {}).keys() if str(k).strip()]
+              out.append({
+                  'id': x.get('id'),
+                  'sourceId': x.get('sourceId'),
+                  'title': x.get('title'),
+                  'declaredColorCount': declared,
+                  'actualVariantColorCount': len(colors),
+                  'actualVariantColors': colors,
+                  'colorImageKeyCount': len(map_keys),
+                  'colorImageKeys': map_keys,
+                  'sizesCount': len({str(v.get('size') or '').strip() for v in variants if str(v.get('size') or '').strip()}),
+              })
+          report = {
+              'bedsCount': len(beds),
+              'items': out,
+              'mismatches': [x for x in out if x['declaredColorCount'] is not None and x['declaredColorCount'] != x['actualVariantColorCount']],
+          }
+          Path('data/bed-color-audit.json').write_text(json.dumps(report, ensure_ascii=False, indent=2)+'\n', encoding='utf-8')
+          print('Beds:', len(out))
+          for x in out:
+              print(f"{x['sourceId']} | {x['title']} | actual={x['actualVariantColorCount']} | declared={x['declaredColorCount']} | {', '.join(x['actualVariantColors'])}")
+          PY
+      - name: Commit audit report
+        run: |
+          git config user.name 'rebrops-del'
+          git config user.email 'rebrops@gmail.com'
+          git add data/bed-color-audit.json
+          if git diff --cached --quiet; then
+            echo 'No audit changes'
+            exit 0
+          fi
+          git commit -m 'Audit real bed color counts'
+          git pull --rebase origin main
+          git push origin main
