@@ -66,7 +66,7 @@
   }
   function renderFurniture(product){
     furnitureProduct=product;const isBed=product.category==='beds';const view=isBed?'beds':'sofas';const label=isBed?'Кровати':'Диваны';const typeLabel=isBed?'Кровать':'Диван';setBack(view,label);setDocumentMeta(product.title,product.description);
-    const colors=uniq(product.colors?.length?product.colors:(product.variants||[]).map(v=>v.color));const sizes=sortSizes(product.sizes?.length?product.sizes:(product.variants||[]).map(v=>v.size));selectedColor=colors[0]||'';selectedSize=sizes[0]||'';const variant=variantFor(product,selectedColor,selectedSize);const price=furniturePrice(product,variant,selectedSize);
+    const variantColors=uniq((product.variants||[]).map(v=>v?.color));const colors=variantColors.length?variantColors:uniq(product.colors||[]);const sizes=sortSizes(product.sizes?.length?product.sizes:(product.variants||[]).map(v=>v.size));selectedColor=colors[0]||'';selectedSize=sizes[0]||'';const variant=variantFor(product,selectedColor,selectedSize);const price=furniturePrice(product,variant,selectedSize);
     root.innerHTML=`<article class="pd-product">
       ${galleryMarkup(product.images,product.title)}
       <div class="pd-content-column">
