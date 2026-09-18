@@ -12,6 +12,10 @@ def clean(value):
     return re.sub(r"\s+", " ", str(value or "").replace("\xa0", " ")).strip()
 
 
+def normalized_text(value):
+    return clean(value).lower().replace("ё", "е")
+
+
 def color_key(value):
     key = re.sub(r"[^a-zа-я0-9]+", "", clean(value).lower().replace("ё", "е"))
     return {"бордо": "бордовый"}.get(key, key)
@@ -39,6 +43,55 @@ def numeric_price(value):
     except (TypeError, ValueError):
         return None
     return value if value >= MIN_FURNITURE_PRICE else None
+
+
+def base_value_is_negative(value):
+    value = normalized_text(value)
+    if not value:
+        return False
+    compact = re.sub(r"[.,;:()]+", " ", value)
+    compact = re.sub(r"\s+", " ", compact).strip()
+    negatives = {
+        "нет",
+        "отсутствует",
+        "не предусмотрено",
+        "не предусмотрена",
+        "не входит",
+        "не входит в комплект",
+        "не комплектуется",
+        "без основания",
+        "без кроватного основания",
+        "основание отсутствует",
+    }
+    if compact in negatives:
+        return True
+    return bool(re.search(
+        r"(?:^|\b)(?:без\s+(?:кроватного\s+)?основания|основани[ея]\s+нет|основани[ея]\s+отсутствует|основани[ея]\s+не\s+входит|не\s+комплектуется\s+основанием)(?:\b|$)",
+        compact,
+    ))
+
+
+def bed_without_base(product):
+    if product.get("category") != "beds":
+        return False
+
+    for key, value in (product.get("specs") or {}).items():
+        key_low = normalized_text(key)
+        if "основан" in key_low and base_value_is_negative(value):
+            return True
+
+    for variant in product.get("variants") or []:
+        for key, value in (variant.get("attributes") or {}).items():
+            key_low = normalized_text(key)
+            if "основан" in key_low and base_value_is_negative(value):
+                return True
+
+    public_text = " ".join(
+        normalized_text(product.get(field))
+        for field in ("title", "summary", "description")
+        if product.get(field)
+    )
+    return bool(re.search(r"\bбез\s+(?:кроватного\s+)?основания\b", public_text))
 
 
 def repair_prices(product):
@@ -139,12 +192,18 @@ def sanitize_furniture_product(product):
 
 def sanitize_furniture():
     data = json.loads(FURNITURE.read_text(encoding="utf-8"))
+
+    original_beds = list(data.get("beds", []))
+    removed_beds = [product for product in original_beds if bed_without_base(product)]
+    data["beds"] = [product for product in original_beds if not bed_without_base(product)]
+
     repaired = 0
     for group in ("beds", "sofas"):
         for product in data.get(group, []):
             repaired += sanitize_furniture_product(product)
+
     FURNITURE.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    return data, repaired
+    return data, repaired, removed_beds
 
 
 def sanitize_mattresses():
@@ -179,6 +238,8 @@ def validate(data):
         raise SystemExit(f"Invalid furniture prices remain: {bad_prices[:10]}")
 
     for product in data.get("beds", []):
+        if bed_without_base(product):
+            raise SystemExit(f"Bed without base remains in catalog: {product.get('title')}")
         text = json.dumps(product, ensure_ascii=False).lower()
         if "искусственная кожа" in text or "экокожа" in text or "кожзам" in text:
             raise SystemExit(f"Artificial leather text remains in bed: {product.get('title')}")
@@ -213,11 +274,18 @@ def validate(data):
 
 
 def main():
-    data, repaired = sanitize_furniture()
+    data, repaired, removed_beds = sanitize_furniture()
     removed = sanitize_mattresses()
     validate(data)
     mapped = sum(bool(p.get("colorImages")) for p in data.get("beds", []) + data.get("sofas", []))
-    print(f"Sanitized NOKTENA catalog: repaired prices={repaired}, removed mattress article fields={removed}, color-mapped products={mapped}")
+    removed_names = ", ".join(clean(p.get("title")) for p in removed_beds[:12])
+    print(
+        f"Sanitized NOKTENA catalog: removed beds without base={len(removed_beds)}, "
+        f"repaired prices={repaired}, removed mattress article fields={removed}, "
+        f"color-mapped products={mapped}"
+    )
+    if removed_names:
+        print(f"Removed beds: {removed_names}")
 
 
 if __name__ == "__main__":
