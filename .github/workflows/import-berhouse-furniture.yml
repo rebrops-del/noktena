@@ -10,6 +10,7 @@ on:
       - 'scripts/polish_catalog_copy.py'
       - 'scripts/manual_catalog_overrides.py'
       - 'scripts/fix_furniture_colors.py'
+      - 'scripts/refresh_sofa_colors.py'
       - '.github/workflows/import-berhouse-furniture.yml'
 
 permissions:
@@ -38,11 +39,13 @@ jobs:
         run: python scripts/polish_catalog_copy.py
       - name: Apply manual product copy overrides
         run: python scripts/manual_catalog_overrides.py
-      - name: Restore authoritative Berhouse color labels and photo aliases
+      - name: Restore authoritative Berhouse bed color labels
         run: python scripts/fix_furniture_colors.py
+      - name: Restore exact Berhouse sofa color names and exact variant photos
+        run: python scripts/refresh_sofa_colors.py
       - name: Validate scripts
         run: |
-          python -m py_compile scripts/import_berhouse_furniture.py scripts/enrich_furniture_color_images.py scripts/sanitize_noktena_catalog.py scripts/polish_catalog_copy.py scripts/manual_catalog_overrides.py scripts/fix_furniture_colors.py
+          python -m py_compile scripts/import_berhouse_furniture.py scripts/enrich_furniture_color_images.py scripts/sanitize_noktena_catalog.py scripts/polish_catalog_copy.py scripts/manual_catalog_overrides.py scripts/fix_furniture_colors.py scripts/refresh_sofa_colors.py
       - name: Commit imported catalog
         run: |
           git config user.name 'rebrops-del'
