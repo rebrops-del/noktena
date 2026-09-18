@@ -153,7 +153,7 @@ def image_urls(soup, page_url, title, product_id):
             return
         u = urljoin(page_url, raw)
         low = u.lower()
-        if any(x in low for x in ["logo", "favicon", "icon", "sprite", "counter", "pixel", "captcha", "banner"]):
+        if any(x in low for x in ["logo", "favicon", "icon", "sprite", "counter", "pixel", "captcha", "banner", "texture"]):
             return
         if not re.search(r"\.(?:jpe?g|png|webp)(?:\?|$)", low):
             return
@@ -184,7 +184,9 @@ def image_urls(soup, page_url, title, product_id):
         if re.search(r"\.(?:jpe?g|png|webp)(?:\?|$)", href, re.I) and (product_id in href or "/files/eshop/" in href):
             add(href, 40)
     found.sort(key=lambda x: (-x[0], x[1]))
-    return [u for _, u in found[:30]]
+    urls = [u for _, u in found]
+    big = [u for u in urls if "/files/eshop/big/" in u.lower()]
+    return (big if big else urls)[:30]
 
 
 def parse_specs(soup, full_text):
