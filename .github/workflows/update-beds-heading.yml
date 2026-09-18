@@ -1,0 +1,37 @@
+name: Update beds heading
+
+on:
+  push:
+    paths:
+      - '.github/workflows/update-beds-heading.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Update beds catalog heading
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('assets/catalog-v2.js')
+          s = p.read_text(encoding='utf-8')
+          old = "if(title)title.textContent=view==='beds'?'Кровати для продуманной спальни':'Диваны для комфортного отдыха';if(desc)desc.textContent=view==='beds'?'Выберите модель и спальное место. Цвет, фотографии и все характеристики доступны внутри карточки товара.':'Прямые и угловые модели. Цвет, фотографии и доступные варианты выбираются внутри карточки товара.';"
+          new = "if(title)title.textContent=view==='beds'?'Кровати для вашей спальни':'Диваны для комфортного отдыха';if(desc)desc.textContent=view==='beds'?'Выберите модель и подходящее спальное место. Цвета, фотографии и подробные характеристики — в карточке товара.':'Прямые и угловые модели. Цвет, фотографии и доступные варианты выбираются внутри карточки товара.';"
+          if old not in s:
+              raise SystemExit('Target catalog heading text not found')
+          p.write_text(s.replace(old, new, 1), encoding='utf-8')
+          PY
+          node --check assets/catalog-v2.js
+      - name: Remove one-time workflow
+        run: rm .github/workflows/update-beds-heading.yml
+      - name: Commit changes
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add assets/catalog-v2.js .github/workflows/update-beds-heading.yml
+          git commit -m 'Improve beds catalog heading'
+          git push
