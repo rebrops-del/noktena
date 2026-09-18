@@ -14,7 +14,7 @@ DATA = Path('data/furniture.json')
 
 session = requests.Session()
 session.headers.update({
-    'User-Agent': 'Mozilla/5.0 (compatible; NoktenaCatalogSync/4.2; +https://noktena.ru/)',
+    'User-Agent': 'Mozilla/5.0 (compatible; NoktenaCatalogSync/4.3; +https://noktena.ru/)',
     'Accept-Language': 'ru-RU,ru;q=0.9,en;q=0.6',
 })
 
@@ -23,6 +23,10 @@ IMAGE_EXT_RE = re.compile(r'\.(?:jpe?g|png|webp)(?:$|\?)', re.I)
 
 def clean(value):
     return re.sub(r'\s+', ' ', str(value or '').replace('\xa0', ' ')).strip()
+
+
+def norm(value):
+    return re.sub(r'[^a-zа-я0-9]+', '', clean(value).lower().replace('ё', 'е'))
 
 
 def canonical(url):
@@ -35,11 +39,11 @@ def filename(url):
 
 
 def base_filename_match(url, product_id):
-    """True only for the real product gallery: ID.jpg, IDa1.jpg, IDa2.jpg, ...
+    """Real product angles: ID.jpg, IDa1.jpg, IDa2.jpg, ...
 
-    Berhouse puts size/color combinations in files such as ID_123456.jpg. Those
-    are variant photos, not additional gallery angles, and must not become
-    thumbnails in NOKTENA.
+    Files such as ID_123456.jpg are Berhouse size/color variants. We do not
+    import every one of those; a separate pass below keeps exactly one image
+    for each customer-facing color.
     """
     name = filename(url)
     return bool(re.fullmatch(
@@ -81,9 +85,6 @@ def visual_fingerprint(blob):
         return None
     try:
         img = Image.open(io.BytesIO(blob)).convert('L')
-        # Two independent 64-bit hashes make accidental collisions between
-        # genuinely different product angles very unlikely, while catching the
-        # same photo saved under another filename/compression level.
         a = img.resize((8, 8), Image.Resampling.LANCZOS)
         pixels = list(a.getdata())
         mean = sum(pixels) / len(pixels)
@@ -114,9 +115,6 @@ def source_real_gallery(product, byte_cache):
     out = []
     seen = set()
 
-    # Berhouse's real extra angles are in .thumbs as color1/color2/... but
-    # their filenames are IDa1.jpg, IDa2.jpg, etc. Variant combinations use
-    # ID_123456.jpg and are intentionally excluded here.
     for anchor in soup.select('.thumbs a[href]'):
         raw = anchor.get('href')
         if not raw:
@@ -129,7 +127,6 @@ def source_real_gallery(product, byte_cache):
             seen.add(url)
             out.append(url)
 
-    # Some pages expose only the main .photo image and no thumbnail anchor.
     if not out:
         photo = soup.select_one('.photo a[href]')
         if photo:
@@ -147,7 +144,8 @@ def source_real_gallery(product, byte_cache):
     return out
 
 
-def dedupe_visual(urls, byte_cache):
+def dedupe_real_angles(urls, byte_cache):
+    """Deduplicate only real gallery angles perceptually."""
     result = []
     seen_urls = set()
     seen_exact = set()
@@ -175,13 +173,93 @@ def dedupe_visual(urls, byte_cache):
     return result
 
 
+def one_photo_per_color(product, byte_cache):
+    """Return one exact Berhouse photo for each displayed color.
+
+    A product can have dozens of size × color variant images. colorImages has
+    already been reduced to the authoritative color mapping by the enrichment
+    steps, so this turns those combinations into one thumbnail per color.
+    """
+    mapping = {
+        clean(label): canonical(url)
+        for label, url in (product.get('colorImages') or {}).items()
+        if clean(label) and canonical(url)
+    }
+    if not mapping:
+        return []
+
+    by_norm = {}
+    for label, url in mapping.items():
+        by_norm.setdefault(norm(label), url)
+
+    ordered = []
+    seen_labels = set()
+    for label in product.get('colors') or []:
+        key = norm(label)
+        if not key or key in seen_labels:
+            continue
+        url = by_norm.get(key)
+        if url:
+            ordered.append(prefer_big(url, byte_cache))
+            seen_labels.add(key)
+
+    # Keep source colors that are valid but absent from product.colors so a
+    # temporary label mismatch never makes a real shade disappear.
+    for label, url in mapping.items():
+        key = norm(label)
+        if key and key not in seen_labels:
+            ordered.append(prefer_big(url, byte_cache))
+            seen_labels.add(key)
+
+    # Only exact-byte duplicates are removed here. Different colors often use
+    # the same pose, so perceptual deduplication would incorrectly delete valid
+    # shade photographs.
+    result = []
+    seen_urls = set()
+    seen_exact = set()
+    for raw in ordered:
+        url = canonical(raw)
+        if not url or url in seen_urls:
+            continue
+        seen_urls.add(url)
+        blob = image_bytes(url, byte_cache)
+        if blob:
+            exact = hashlib.sha256(blob).hexdigest()
+            if exact in seen_exact:
+                continue
+            seen_exact.add(exact)
+        result.append(url)
+    return result
+
+
+def merge_gallery(real_angles, color_photos, byte_cache):
+    """Angles first, then one photo per color, with exact duplicate removal."""
+    result = []
+    seen_urls = set()
+    seen_exact = set()
+    for raw in list(real_angles) + list(color_photos):
+        url = canonical(raw)
+        if not url or url in seen_urls:
+            continue
+        seen_urls.add(url)
+        blob = image_bytes(url, byte_cache)
+        if blob:
+            exact = hashlib.sha256(blob).hexdigest()
+            if exact in seen_exact:
+                continue
+            seen_exact.add(exact)
+        result.append(url)
+    return result
+
+
 def fallback_existing(product, before, byte_cache):
-    """On source failure retain only URLs that look like actual gallery angles."""
     product_id = clean(product.get('sourceId'))
     base = [u for u in before if base_filename_match(u, product_id)]
-    if base:
-        return dedupe_visual([prefer_big(u, byte_cache) for u in base], byte_cache)
-    return dedupe_visual(before[:1], byte_cache)
+    real = dedupe_real_angles([prefer_big(u, byte_cache) for u in base], byte_cache)
+    colors = one_photo_per_color(product, byte_cache)
+    if real or colors:
+        return merge_gallery(real, colors, byte_cache)
+    return before[:1]
 
 
 def main():
@@ -189,7 +267,7 @@ def main():
     products = list(data.get('beds') or []) + list(data.get('sofas') or [])
     changed = 0
     removed = 0
-    added_real_angles = 0
+    added = 0
     failures = []
     byte_cache = {}
 
@@ -197,10 +275,14 @@ def main():
         before = list(product.get('images') or [])
         try:
             source_gallery = source_real_gallery(product, byte_cache)
-            cleaned = dedupe_visual(source_gallery, byte_cache)
+            real_angles = dedupe_real_angles(source_gallery, byte_cache)
+            color_photos = one_photo_per_color(product, byte_cache)
+            cleaned = merge_gallery(real_angles, color_photos, byte_cache)
         except Exception as exc:
             failures.append((product.get('sourceId'), str(exc)))
             source_gallery = []
+            real_angles = []
+            color_photos = []
             cleaned = fallback_existing(product, before, byte_cache)
 
         if not cleaned:
@@ -210,17 +292,17 @@ def main():
             product['images'] = cleaned
             changed += 1
             removed += max(0, len(before) - len(cleaned))
-            added_real_angles += max(0, len(cleaned) - len(before))
+            added += max(0, len(cleaned) - len(before))
 
         print(
             f'[{idx}/{len(products)}] {product.get("title")}: '
-            f'before={len(before)} source_gallery={len(source_gallery)} after={len(cleaned)}'
+            f'before={len(before)} angles={len(real_angles)} colors={len(color_photos)} after={len(cleaned)}'
         )
 
     DATA.write_text(json.dumps(data, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
     print(
         f'Products={len(products)} changed={changed} removed={removed} '
-        f'added_real_angles={added_real_angles} failures={len(failures)}'
+        f'added={added} failures={len(failures)}'
     )
     if failures:
         print('Source lookup failures:', failures[:20])
