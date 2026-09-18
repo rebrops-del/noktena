@@ -66,3 +66,15 @@
 .shop-tab.is-active{background:#173e32;color:#fff;border:0;box-shadow:0 6px 16px rgba(23,62,50,.18)}.shop-tab.is-active .shop-tab-icon{background:transparent;color:#e6c991}
 @media(max-width:940px){.shop-tabs{width:calc(100% - 20px);justify-content:flex-start;overflow-x:auto;padding:5px;border-radius:18px;gap:3px}.shop-tab,.shop-tab[data-shop-view="guide"]{flex:0 0 auto;min-width:128px;padding:0 13px}.shop-tabs-shell{padding:7px 0}}
 @media(max-width:620px){.shop-tabs-shell{top:64px}.shop-tabs{width:calc(100% - 14px);min-height:54px}.shop-tab,.shop-tab[data-shop-view="guide"]{min-height:42px;min-width:116px;padding:0 11px;gap:6px}.shop-tab-icon{width:24px;height:24px;flex-basis:24px}.shop-tab-icon svg{width:16px;height:16px}.shop-tab b{font-size:11.5px}}
+
+/* Minimal luxury navigation: light menu, not a row of large buttons */
+.shop-tabs-shell{padding:0;background:rgba(251,250,246,.96);border-bottom:1px solid rgba(23,62,50,.09);box-shadow:0 8px 24px rgba(23,62,50,.045);backdrop-filter:blur(18px)}
+.shop-tabs{width:min(1040px,calc(100% - 32px));min-height:70px;margin:0 auto;padding:0;background:transparent;border:0;border-radius:0;box-shadow:none;gap:34px;justify-content:center;overflow:visible}
+.shop-tab,.shop-tab[data-shop-view="guide"]{position:relative;flex:0 0 auto;min-width:auto;min-height:70px;padding:0 3px;justify-content:center;gap:9px;border:0;border-radius:0;background:transparent;box-shadow:none;color:#51665d}
+.shop-tab::after{content:"";position:absolute;left:50%;bottom:0;width:0;height:2px;border-radius:2px;background:#b7965b;transform:translateX(-50%);transition:width .2s ease}
+.shop-tab>span:last-child{display:block}.shop-tab b{font-family:Onest,"Segoe UI",sans-serif;font-size:13px;line-height:1;font-weight:600;letter-spacing:0}.shop-tab small{display:none}
+.shop-tab-icon{width:32px;height:32px;flex:0 0 32px;border-radius:10px;background:#f3efe7;color:#8f7447;transition:.2s ease}.shop-tab-icon svg{width:18px;height:18px;stroke-width:1.7}
+.shop-tab:hover{transform:none;background:transparent;color:#173e32;box-shadow:none;border:0}.shop-tab:hover .shop-tab-icon{background:#eee8dc;color:#6f5734}
+.shop-tab.is-active{background:transparent;color:#173e32;border:0;box-shadow:none}.shop-tab.is-active::after{width:100%}.shop-tab.is-active .shop-tab-icon{background:#eaf1ed;color:#173e32;box-shadow:inset 0 0 0 1px rgba(23,62,50,.08)}
+@media(max-width:940px){.shop-tabs{width:calc(100% - 20px);min-height:62px;justify-content:flex-start;overflow-x:auto;gap:24px;padding:0 4px;scrollbar-width:none}.shop-tabs::-webkit-scrollbar{display:none}.shop-tab,.shop-tab[data-shop-view="guide"]{min-height:62px;min-width:auto;padding:0 2px}.shop-tabs-shell{padding:0}}
+@media(max-width:620px){.shop-tabs-shell{top:64px}.shop-tabs{width:calc(100% - 14px);min-height:56px;gap:19px}.shop-tab,.shop-tab[data-shop-view="guide"]{min-height:56px;gap:6px}.shop-tab-icon{width:27px;height:27px;flex-basis:27px;border-radius:8px}.shop-tab-icon svg{width:15px;height:15px}.shop-tab b{font-size:11.5px}}
