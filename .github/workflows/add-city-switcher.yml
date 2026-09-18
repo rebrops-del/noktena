@@ -14,7 +14,6 @@ jobs:
         run: |
           python - <<'PY'
           from pathlib import Path
-          import re
 
           style = r'''
           <style id="city-switcher-v1">
@@ -46,23 +45,26 @@ jobs:
 
           city = '''<details class="city-picker"><summary aria-label="Выбрать город"><span class="city-pin">⌖</span><span>г. Екатеринбург</span><span class="city-chevron">⌄</span></summary><div class="city-popover"><span class="city-popover-title">Ваш город</span><div class="city-option" aria-current="true"><span>г. Екатеринбург</span><b>✓</b></div><small>В дальнейшем здесь можно будет переключаться между городами сети.</small></div></details>'''
 
+          def replace_between(text, start_marker, end_marker, replacement, label):
+              start = text.find(start_marker)
+              if start < 0:
+                  raise SystemExit(f'{label}: start marker not found')
+              end = text.find(end_marker, start)
+              if end < 0:
+                  raise SystemExit(f'{label}: end marker not found')
+              return text[:start] + replacement + '\n' + text[end:]
+
           index = Path('index.html')
-          text = index.read_text(encoding='utf-8')
-          text = add_style(text)
+          text = add_style(index.read_text(encoding='utf-8'))
           new_top = f'''<div class="top"><div class="wrap"><span><b>НОКТЕНА</b> · федеральная онлайн-сеть товаров для сна</span><div class="site-top-meta">{city}<span class="site-top-divider">·</span><span class="site-top-warehouse">склад: г. Берёзовский</span><span class="site-top-divider">·</span><a class="site-top-email" href="mailto:noktena@mail.ru">noktena@mail.ru</a><span class="site-top-divider">·</span><a href="tel:+79321207635">+7 (932) 120-76-35</a></div></div></div>'''
-          text2, n = re.subn(r'<div class="top"><div class="wrap">.*?</div></div>\s*(?=<header)', new_top + '\n', text, count=1, flags=re.S)
-          if n != 1:
-              raise SystemExit('Could not replace homepage top bar')
-          index.write_text(text2, encoding='utf-8')
+          text = replace_between(text, '<div class="top"', '<header', new_top, 'homepage')
+          index.write_text(text, encoding='utf-8')
 
           product = Path('product.html')
-          text = product.read_text(encoding='utf-8')
-          text = add_style(text)
+          text = add_style(product.read_text(encoding='utf-8'))
           new_pd_top = f'''<div class="pd-top"><div class="pd-wrap"><span><b>НОКТЕНА</b> · федеральная онлайн-сеть товаров для сна</span><div class="site-top-meta">{city}<span class="site-top-divider">·</span><span class="site-top-warehouse">склад: г. Берёзовский</span><span class="site-top-divider">·</span><a class="site-top-email" href="mailto:noktena@mail.ru">noktena@mail.ru</a><span class="site-top-divider">·</span><a href="tel:+79321207635">+7 (932) 120-76-35</a></div></div></div>'''
-          text2, n = re.subn(r'<div class="pd-top"><div class="pd-wrap">.*?</div></div>\s*(?=<header class="pd-nav">)', new_pd_top + '\n', text, count=1, flags=re.S)
-          if n != 1:
-              raise SystemExit('Could not replace product top bar')
-          product.write_text(text2, encoding='utf-8')
+          text = replace_between(text, '<div class="pd-top"', '<header class="pd-nav"', new_pd_top, 'product')
+          product.write_text(text, encoding='utf-8')
           PY
       - name: Commit changes and remove temporary workflow
         run: |
