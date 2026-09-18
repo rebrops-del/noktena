@@ -4,6 +4,7 @@ on:
   push:
     branches: [main]
     paths:
+      - 'scripts/fix_furniture_colors.py'
       - 'scripts/clean_furniture_galleries.py'
       - '.github/workflows/clean-furniture-galleries.yml'
 
@@ -24,6 +25,8 @@ jobs:
           fetch-depth: 0
       - name: Install dependencies
         run: pip install requests beautifulsoup4
+      - name: Normalize public bed colors and preserve exact sofa colors
+        run: python scripts/fix_furniture_colors.py
       - name: Keep all real angles and one photo per displayed color
         run: python scripts/clean_furniture_galleries.py
       - name: Commit cleaned galleries
@@ -35,6 +38,6 @@ jobs:
             echo 'No gallery cleanup needed'
             exit 0
           fi
-          git commit -m 'Keep all furniture angles with one photo per color'
+          git commit -m 'Normalize furniture colors and deduplicate gallery photos'
           git pull --rebase origin main
           git push origin main
