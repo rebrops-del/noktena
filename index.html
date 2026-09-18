@@ -83,6 +83,7 @@ function draw(){const term=q.value.trim().toLowerCase(),cat=c.value,selected=sz.
 async function init(){try{const files=['data/data1.json','data/data2.json','data/data3.json','data/data4.json','data/data5.json','data/data6.json'];const sets=await Promise.all(files.map(f=>fetch(f+'?v=20260917-max',{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error(f+' '+r.status);return r.json()})));products=sets.flat().filter(x=>!REMOVE_MODELS.has(x.model)).map(x=>({...x,variants:x.variants.filter(v=>normalizeSize(v.size)!=='600х1200')})).filter(x=>x.variants.length);moveAfter(products,'Матрас Mega кокос 10 TFK Gray Night','Матрас Mega кокос 10 TFK');moveAfter(products,'Матрас Mega кокос 30 TFK Gray Night','Матрас Mega кокос 30 TFK');moveBefore(products,'Матрас Mega холкон TFK Gray Night','Матрас Mega холкон-кокос TFK Gray Night');moveAfter(products,'Наматрасник "Непромокаемый чехол"','Подушка Память форма');[...new Set(products.map(x=>x.category))].forEach(x=>c.insertAdjacentHTML('beforeend',`<option value="${safe(x)}">${safe(x)}</option>`));buildSizeFilter();q.addEventListener('input',draw);c.addEventListener('change',draw);sz.addEventListener('change',()=>{updatePriceFilter();draw()});mx.addEventListener('change',draw);draw()}catch(e){console.error(e);g.innerHTML='<div class="empty">Каталог временно не загрузился. Обновите страницу.</div>'}}
 init();
 </script>
+<script src="assets/mattress-pagination.js?v=20260918-1"></script>
 <script src="assets/catalog-v2.js?v=20260918-1"></script>
 </body>
 </html>
