@@ -15,7 +15,7 @@ MAX_COLOR_OPTIONS = 60
 
 session = requests.Session()
 session.headers.update({
-    "User-Agent": "Mozilla/5.0 (compatible; NoktenaCatalogSync/3.0; +https://noktena.ru/)",
+    "User-Agent": "Mozilla/5.0 (compatible; NoktenaCatalogSync/3.1; +https://noktena.ru/)",
     "Accept-Language": "ru-RU,ru;q=0.9,en;q=0.6",
     "X-Requested-With": "XMLHttpRequest",
 })
@@ -26,7 +26,10 @@ def clean(value):
 
 
 def norm(value):
-    return re.sub(r"[^a-zа-я0-9]+", "", clean(value).lower().replace("ё", "е"))
+    value = clean(value).lower().replace("ё", "е")
+    key = re.sub(r"[^a-zа-я0-9]+", "", value)
+    aliases = {"бордо": "бордовый"}
+    return aliases.get(key, key)
 
 
 def is_size_caption(caption):
@@ -81,24 +84,34 @@ def parse_controls(block):
 
 
 def selected_label_from_block(block, control_name, value, known_label=""):
+    # The label attached to the option that was posted is authoritative.
+    # Berhouse can return markup with a different option preselected; reading
+    # that value first shifted some color names to the next photograph.
+    known = clean(known_label)
+    generic = {
+        "цвет", "фасада", "корпуса", "обивки", "ткани",
+        "цвет фасада", "цвет корпуса", "цвет обивки", "цвет ткани",
+    }
+    if known and known.lower().replace("ё", "е") not in generic:
+        return known
+
     for control in parse_controls(block):
         if control["name"] != control_name or "цвет" not in control["caption"].lower():
             continue
+        caption = control["caption"]
+        low = caption.lower().replace("ё", "е")
+        for prefix in ["цвет фасада", "цвет корпуса", "цвет обивки", "цвет ткани", "цвет"]:
+            if low.startswith(prefix):
+                rest = clean(caption[len(prefix):].lstrip(" :-"))
+                if rest and rest.lower().replace("ё", "е") not in generic:
+                    return rest
         for option in control["options"]:
             if option["value"] == str(value) and option["label"]:
                 return option["label"]
         for option in control["options"]:
             if option["selected"] and option["label"]:
                 return option["label"]
-        caption = control["caption"]
-        low = caption.lower().replace("ё", "е")
-        prefixes = ["цвет фасада", "цвет корпуса", "цвет обивки", "цвет ткани", "цвет"]
-        for prefix in prefixes:
-            if low.startswith(prefix):
-                rest = clean(caption[len(prefix):].lstrip(" :-"))
-                if rest:
-                    return rest
-    return clean(known_label)
+    return known
 
 
 def post_combo(product_id, fields):
@@ -207,7 +220,7 @@ def color_images_for_product(product):
 
     explore({}, block)
 
-    # Preserve aliases already used in NOKTENA data, even if punctuation/case differs.
+    # Preserve aliases already used in NOKTENA data, including Бордо/Бордовый.
     normalized = {norm(label): photo for label, photo in mapping.items() if norm(label)}
     for color in product.get("colors") or []:
         key = norm(color)
