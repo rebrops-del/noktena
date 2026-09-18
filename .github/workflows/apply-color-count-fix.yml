@@ -1,0 +1,60 @@
+name: Apply corrected furniture color counts
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/apply-color-count-fix.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Rebuild catalog summaries from real variant colors
+        run: python scripts/polish_catalog_copy.py
+      - name: Verify every bed summary color count
+        run: |
+          python - <<'PY'
+          import json, re
+          from pathlib import Path
+
+          data = json.loads(Path('data/furniture.json').read_text(encoding='utf-8'))
+          bad = []
+          for p in data.get('beds', []):
+              def key(v):
+                  s = re.sub(r'[^a-zа-я0-9]+', '', str(v or '').lower().replace('ё','е'))
+                  return {'бордо':'бордовый'}.get(s, s)
+              colors = []
+              seen = set()
+              for v in p.get('variants') or []:
+                  c = str(v.get('color') or '').strip()
+                  k = key(c)
+                  if c and k and k not in seen:
+                      seen.add(k); colors.append(c)
+              if not colors:
+                  for c in p.get('colors') or []:
+                      c = str(c or '').strip(); k = key(c)
+                      if c and k and k not in seen:
+                          seen.add(k); colors.append(c)
+              m = re.search(r'Доступно:.*?(\d+)\s+(?:цвет|цвета|цветов)', p.get('summary',''))
+              if m and int(m.group(1)) != len(colors):
+                  bad.append((p.get('title'), int(m.group(1)), len(colors)))
+          if bad:
+              raise SystemExit('Mismatches: ' + repr(bad))
+          print(f'OK: checked {len(data.get("beds", []))} beds; no color-count mismatches')
+          PY
+      - name: Commit corrected catalog
+        run: |
+          if git diff --quiet -- data/furniture.json; then
+            echo 'Catalog already correct'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add data/furniture.json
+          git commit -m 'Correct bed color counts from real variants'
+          git push
