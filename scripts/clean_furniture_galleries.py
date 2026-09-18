@@ -30,10 +30,11 @@ def filename(url):
 
 
 def is_real_angle(url, product_id):
-    """Berhouse real gallery: ID.jpg, IDa1.jpg, IDa2.jpg, ...
+    """Berhouse real gallery angles: ID.jpg, IDa1.jpg, IDa2.jpg, ...
 
-    ID_123456.jpg/png are size/color variants. Those are not extra angles and
-    are handled separately as exactly one image for each displayed color.
+    Files such as ID_123456.jpg/png are size/color variants. They remain in
+    colorImages and are shown when the customer selects a color, but they are
+    not repeated as thumbnails in the main product gallery.
     """
     return bool(re.fullmatch(
         rf'{re.escape(str(product_id))}(?:[a-z]+\d+)?\.(?:jpe?g|png|webp)',
@@ -49,7 +50,7 @@ def source_real_angles(product):
         return []
 
     headers = {
-        'User-Agent': 'Mozilla/5.0 (compatible; NoktenaCatalogSync/4.4; +https://noktena.ru/)',
+        'User-Agent': 'Mozilla/5.0 (compatible; NoktenaCatalogSync/4.5; +https://noktena.ru/)',
         'Accept-Language': 'ru-RU,ru;q=0.9,en;q=0.6',
     }
     r = requests.get(source_url, timeout=35, headers=headers)
@@ -86,45 +87,15 @@ def source_real_angles(product):
     return out
 
 
-def one_photo_per_displayed_color(product):
-    """Use exactly one color image for every color selectable on NOKTENA.
-
-    Do not append other colorImages aliases: that was the source of repeated
-    size/color pictures in the gallery.
-    """
-    raw_map = {
-        norm(label): canonical(url)
-        for label, url in (product.get('colorImages') or {}).items()
-        if norm(label) and canonical(url)
-    }
-    out = []
-    seen_urls = set()
-    seen_colors = set()
-
-    for label in product.get('colors') or []:
-        key = norm(label)
-        if not key or key in seen_colors:
-            continue
-        seen_colors.add(key)
-        url = raw_map.get(key)
-        if not url or url in seen_urls:
-            continue
-        seen_urls.add(url)
-        out.append(url)
-
-    return out
-
-
-def merge_unique(*groups):
+def merge_unique(values):
     out = []
     seen = set()
-    for group in groups:
-        for raw in group or []:
-            url = canonical(raw)
-            if not url or url in seen:
-                continue
-            seen.add(url)
-            out.append(url)
+    for raw in values or []:
+        url = canonical(raw)
+        if not url or url in seen:
+            continue
+        seen.add(url)
+        out.append(url)
     return out
 
 
@@ -134,6 +105,17 @@ def fallback_real_angles(product):
         url for url in (product.get('images') or [])
         if pid and is_real_angle(url, pid)
     ])
+
+
+def color_photo_count(product):
+    """Count displayed colors that have an exact selectable color photo."""
+    mapping = {
+        norm(label): canonical(url)
+        for label, url in (product.get('colorImages') or {}).items()
+        if norm(label) and canonical(url)
+    }
+    displayed = {norm(label) for label in (product.get('colors') or []) if norm(label)}
+    return len(displayed), sum(1 for key in displayed if mapping.get(key))
 
 
 def main():
@@ -161,16 +143,15 @@ def main():
     for idx, product in enumerate(products, 1):
         before = list(product.get('images') or [])
         sid = str(product.get('sourceId') or '')
-        angles = fetched.get(sid) or fallback_real_angles(product)
-        color_photos = one_photo_per_displayed_color(product)
-        gallery = merge_unique(angles, color_photos)
+        angles = merge_unique(fetched.get(sid) or fallback_real_angles(product))
+        gallery = angles
 
-        expected_colors = len({norm(x) for x in (product.get('colors') or []) if norm(x)})
-        if expected_colors and len(color_photos) < expected_colors:
-            missing_color_photos.append((sid, product.get('title'), expected_colors, len(color_photos)))
+        expected_colors, mapped_colors = color_photo_count(product)
+        if expected_colors and mapped_colors < expected_colors:
+            missing_color_photos.append((sid, product.get('title'), expected_colors, mapped_colors))
 
         if not gallery and before:
-            gallery = before[:1]
+            gallery = fallback_real_angles(product) or before[:1]
 
         if gallery != before:
             product['images'] = gallery
@@ -180,11 +161,15 @@ def main():
 
         print(
             f'[{idx}/{len(products)}] {product.get("title")}: '
-            f'before={len(before)} angles={len(angles)} colors={len(color_photos)} after={len(gallery)}'
+            f'before={len(before)} real_angles={len(gallery)} '
+            f'color_photos={mapped_colors}/{expected_colors} after={len(gallery)}'
         )
 
     DATA.write_text(json.dumps(data, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
-    print(f'Products={len(products)} changed={changed} removed={removed} added={added} source_failures={len(failures)} missing_color_photos={len(missing_color_photos)}')
+    print(
+        f'Products={len(products)} changed={changed} removed={removed} added={added} '
+        f'source_failures={len(failures)} missing_color_photos={len(missing_color_photos)}'
+    )
     if failures:
         print('SOURCE_FAILURES', failures[:20])
     if missing_color_photos:
