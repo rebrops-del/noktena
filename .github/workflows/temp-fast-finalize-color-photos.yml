@@ -1,0 +1,92 @@
+name: Temporary fast finalize color photos
+
+on:
+  push:
+    paths:
+      - '.github/workflows/temp-fast-finalize-color-photos.yml'
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  finalize:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cancel slower duplicate finalizer
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          curl -fsSL -X POST \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/runs/35337342314/cancel" || true
+
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Finalize imported color mappings
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          path=Path('data/furniture.json')
+          data=json.loads(path.read_text(encoding='utf-8'))
+          excluded=[
+              'горизонт мини','екатеринбург мини','стандарт мини',
+              'мета с матрасом','эко стандарт','эко екатеринбург',
+          ]
+          def low(v): return str(v or '').lower().replace('ё','е')
+
+          before=len(data.get('beds',[]))
+          data['beds']=[p for p in data.get('beds',[]) if not any(x in low(p.get('title')) for x in excluded)]
+          print(f"Beds: {before} -> {len(data['beds'])}")
+
+          allp=data.get('beds',[])+data.get('sofas',[])
+          mapped=[]
+          total=0
+          for p in allp:
+              cmap=p.get('colorImages') or {}
+              if not cmap:
+                  continue
+              images=list(p.get('images') or [])
+              for photo in cmap.values():
+                  if photo and photo not in images:
+                      images.append(photo)
+              p['images']=images
+              mapped.append(p)
+              total+=len(cmap)
+
+          bad=[p.get('title') for p in data['beds'] if any(x in low(p.get('title')) for x in excluded)]
+          if bad:
+              raise SystemExit(f'Excluded beds remain: {bad}')
+          if len(mapped)<150 or total<1000:
+              raise SystemExit(f'Too few mappings: products={len(mapped)}, mappings={total}')
+
+          sample=next((p for p in allp if str(p.get('sourceId'))=='24190'),None)
+          if sample and len(sample.get('colorImages') or {})<4:
+              raise SystemExit('Known sample 24190 mapping is incomplete')
+
+          for p in mapped:
+              images=set(p.get('images') or [])
+              missing=[u for u in (p.get('colorImages') or {}).values() if u not in images]
+              if missing:
+                  raise SystemExit(f"Mapped photo absent from gallery: {p.get('title')}")
+
+          path.write_text(json.dumps(data,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+          print(f"Final: beds={len(data['beds'])}, sofas={len(data.get('sofas',[]))}, mapped_products={len(mapped)}, mappings={total}")
+          if sample:
+              print('Sample 24190:',sample.get('colorImages'))
+          PY
+
+      - name: Commit final furniture data
+        run: |
+          git config user.name 'rebrops-del'
+          git config user.email 'rebrops@gmail.com'
+          git add data/furniture.json
+          git commit -m 'Finalize furniture color-specific photos'
+          git pull --rebase origin main
+          git push origin main
