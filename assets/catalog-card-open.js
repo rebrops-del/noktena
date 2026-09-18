@@ -48,6 +48,19 @@
 
     const sentences=String(raw||'').replace(/\s+/g,' ').trim().split(/(?<=[.!?])\s+/).map(cleanMattressText).filter(Boolean);
     for(const sentence of sentences){
+      const firmnessPrefix=sentence.match(/^Ж[её]сткость\s*:?[\s—-]*(максимально\s+ж[её]сткая|выше\s+средней|ниже\s+средней|средняя|мягкая|ж[её]сткая)\s*(.*)$/i);
+      if(firmnessPrefix){
+        if(!firmness)addFact('Жёсткость',firmnessPrefix[1]);
+        const remainder=cleanMattressText(firmnessPrefix[2]||'');
+        if(remainder){
+          for(const part of splitTopLevel(remainder)){
+            const item=cleanMattressText(part);
+            if(item)composition.push(item);
+          }
+        }
+        continue;
+      }
+
       const low=sentence.toLowerCase();
       if(/ж[её]стк|мягк/.test(low)&&/матрас/.test(low))continue;
 
