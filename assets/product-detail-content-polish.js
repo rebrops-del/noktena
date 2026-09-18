@@ -171,7 +171,7 @@
 
       for(const part of splitTopLevel(sentence)){
         const item=cleanMattressItem(part);
-        if(item&&!composition.includes(item))composition.push(item);
+        if(item)composition.push(item);
       }
     }
 

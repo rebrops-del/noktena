@@ -59,7 +59,7 @@
 
       for(const part of splitTopLevel(sentence)){
         const item=cleanMattressText(part);
-        if(item&&!composition.includes(item))composition.push(item);
+        if(item)composition.push(item);
       }
     }
     return {composition,facts};
