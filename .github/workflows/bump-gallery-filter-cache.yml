@@ -1,4 +1,4 @@
-name: Bump furniture gallery filter cache
+name: Fix product header after gallery cache refresh
 
 on:
   push:
@@ -10,24 +10,26 @@ permissions:
   contents: write
 
 jobs:
-  bump:
+  fix:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           ref: main
           fetch-depth: 0
-      - name: Bump asset version
+      - name: Fix CSS typo and keep gallery cache version
         run: |
           python - <<'PY'
           from pathlib import Path
           p=Path('product.html')
           s=p.read_text(encoding='utf-8')
-          old='assets/furniture-source-colors.js?v=20260918-sofacolors2'
-          new='assets/furniture-source-colors.js?v=20260918-galleryfix3'
-          if old not in s and new not in s:
-              raise SystemExit('Expected furniture-source-colors script tag not found')
-          p.write_text(s.replace(old,new),encoding='utf-8')
+          bad='-webkit-background-clip:text;background-clip;color:transparent;'
+          good='-webkit-background-clip:text;background-clip:text;color:transparent;'
+          if bad not in s and good not in s:
+              raise SystemExit('Expected header gradient CSS not found')
+          s=s.replace(bad,good)
+          s=s.replace('assets/furniture-source-colors.js?v=20260918-sofacolors2','assets/furniture-source-colors.js?v=20260918-galleryfix3')
+          p.write_text(s,encoding='utf-8')
           PY
       - name: Commit
         run: |
@@ -35,6 +37,6 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add product.html
           if git diff --cached --quiet; then exit 0; fi
-          git commit -m 'Refresh furniture gallery filter cache'
+          git commit -m 'Fix product header after gallery cache refresh'
           git pull --rebase origin main
           git push origin main
