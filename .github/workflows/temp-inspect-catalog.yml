@@ -1,4 +1,4 @@
-name: Temporary Berhouse color JS inspect
+name: Temporary Berhouse color mapping test
 
 on:
   push:
@@ -9,18 +9,57 @@ jobs:
   inspect:
     runs-on: ubuntu-latest
     steps:
-      - name: Inspect color JavaScript
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install requests beautifulsoup4
+      - name: Test color mappings
         run: |
-          curl -fsSL 'https://m.berhouse.ru/files/js/full.js?v=230404094100' -o /tmp/full.js
           python - <<'PY'
-          js=open('/tmp/full.js',encoding='utf-8',errors='replace').read()
-          print('LEN',len(js))
-          for key in ['cobmos','combination_id','product-price','attribute_select','data-value','/eshop/','color']:
-              print('\n===',key,'===')
-              pos=0
-              for _ in range(15):
-                  i=js.lower().find(key.lower(),pos)
-                  if i<0: break
-                  print(js[max(0,i-1000):i+2200])
-                  pos=i+len(key)
+          import requests, re
+          from bs4 import BeautifulSoup
+          from urllib.parse import urljoin
+          S=requests.Session();S.headers['User-Agent']='Mozilla/5.0'
+          for pid in ['23284','24190']:
+            url=f'https://m.berhouse.ru/eshop/item/{pid}/'
+            html=S.get(url,timeout=30).text;soup=BeautifulSoup(html,'html.parser')
+            photos={a.get('id','')[5:]:urljoin(url,a.get('href')) for a in soup.select('.thumbs a[id^="color"]') if a.get('href')}
+            block=soup.select_one('#cobmos')
+            print('\nPID',pid,'photos',len(photos))
+            controls=[]
+            if block:
+              for node in block.select('.attribute_select, .list'):
+                caption=''
+                prev=node.find_previous_sibling(class_='caption')
+                if prev: caption=' '.join(prev.get_text(' ',strip=True).split())
+                if 'attribute_select' in (node.get('class') or []):
+                  sel=node.find('select')
+                  if sel:
+                    opts=[(o.get('value',''), ' '.join(o.get_text(' ',strip=True).split())) for o in sel.find_all('option')]
+                    controls.append((caption,sel.get('name'),opts,'select'))
+                elif 'list' in (node.get('class') or []):
+                  hidden=node.find('input',{'type':'hidden'})
+                  if hidden:
+                    opts=[]
+                    for a in node.find_all('a'):
+                      val=a.get('data-value'); lab=a.get('title') or ' '.join(a.get_text(' ',strip=True).split())
+                      if val: opts.append((val,lab))
+                    controls.append((caption,hidden.get('name'),opts,'list'))
+            for i,(cap,name,opts,kind) in enumerate(controls): print(i,cap,name,kind,opts[:8])
+            ci=next((i for i,c in enumerate(controls) if 'цвет' in c[0].lower()),None)
+            if ci is None: continue
+            base={}
+            for j in range(ci):
+              cap,name,opts,kind=controls[j]
+              if opts: base[name]=opts[0][0]
+            cap,cname,copts,kind=controls[ci]
+            print('COLOR CONTROL',cap,cname,'base',base)
+            for val,lab in copts[:8]:
+              fields={**base,cname:val}
+              files={k:(None,str(v)) for k,v in fields.items()}
+              r=S.post(f'https://m.berhouse.ru/eshop/getcombo/{pid}',files=files,timeout=30)
+              try: d=r.json()
+              except Exception: print('ERR',lab,r.status_code,r.text[:300]);continue
+              cid=str(d.get('combinationId',''))
+              print(lab,'=> cid',cid,'photo',photos.get(cid),'price',d.get('price'),'avail',d.get('avail'))
           PY
