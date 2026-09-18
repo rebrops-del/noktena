@@ -14,6 +14,9 @@
   const rub=n=>Number.isFinite(Number(n))?`${Math.round(Number(n)).toLocaleString('ru-RU')} ₽`:'Цена по запросу';
   const oldPrice=n=>Math.round((Number(n)/0.7)/100)*100;
   const uniq=list=>[...new Set((list||[]).filter(Boolean).map(v=>String(v).trim()).filter(Boolean))];
+  const sizeSortValue=value=>{const nums=String(value||'').replace(/×/g,'х').match(/\d+/g)?.map(Number)||[];return [nums[0]??Number.MAX_SAFE_INTEGER,nums[1]??Number.MAX_SAFE_INTEGER,String(value||'')];};
+  const sortSizes=list=>uniq(list).sort((a,b)=>{const A=sizeSortValue(a),B=sizeSortValue(b);return A[0]-B[0]||A[1]-B[1]||A[2].localeCompare(B[2],'ru');});
+  const sortVariantsBySize=list=>[...(list||[])].sort((a,b)=>{const A=sizeSortValue(a?.size),B=sizeSortValue(b?.size);return A[0]-B[0]||A[1]-B[1]||A[2].localeCompare(B[2],'ru');});
   const params=new URLSearchParams(location.search);
   const root=$('#productRoot');
   let galleryImages=[];
@@ -55,7 +58,7 @@
 
   function renderFurniture(product){
     furnitureProduct=product;const isBed=product.category==='beds';const view=isBed?'beds':'sofas';const label=isBed?'Кровати':'Диваны';const typeLabel=isBed?'Кровать':'Диван';setBack(view,label);setDocumentMeta(product.title,product.description);
-    const colors=uniq(product.colors?.length?product.colors:(product.variants||[]).map(v=>v.color));const sizes=uniq(product.sizes?.length?product.sizes:(product.variants||[]).map(v=>v.size));selectedColor=colors[0]||'';selectedSize=sizes[0]||'';const variant=variantFor(product,selectedColor,selectedSize);const price=variant?.price||product.price;
+    const colors=uniq(product.colors?.length?product.colors:(product.variants||[]).map(v=>v.color));const sizes=sortSizes(product.sizes?.length?product.sizes:(product.variants||[]).map(v=>v.size));selectedColor=colors[0]||'';selectedSize=sizes[0]||'';const variant=variantFor(product,selectedColor,selectedSize);const price=variant?.price||product.price;
     root.innerHTML=`<article class="pd-product">
       ${galleryMarkup(product.images,product.title)}
       <div class="pd-content-column">
@@ -81,7 +84,7 @@
   }
 
   function renderMattress(product){
-    setBack('mattresses','Матрасы');setDocumentMeta(product.model,product.description||product.intro);const variants=(product.variants||[]).filter(v=>String(v.size)!=='600х1200');const first=variants[0]||product.variants?.[0]||{price:0,size:'—'};const firmness=getFirmness(product);
+    setBack('mattresses','Матрасы');setDocumentMeta(product.model,product.description||product.intro);const variants=sortVariantsBySize((product.variants||[]).filter(v=>String(v.size)!=='600х1200'));const first=variants[0]||product.variants?.[0]||{price:0,size:'—'};const firmness=getFirmness(product);
     root.innerHTML=`<article class="pd-product">
       ${mattressImageMarkup(product)}
       <div class="pd-content-column">

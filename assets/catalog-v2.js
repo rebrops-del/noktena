@@ -38,6 +38,11 @@
 
   function detailUrl(product){return `product.html?kind=furniture&id=${encodeURIComponent(product.id)}`;}
   function uniq(list){return [...new Set((list||[]).filter(Boolean).map(v=>String(v).trim()).filter(Boolean))];}
+  function sizeSortValue(value){
+    const nums=String(value||'').replace(/×/g,'х').match(/\d+/g)?.map(Number)||[];
+    return [nums[0]??Number.MAX_SAFE_INTEGER,nums[1]??Number.MAX_SAFE_INTEGER,String(value||'')];
+  }
+  function sortSizes(list){return uniq(list).sort((a,b)=>{const A=sizeSortValue(a),B=sizeSortValue(b);return A[0]-B[0]||A[1]-B[1]||A[2].localeCompare(B[2],'ru');});}
   function shortText(product){const t=String(product.summary||product.description||'').replace(/\s+/g,' ').trim();return t.length>180?`${t.slice(0,177).trim()}…`:t;}
   function chooseSpecs(product){
     const entries=Object.entries(product.specs||{}).filter(([k,v])=>k&&v&&k.toLowerCase()!=='производитель');
@@ -62,7 +67,7 @@
 
   function cardMarkup(product){
     const imgs=uniq(product.images);const first=imgs[0]||'assets/hero-noktena-final.png?v=20260908-final2';const quick=chooseSpecs(product);const category=product.category==='beds'?'Кровать':'Диван';const link=detailUrl(product);
-    const colors=uniq(product.colors?.length?product.colors:(product.variants||[]).map(v=>v.color));const sizes=uniq(product.sizes?.length?product.sizes:(product.variants||[]).map(v=>v.size));const initial=preferredVariant(product,colors[0]||'',sizes[0]||'');const price=initial?.price||product.price;
+    const colors=uniq(product.colors?.length?product.colors:(product.variants||[]).map(v=>v.color));const sizes=sortSizes(product.sizes?.length?product.sizes:(product.variants||[]).map(v=>v.size));const initial=preferredVariant(product,colors[0]||'',sizes[0]||'');const price=initial?.price||product.price;
     state.gallery.set(product.id,0);
     return `<article class="f-card product-open-card" data-product-id="${esc(product.id)}" data-product-link="${esc(link)}" data-selected-color="${esc(colors[0]||'')}" data-selected-size="${esc(sizes[0]||'')}">
       <div class="f-gallery" data-gallery-id="${esc(product.id)}">
