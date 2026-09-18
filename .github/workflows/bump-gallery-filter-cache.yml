@@ -1,4 +1,4 @@
-name: Fix product header after gallery cache refresh
+name: Refresh curated furniture gallery cache
 
 on:
   push:
@@ -10,25 +10,24 @@ permissions:
   contents: write
 
 jobs:
-  fix:
+  refresh:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           ref: main
           fetch-depth: 0
-      - name: Fix CSS typo and keep gallery cache version
+      - name: Refresh frontend asset and fix CSS typo
         run: |
           python - <<'PY'
           from pathlib import Path
           p=Path('product.html')
           s=p.read_text(encoding='utf-8')
-          bad='-webkit-background-clip:text;background-clip;color:transparent;'
-          good='-webkit-background-clip:text;background-clip:text;color:transparent;'
-          if bad not in s and good not in s:
-              raise SystemExit('Expected header gradient CSS not found')
-          s=s.replace(bad,good)
-          s=s.replace('assets/furniture-source-colors.js?v=20260918-sofacolors2','assets/furniture-source-colors.js?v=20260918-galleryfix3')
+          s=s.replace('-webkit-background-clip:text;background-clip;color:transparent;', '-webkit-background-clip:text;background-clip:text;color:transparent;')
+          s=s.replace('assets/furniture-source-colors.js?v=20260918-sofacolors2','assets/furniture-source-colors.js?v=20260918-galleryfix4')
+          s=s.replace('assets/furniture-source-colors.js?v=20260918-galleryfix3','assets/furniture-source-colors.js?v=20260918-galleryfix4')
+          if 'assets/furniture-source-colors.js?v=20260918-galleryfix4' not in s:
+              raise SystemExit('Expected furniture gallery asset tag not found')
           p.write_text(s,encoding='utf-8')
           PY
       - name: Commit
@@ -37,6 +36,6 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add product.html
           if git diff --cached --quiet; then exit 0; fi
-          git commit -m 'Fix product header after gallery cache refresh'
+          git commit -m 'Refresh curated furniture gallery frontend'
           git pull --rebase origin main
           git push origin main
