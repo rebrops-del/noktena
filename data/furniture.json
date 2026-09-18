@@ -1801,6 +1801,83 @@
           }
         },
         {
+          "color": "Бордовый",
+          "size": "900×2000 мм",
+          "price": 27600,
+          "available": true,
+          "attributes": {
+            "Цвет фасада": "Бордо",
+            "Материал фасада": "Велюр",
+            "Спальное место": "900×2000 мм"
+          }
+        },
+        {
+          "color": "Бордовый",
+          "size": "2000×2000 мм",
+          "price": 32700,
+          "available": true,
+          "attributes": {
+            "Цвет фасада": "Бордо",
+            "Материал фасада": "Велюр",
+            "Спальное место": "2000×2000 мм"
+          }
+        },
+        {
+          "color": "Бордовый",
+          "size": "800×2000 мм",
+          "price": 27600,
+          "available": true,
+          "attributes": {
+            "Цвет фасада": "Бордо",
+            "Материал фасада": "Велюр",
+            "Спальное место": "800×2000 мм"
+          }
+        },
+        {
+          "color": "Бордовый",
+          "size": "1800×2000 мм",
+          "price": 30500,
+          "available": true,
+          "attributes": {
+            "Цвет фасада": "Бордо",
+            "Материал фасада": "Велюр",
+            "Спальное место": "1800×2000 мм"
+          }
+        },
+        {
+          "color": "Бордовый",
+          "size": "1600×2000 мм",
+          "price": 30500,
+          "available": true,
+          "attributes": {
+            "Цвет фасада": "Бордо",
+            "Материал фасада": "Велюр",
+            "Спальное место": "1600×2000 мм"
+          }
+        },
+        {
+          "color": "Бордовый",
+          "size": "1400×2000 мм",
+          "price": 30500,
+          "available": true,
+          "attributes": {
+            "Цвет фасада": "Бордо",
+            "Материал фасада": "Велюр",
+            "Спальное место": "1400×2000 мм"
+          }
+        },
+        {
+          "color": "Бордовый",
+          "size": "1200×2000 мм",
+          "price": 30500,
+          "available": true,
+          "attributes": {
+            "Цвет фасада": "Бордо",
+            "Материал фасада": "Велюр",
+            "Спальное место": "1200×2000 мм"
+          }
+        },
+        {
           "color": "Коричневый",
           "size": "900×2000 мм",
           "price": 27600,
@@ -2181,83 +2258,6 @@
           "available": true,
           "attributes": {
             "Цвет фасада": "Кольт Ч",
-            "Материал фасада": "Велюр",
-            "Спальное место": "1200×2000 мм"
-          }
-        },
-        {
-          "color": "Бордо",
-          "size": "900×2000 мм",
-          "price": 27600,
-          "available": true,
-          "attributes": {
-            "Цвет фасада": "Бордо",
-            "Материал фасада": "Велюр",
-            "Спальное место": "900×2000 мм"
-          }
-        },
-        {
-          "color": "Бордо",
-          "size": "2000×2000 мм",
-          "price": 32700,
-          "available": true,
-          "attributes": {
-            "Цвет фасада": "Бордо",
-            "Материал фасада": "Велюр",
-            "Спальное место": "2000×2000 мм"
-          }
-        },
-        {
-          "color": "Бордо",
-          "size": "800×2000 мм",
-          "price": 27600,
-          "available": true,
-          "attributes": {
-            "Цвет фасада": "Бордо",
-            "Материал фасада": "Велюр",
-            "Спальное место": "800×2000 мм"
-          }
-        },
-        {
-          "color": "Бордо",
-          "size": "1800×2000 мм",
-          "price": 30500,
-          "available": true,
-          "attributes": {
-            "Цвет фасада": "Бордо",
-            "Материал фасада": "Велюр",
-            "Спальное место": "1800×2000 мм"
-          }
-        },
-        {
-          "color": "Бордо",
-          "size": "1600×2000 мм",
-          "price": 30500,
-          "available": true,
-          "attributes": {
-            "Цвет фасада": "Бордо",
-            "Материал фасада": "Велюр",
-            "Спальное место": "1600×2000 мм"
-          }
-        },
-        {
-          "color": "Бордо",
-          "size": "1400×2000 мм",
-          "price": 30500,
-          "available": true,
-          "attributes": {
-            "Цвет фасада": "Бордо",
-            "Материал фасада": "Велюр",
-            "Спальное место": "1400×2000 мм"
-          }
-        },
-        {
-          "color": "Бордо",
-          "size": "1200×2000 мм",
-          "price": 30500,
-          "available": true,
-          "attributes": {
-            "Цвет фасада": "Бордо",
             "Материал фасада": "Велюр",
             "Спальное место": "1200×2000 мм"
           }
@@ -2272,8 +2272,7 @@
         "Светло серый",
         "Серый",
         "Темно серый",
-        "Черный",
-        "Бордо"
+        "Черный"
       ],
       "sizes": [
         "900×2000 мм",
@@ -2296,10 +2295,7 @@
         "Светло серый": "https://berhouse.ru/files/eshop/big/13128_103648.jpg",
         "Серый": "https://berhouse.ru/files/eshop/big/13128_103653.jpg",
         "Темно серый": "https://berhouse.ru/files/eshop/big/13128_103647.jpg",
-        "Черный": "https://berhouse.ru/files/eshop/big/13128_103635.jpg",
-        "Темно-серый": "https://berhouse.ru/files/eshop/big/13128_103647.jpg",
-        "Светло-серый": "https://berhouse.ru/files/eshop/big/13128_103648.jpg",
-        "Бордо": "https://berhouse.ru/files/eshop/big/13128_103650.jpg"
+        "Черный": "https://berhouse.ru/files/eshop/big/13128_103635.jpg"
       }
     },
     {
@@ -3126,9 +3122,7 @@
         "Бежевый": "https://berhouse.ru/files/eshop/big/13131_100955.jpg",
         "Белый": "https://berhouse.ru/files/eshop/big/13131_100956.jpg",
         "Кольт Ч": "https://berhouse.ru/files/eshop/big/13131_100935.jpg",
-        "Коричневый": "https://berhouse.ru/files/eshop/big/13131_100954.jpg",
-        "Темно серый": "https://berhouse.ru/files/eshop/big/13131_100957.jpg",
-        "Светло серый": "https://berhouse.ru/files/eshop/big/13131_100959.jpg"
+        "Коричневый": "https://berhouse.ru/files/eshop/big/13131_100954.jpg"
       }
     },
     {
@@ -6120,9 +6114,7 @@
         "Бежевый": "https://berhouse.ru/files/eshop/big/21598_101077.jpg",
         "Белый": "https://berhouse.ru/files/eshop/big/21598_101078.jpg",
         "Кольт Ч": "https://berhouse.ru/files/eshop/big/21598_101058.jpg",
-        "Коричневый": "https://berhouse.ru/files/eshop/big/21598_101076.jpg",
-        "Темно серый": "https://berhouse.ru/files/eshop/big/21598_101079.jpg",
-        "Светло серый": "https://berhouse.ru/files/eshop/big/21598_101081.jpg"
+        "Коричневый": "https://berhouse.ru/files/eshop/big/21598_101076.jpg"
       }
     },
     {
@@ -8165,9 +8157,7 @@
         "Темно-серый": "https://berhouse.ru/files/eshop/big/20779_101917.jpg",
         "Бежевый": "https://berhouse.ru/files/eshop/big/20779_101902.jpg",
         "Белый": "https://berhouse.ru/files/eshop/big/20779_101904.jpg",
-        "Коричневый": "https://berhouse.ru/files/eshop/big/20779_101903.jpg",
-        "Темно серый": "https://berhouse.ru/files/eshop/big/20779_101917.jpg",
-        "Светло серый": "https://berhouse.ru/files/eshop/big/20779_101919.jpg"
+        "Коричневый": "https://berhouse.ru/files/eshop/big/20779_101903.jpg"
       }
     },
     {
@@ -10374,9 +10364,7 @@
         "Бежевый": "https://berhouse.ru/files/eshop/big/13129_103747.jpg",
         "Белый": "https://berhouse.ru/files/eshop/big/13129_103746.jpg",
         "Кольт Ч": "https://berhouse.ru/files/eshop/big/13129_103726.jpg",
-        "Коричневый": "https://berhouse.ru/files/eshop/big/13129_103745.jpg",
-        "Темно серый": "https://berhouse.ru/files/eshop/big/13129_103748.jpg",
-        "Светло серый": "https://berhouse.ru/files/eshop/big/13129_103750.jpg"
+        "Коричневый": "https://berhouse.ru/files/eshop/big/13129_103745.jpg"
       }
     },
     {
@@ -11200,9 +11188,7 @@
         "Бежевый": "https://berhouse.ru/files/eshop/big/13132_103810.jpg",
         "Белый": "https://berhouse.ru/files/eshop/big/13132_103811.jpg",
         "Кольт Ч": "https://berhouse.ru/files/eshop/big/13132_103790.jpg",
-        "Коричневый": "https://berhouse.ru/files/eshop/big/13132_103809.jpg",
-        "Темно серый": "https://berhouse.ru/files/eshop/big/13132_103812.jpg",
-        "Светло серый": "https://berhouse.ru/files/eshop/big/13132_103814.jpg"
+        "Коричневый": "https://berhouse.ru/files/eshop/big/13132_103809.jpg"
       }
     },
     {
@@ -13116,9 +13102,7 @@
         "Бордо": "https://berhouse.ru/files/eshop/big/20775_104042.jpg",
         "Светло-серый": "https://berhouse.ru/files/eshop/big/20775_104056.jpg",
         "Серый": "https://berhouse.ru/files/eshop/big/20775_104055.jpg",
-        "Темно-серый": "https://berhouse.ru/files/eshop/big/20775_104054.jpg",
-        "Темно серый": "https://berhouse.ru/files/eshop/big/20775_104054.jpg",
-        "Светло серый": "https://berhouse.ru/files/eshop/big/20775_104056.jpg"
+        "Темно-серый": "https://berhouse.ru/files/eshop/big/20775_104054.jpg"
       }
     },
     {
@@ -14504,9 +14488,7 @@
         "Темно-серый": "https://berhouse.ru/files/eshop/big/20762_104670.jpg",
         "Бежевый": "https://berhouse.ru/files/eshop/big/20762_104657.jpg",
         "Белый": "https://berhouse.ru/files/eshop/big/20762_104655.jpg",
-        "Коричневый": "https://berhouse.ru/files/eshop/big/20762_104656.jpg",
-        "Темно серый": "https://berhouse.ru/files/eshop/big/20762_104670.jpg",
-        "Светло серый": "https://berhouse.ru/files/eshop/big/20762_104672.jpg"
+        "Коричневый": "https://berhouse.ru/files/eshop/big/20762_104656.jpg"
       }
     },
     {
@@ -18009,9 +17991,7 @@
         "Бежевый": "https://berhouse.ru/files/eshop/big/20763_103911.jpg",
         "Белый": "https://berhouse.ru/files/eshop/big/20763_103898.jpg",
         "Кольт Ч": "https://berhouse.ru/files/eshop/big/20763_103893.jpg",
-        "Коричневый": "https://berhouse.ru/files/eshop/big/20763_103867.jpg",
-        "Темно серый": "https://berhouse.ru/files/eshop/big/20763_103907.jpg",
-        "Светло серый": "https://berhouse.ru/files/eshop/big/20763_103909.jpg"
+        "Коричневый": "https://berhouse.ru/files/eshop/big/20763_103867.jpg"
       }
     },
     {
@@ -18837,9 +18817,7 @@
         "Бежевый": "https://berhouse.ru/files/eshop/big/20765_103942.jpg",
         "Белый": "https://berhouse.ru/files/eshop/big/20765_103943.jpg",
         "Кольт Ч": "https://berhouse.ru/files/eshop/big/20765_103916.jpg",
-        "Коричневый": "https://berhouse.ru/files/eshop/big/20765_103939.jpg",
-        "Темно серый": "https://berhouse.ru/files/eshop/big/20765_103935.jpg",
-        "Светло серый": "https://berhouse.ru/files/eshop/big/20765_103937.jpg"
+        "Коричневый": "https://berhouse.ru/files/eshop/big/20765_103939.jpg"
       }
     },
     {
@@ -19665,9 +19643,7 @@
         "Бежевый": "https://berhouse.ru/files/eshop/big/20766_103998.jpg",
         "Белый": "https://berhouse.ru/files/eshop/big/20766_103997.jpg",
         "Кольт Ч": "https://berhouse.ru/files/eshop/big/20766_103995.jpg",
-        "Коричневый": "https://berhouse.ru/files/eshop/big/20766_103994.jpg",
-        "Темно серый": "https://berhouse.ru/files/eshop/big/20766_103993.jpg",
-        "Светло серый": "https://berhouse.ru/files/eshop/big/20766_104016.jpg"
+        "Коричневый": "https://berhouse.ru/files/eshop/big/20766_103994.jpg"
       }
     },
     {
@@ -20493,9 +20469,7 @@
         "Бежевый": "https://berhouse.ru/files/eshop/big/20764_104494.jpg",
         "Белый": "https://berhouse.ru/files/eshop/big/20764_104515.jpg",
         "Кольт Ч": "https://berhouse.ru/files/eshop/big/20764_104489.jpg",
-        "Коричневый": "https://berhouse.ru/files/eshop/big/20764_104484.jpg",
-        "Темно серый": "https://berhouse.ru/files/eshop/big/20764_104524.jpg",
-        "Светло серый": "https://berhouse.ru/files/eshop/big/20764_104526.jpg"
+        "Коричневый": "https://berhouse.ru/files/eshop/big/20764_104484.jpg"
       }
     },
     {
@@ -21321,9 +21295,7 @@
         "Бежевый": "https://berhouse.ru/files/eshop/big/20773_104557.jpg",
         "Белый": "https://berhouse.ru/files/eshop/big/20773_104556.jpg",
         "Кольт Ч": "https://berhouse.ru/files/eshop/big/20773_104533.jpg",
-        "Коричневый": "https://berhouse.ru/files/eshop/big/20773_104554.jpg",
-        "Темно серый": "https://berhouse.ru/files/eshop/big/20773_104552.jpg",
-        "Светло серый": "https://berhouse.ru/files/eshop/big/20773_104553.jpg"
+        "Коричневый": "https://berhouse.ru/files/eshop/big/20773_104554.jpg"
       }
     },
     {
@@ -22149,9 +22121,7 @@
         "Бежевый": "https://berhouse.ru/files/eshop/big/20760_104615.jpg",
         "Белый": "https://berhouse.ru/files/eshop/big/20760_104614.jpg",
         "Кольт Ч": "https://berhouse.ru/files/eshop/big/20760_104612.jpg",
-        "Коричневый": "https://berhouse.ru/files/eshop/big/20760_104611.jpg",
-        "Темно серый": "https://berhouse.ru/files/eshop/big/20760_104610.jpg",
-        "Светло серый": "https://berhouse.ru/files/eshop/big/20760_104633.jpg"
+        "Коричневый": "https://berhouse.ru/files/eshop/big/20760_104611.jpg"
       }
     }
   ],
