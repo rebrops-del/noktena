@@ -1,4 +1,4 @@
-name: Inspect sofa color labels
+name: Apply sofa color-name correction
 
 on:
   push:
@@ -6,28 +6,51 @@ on:
     paths:
       - '.github/workflows/apply-sofa-color-names.yml'
 
+permissions:
+  contents: write
+
 jobs:
-  inspect:
+  fix:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           ref: main
-      - name: Print sofa color labels
+          fetch-depth: 0
+      - name: Normalize sofa display colors
+        run: python scripts/fix_furniture_colors.py
+      - name: Verify sofa display colors
         run: |
           python - <<'PY'
           import json
           from pathlib import Path
           data = json.loads(Path('data/furniture.json').read_text(encoding='utf-8'))
-          print('SOFAS', len(data.get('sofas', [])))
-          all_colors = set()
-          for p in data.get('sofas', []):
+          sofas = data.get('sofas', [])
+          bad = []
+          for p in sofas:
               colors = []
-              seen = set()
               for v in p.get('variants') or []:
                   c = str(v.get('color') or '').strip()
-                  if c and c not in seen:
-                      seen.add(c); colors.append(c); all_colors.add(c)
-              print('SOFA', p.get('sourceId'), '|', p.get('title'), '|', ' ; '.join(colors))
-          print('UNIQUE COLORS:', ' ; '.join(sorted(all_colors)))
+                  if c and c not in colors:
+                      colors.append(c)
+                  low = c.lower().replace('ё', 'е')
+                  if 'велюто' in low or 'veluto' in low:
+                      bad.append((p.get('sourceId'), p.get('title'), c))
+              if [x.lower().replace('ё','е') for x in colors] != [str(x).strip().lower().replace('ё','е') for x in (p.get('colors') or [])]:
+                  bad.append((p.get('sourceId'), p.get('title'), 'colors/variants mismatch'))
+          if bad:
+              raise SystemExit('Bad sofa labels: ' + repr(bad[:30]))
+          print(f'OK: checked {len(sofas)} sofas; display labels come from clean variant colors')
           PY
+      - name: Commit corrected catalog
+        run: |
+          if git diff --quiet -- data/furniture.json; then
+            echo 'Catalog already contains corrected sofa names'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add data/furniture.json
+          git commit -m 'Correct sofa color display names'
+          git pull --rebase origin main
+          git push origin main
