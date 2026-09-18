@@ -1,0 +1,38 @@
+name: Remove city selector helper text
+on:
+  push:
+    paths:
+      - '.github/workflows/remove-city-helper-text.yml'
+permissions:
+  contents: write
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Remove helper text from city selector
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          target = '<small>В дальнейшем здесь можно будет переключаться между городами сети.</small>'
+          changed = []
+          for name in ('index.html','product.html'):
+              p = Path(name)
+              text = p.read_text(encoding='utf-8')
+              if target in text:
+                  text = text.replace(target, '')
+                  p.write_text(text, encoding='utf-8')
+                  changed.append(name)
+          if not changed:
+              raise SystemExit('Helper text not found')
+          print('Updated:', ', '.join(changed))
+          PY
+      - name: Commit changes and remove temporary workflow
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html product.html
+          git commit -m "Remove city selector helper text"
+          git rm .github/workflows/remove-city-helper-text.yml
+          git commit -m "Remove temporary city helper workflow"
+          git push
