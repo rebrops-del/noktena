@@ -1,0 +1,32 @@
+name: Audit sofa color labels
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/audit-sofa-colors.yml'
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Print sofa colors
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          data=json.loads(Path('data/furniture.json').read_text(encoding='utf-8'))
+          sofas=data.get('sofas',[])
+          print('SOFAS',len(sofas))
+          for p in sofas:
+              vc=[]
+              for v in p.get('variants') or []:
+                  c=(v.get('color') or '').strip()
+                  if c and c not in vc: vc.append(c)
+              print('---',p.get('id'),p.get('title'))
+              print('source',p.get('sourceUrl'))
+              print('colors',p.get('colors'))
+              print('variantColors',vc)
+              print('colorImagesKeys',list((p.get('colorImages') or {}).keys()))
+          PY
