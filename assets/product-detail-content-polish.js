@@ -2,6 +2,7 @@
   'use strict';
 
   const tidy=(value='')=>String(value)
+    .replace(/\u00a0/g,' ')
     .replace(/\s*\(\s*BERHOUSE\s*\)\s*/gi,' ')
     .replace(/\s*\(\s*ЗР\s*\)\s*/gi,' ')
     .replace(/подъем/gi,'подъём')
@@ -36,6 +37,55 @@
       .trim();
   }
 
+  function cleanDescriptionLine(value=''){
+    return tidy(value)
+      .replace(/\bволнующее очарование\b/gi,'')
+      .replace(/\bнавеяно историями[^.!?]*[.!?]?/gi,'')
+      .replace(/\s{2,}/g,' ')
+      .trim();
+  }
+
+  function splitSentences(text=''){
+    const found=String(text).match(/[^.!?]+(?:[.!?]+|$)/g);
+    return (found||[text]).map(s=>s.trim()).filter(Boolean);
+  }
+
+  function formatDescription(value=''){
+    let raw=String(value??'')
+      .replace(/\r\n?/g,'\n')
+      .replace(/\u00a0/g,' ')
+      .replace(/[ \t]+\n/g,'\n')
+      .replace(/\n[ \t]+/g,'\n');
+
+    const labels='Механизм трансформации|Спальное место|Размеры|Габариты|Каркас|Наполнитель|Обивка|Материал обивки|Бельевой ящик|Основание|Упаковка';
+    raw=raw.replace(new RegExp(`\\s+(?=(${labels})\\s*[:—-])`,'gi'),'\n');
+
+    const explicit=raw.split(/\n+/).map(cleanDescriptionLine).filter(Boolean);
+    const paragraphs=[];
+
+    explicit.forEach(block=>{
+      if(block.length<230){paragraphs.push(block);return;}
+      const sentences=splitSentences(block);
+      if(sentences.length<=1){paragraphs.push(block);return;}
+      let group=[];
+      let length=0;
+      sentences.forEach(sentence=>{
+        const nextLength=length+(group.length?1:0)+sentence.length;
+        if(group.length&&nextLength>230){
+          paragraphs.push(group.join(' '));
+          group=[sentence];
+          length=sentence.length;
+        }else{
+          group.push(sentence);
+          length=nextLength;
+        }
+      });
+      if(group.length)paragraphs.push(group.join(' '));
+    });
+
+    return paragraphs.join('\n\n').replace(/\n{3,}/g,'\n\n').trim();
+  }
+
   function polish(){
     const root=document.querySelector('#productRoot');
     if(!root)return false;
@@ -54,7 +104,7 @@
     const subtitle=root.querySelector('.pd-subtitle');
     if(subtitle)setText(subtitle,cleanMarketingText(subtitle.textContent));
 
-    root.querySelectorAll('.pd-description').forEach(el=>setText(el,cleanMarketingText(el.textContent)));
+    root.querySelectorAll('.pd-description').forEach(el=>setText(el,formatDescription(el.textContent)));
     root.querySelectorAll('.pd-spec').forEach(row=>{
       const k=row.querySelector('span');
       const v=row.querySelector('b');
