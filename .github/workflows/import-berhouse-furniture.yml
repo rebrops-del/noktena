@@ -29,7 +29,7 @@ jobs:
         with:
           python-version: '3.12'
       - name: Install dependencies
-        run: pip install requests beautifulsoup4
+        run: pip install requests beautifulsoup4 pillow
       - name: Import beds and sofas
         run: python scripts/import_berhouse_furniture.py
       - name: Add exact color-specific product photos
@@ -44,7 +44,7 @@ jobs:
         run: python scripts/fix_furniture_colors.py
       - name: Restore exact Berhouse sofa color names and exact variant photos
         run: python scripts/refresh_sofa_colors.py
-      - name: Remove duplicate size/color gallery photos
+      - name: Keep all real gallery angles and remove visual duplicates
         run: python scripts/clean_furniture_galleries.py
       - name: Validate scripts
         run: |
@@ -58,6 +58,6 @@ jobs:
             echo 'No catalog changes'
             exit 0
           fi
-          git commit -m 'Sync Berhouse furniture without duplicate gallery photos'
+          git commit -m 'Sync Berhouse furniture with real gallery angles'
           git pull --rebase origin main
           git push origin main
