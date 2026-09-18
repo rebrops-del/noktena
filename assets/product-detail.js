@@ -95,7 +95,18 @@
       const synced=base.match(/Спальное место\s*[—-]/i)?base.replace(/Спальное место\s*[—-]\s*[^.]+\.?\s*/i,`Спальное место — ${selectedSize}. `):`Спальное место — ${selectedSize}. ${base}`;
       subtitle.textContent=synced.trim();
     }
-    const extra=$('#pdVariantSpecs');if(extra){const attrs=variant?.attributes||{};const entries=Object.entries(attrs).filter(([k,v])=>k&&v&&!['Цвет фасада','Спальное место','Размер'].includes(k)&&!/производител|артикул|sku/i.test(k));extra.innerHTML=entries.length?`<div class="pd-variant-note"><b>Выбранный вариант</b><div>${selectedColor?`<span>Цвет: ${esc(selectedColor)}</span>`:''}${selectedSize?`<span>Размер: ${esc(selectedSize)}</span>`:''}${entries.slice(0,4).map(([k,v])=>`<span>${esc(k)}: ${esc(v)}</span>`).join('')}</div></div>`:'';}
+    const attrs=variant?.attributes||{};
+    const normSpecKey=value=>String(value||'').trim().toLowerCase().replace(/ё/g,'е');
+    $$('.pd-spec').forEach(row=>{
+      const keyEl=row.querySelector('span'),valueEl=row.querySelector('b');
+      if(!keyEl||!valueEl)return;
+      const key=normSpecKey(keyEl.textContent);
+      if(furnitureProduct.category==='beds'&&selectedSize&&/спальн.*мест/.test(key)){valueEl.textContent=selectedSize;return;}
+      const attrKey=Object.keys(attrs).find(k=>normSpecKey(k)===key);
+      if(attrKey&&attrs[attrKey]){valueEl.textContent=attrs[attrKey];return;}
+      if(furnitureProduct.category==='beds'&&selectedSize&&(key==='размер'||key==='размеры'||key==='размер спального места'))valueEl.textContent=selectedSize;
+    });
+    const extra=$('#pdVariantSpecs');if(extra){const entries=Object.entries(attrs).filter(([k,v])=>k&&v&&!['Цвет фасада','Спальное место','Размер'].includes(k)&&!/производител|артикул|sku/i.test(k));extra.innerHTML=entries.length?`<div class="pd-variant-note"><b>Выбранный вариант</b><div>${selectedColor?`<span>Цвет: ${esc(selectedColor)}</span>`:''}${selectedSize?`<span>Размер: ${esc(selectedSize)}</span>`:''}${entries.slice(0,4).map(([k,v])=>`<span>${esc(k)}: ${esc(v)}</span>`).join('')}</div></div>`:'';}
   }
 
   function renderMattress(product){
