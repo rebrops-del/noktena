@@ -1,4 +1,4 @@
-name: Temporary catalog quality check
+name: Temporary Berhouse color image inspect
 
 on:
   push:
@@ -10,18 +10,37 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Inspect imported product data
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: pip install requests beautifulsoup4
+      - name: Inspect source color/image markup
         run: |
           python - <<'PY'
-          import json
-          d=json.load(open('data/furniture.json',encoding='utf-8'))
-          for p in [d['beds'][0], next(x for x in d['beds'] if 'Горизонт Мини' in x['title']), d['sofas'][0]]:
-              print('---')
-              print('TITLE:',p['title'])
-              print('SUMMARY:',p.get('summary'))
-              print('DESCRIPTION:',p.get('description','')[:1200].replace('\n',' | '))
-              print('COLORS:',p.get('colors'))
-              print('SIZES:',p.get('sizes'))
-              print('SPECS:',p.get('specs'))
-              print('VARIANT0:',(p.get('variants') or [None])[0])
+          import re, requests
+          from bs4 import BeautifulSoup
+          urls=['https://m.berhouse.ru/eshop/item/24190/','https://m.berhouse.ru/eshop/item/23284/']
+          for url in urls:
+              print('\n===== URL',url,'=====')
+              html=requests.get(url,headers={'User-Agent':'Mozilla/5.0'},timeout=30).text
+              soup=BeautifulSoup(html,'html.parser')
+              print('TITLE', soup.title.get_text(' ',strip=True) if soup.title else '')
+              for el in soup.find_all(['input','option','select','label','a','img','div','span']):
+                  txt=' '.join(el.get_text(' ',strip=True).split())
+                  attrs={k:v for k,v in el.attrs.items() if k in ['id','class','name','value','data-id','data-value','data-color','data-image','data-src','data-big','data-original','src','href','style','title']}
+                  blob=(txt+' '+str(attrs)).lower()
+                  if any(x in blob for x in ['цвет фасада','бирюз','бордо','серый','бежев','кольт']) and len(str(el))<1800:
+                      print('EL',el.name,attrs,'TXT=',txt[:180])
+              print('--- scripts with color/image hints ---')
+              for s in soup.find_all('script'):
+                  t=s.get_text(' ',strip=True)
+                  low=t.lower()
+                  if any(x in low for x in ['цвет фасада','color','24190','23284']) and any(x in low for x in ['image','img','photo','eshop']):
+                      print(t[:4000])
+              print('--- image anchors ---')
+              for a in soup.find_all('a',href=True):
+                  href=a.get('href','')
+                  if '/files/eshop/' in href:
+                      print('A',href, a.attrs)
           PY
