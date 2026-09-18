@@ -14,6 +14,20 @@
     return el;
   }
 
+  function polishLabels(card) {
+    const detailsLabel = card.querySelector('.f-card-details summary span:first-child');
+    if (detailsLabel) detailsLabel.textContent = 'Характеристики модели';
+
+    const more = card.querySelector('.product-more-link');
+    if (more) {
+      const textSpan = more.querySelector('span:first-child');
+      if (textSpan) textSpan.textContent = 'Смотреть модель';
+    }
+
+    const maxText = card.querySelector('.max-btn span:last-child');
+    if (maxText && /MAX/i.test(maxText.textContent || '')) maxText.textContent = 'Консультация в MAX';
+  }
+
   function normalizeCard(card) {
     const body = card.querySelector('.f-card-body');
     if (!body) return;
@@ -48,12 +62,24 @@
       option = placeholder('div', 'f-option');
       insertAfter(details, option);
     }
+
+    polishLabels(card);
+  }
+
+  function polishMattressCard(card) {
+    const more = card.querySelector('.product-more-link');
+    if (more && more.firstChild && more.firstChild.nodeType === Node.TEXT_NODE) {
+      more.firstChild.textContent = 'Смотреть модель ';
+    }
+    const maxText = card.querySelector('.max-btn span:last-child');
+    if (maxText && /MAX/i.test(maxText.textContent || '')) maxText.textContent = 'Консультация в MAX';
   }
 
   let queued = false;
   function normalizeAll() {
     queued = false;
     document.querySelectorAll('.f-card').forEach(normalizeCard);
+    document.querySelectorAll('.card').forEach(polishMattressCard);
   }
 
   function schedule() {
