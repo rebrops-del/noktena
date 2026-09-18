@@ -128,14 +128,38 @@
     return variantColors.length ? { ...product, colors: variantColors } : product;
   }
 
+  function realGalleryOnly(product) {
+    if (!product || !Array.isArray(product.images)) return product;
+    const pid = clean(product.sourceId);
+    if (!pid) return product;
+    const escaped = pid.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const realName = new RegExp(`^${escaped}(?:[a-z]+\\d+)?\\.(?:jpe?g|png|webp)$`, 'i');
+    const seen = new Set();
+    const images = [];
+    for (const raw of product.images) {
+      const url = clean(raw);
+      if (!url) continue;
+      let name = '';
+      try { name = new URL(url, location.href).pathname.split('/').pop() || ''; }
+      catch { name = url.split(/[?#]/)[0].split('/').pop() || ''; }
+      if (!realName.test(name)) continue;
+      const key = url.split(/[?#]/)[0];
+      if (seen.has(key)) continue;
+      seen.add(key);
+      images.push(url);
+    }
+    return images.length ? { ...product, images } : product;
+  }
+
   function normalizeCatalog(data) {
     if (!data || typeof data !== 'object') return data;
     return {
       ...data,
-      beds: Array.isArray(data.beds) ? data.beds.map(normalizeBed) : [],
-      // Sofa names in Berhouse variants are already the concise customer labels.
-      // Do not replace them with gallery captions such as «Серо бежевый».
-      sofas: Array.isArray(data.sofas) ? data.sofas.map(preserveSofa) : []
+      beds: Array.isArray(data.beds) ? data.beds.map(p => realGalleryOnly(normalizeBed(p))) : [],
+      // Sofa variant labels are authoritative. Color-specific photos remain in
+      // colorImages and are shown only after a shade is selected; they are not
+      // repeated as gallery thumbnails.
+      sofas: Array.isArray(data.sofas) ? data.sofas.map(p => realGalleryOnly(preserveSofa(p))) : []
     };
   }
 
@@ -153,7 +177,7 @@
         headers
       });
     } catch (error) {
-      console.error('NOKTENA furniture color normalization failed', error);
+      console.error('NOKTENA furniture normalization failed', error);
       return response;
     }
   };
