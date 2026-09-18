@@ -1,0 +1,52 @@
+name: Polish top contact bar
+
+on:
+  push:
+    paths:
+      - '.github/workflows/polish-top-contact-bar.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Update top contact bar
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('index.html')
+          s=p.read_text(encoding='utf-8')
+          variants=[
+              'Екатеринбург · склад: г. Берёзовский · noktena@mail.ru · +7 (932) 120-76-35',
+              'Екатеринбург · склад: г. Березовский · noktena@mail.ru · +7 (932) 120-76-35',
+              'Екатеринбург · склад г. Берёзовский · noktena@mail.ru · +7 (932) 120-76-35',
+          ]
+          new='г. Екатеринбург · склад: г. Берёзовский · noktena@mail.ru · +7 (932) 120-76-35'
+          changed=False
+          for old in variants:
+              if old in s:
+                  s=s.replace(old,new)
+                  changed=True
+          if not changed:
+              # targeted fallback for the location prefix while leaving contacts intact
+              s2=s.replace('Екатеринбург · склад:', 'г. Екатеринбург · склад:')
+              if s2!=s:
+                  s=s2; changed=True
+          if not changed:
+              raise SystemExit('Target top-bar text not found')
+          p.write_text(s,encoding='utf-8')
+          PY
+      - name: Commit changes and remove temporary workflow
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git rm .github/workflows/polish-top-contact-bar.yml
+          git add index.html
+          git commit -m 'Polish homepage location and contact line'
+          git push origin main
