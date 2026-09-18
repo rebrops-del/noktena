@@ -164,7 +164,7 @@ def image_urls(soup, page_url, title, product_id):
         add(og.get("content"), 100)
     for img in soup.find_all("img"):
         alt = clean(img.get("alt")).lower()
-        srcs = [img.get(k) for k in ["src", "data-src", "data-original", "data-lazy", "data-srcset"]]
+        srcs = [img.get(k) for k in ["src", "data-src", "data-original", "data-lazy", "data-srcset", "srcset", "data-image", "data-zoom", "data-large"]]
         score = 0
         if title_low and (title_low[:20] in alt or alt[:20] in title_low): score += 70
         parent = img.parent
@@ -181,10 +181,10 @@ def image_urls(soup, page_url, title, product_id):
                 add(href, score + 20)
     for a in soup.find_all("a", href=True):
         href = a.get("href")
-        if product_id in href and re.search(r"\.(?:jpe?g|png|webp)(?:\?|$)", href, re.I):
+        if re.search(r"\.(?:jpe?g|png|webp)(?:\?|$)", href, re.I) and (product_id in href or "/files/eshop/" in href):
             add(href, 40)
     found.sort(key=lambda x: (-x[0], x[1]))
-    return [u for _, u in found[:10]]
+    return [u for _, u in found[:30]]
 
 
 def parse_specs(soup, full_text):
