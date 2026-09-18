@@ -1,0 +1,36 @@
+name: Temporary clean furniture gallery
+
+on:
+  push:
+    paths:
+      - '.github/workflows/temp-clean-furniture-gallery.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Keep only clean product gallery images
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('scripts/import_berhouse_furniture.py')
+          s=p.read_text(encoding='utf-8')
+          s=s.replace('["logo", "favicon", "icon", "sprite", "counter", "pixel", "captcha", "banner"]','["logo", "favicon", "icon", "sprite", "counter", "pixel", "captcha", "banner", "texture"]',1)
+          old='found.sort(key=lambda x: (-x[0], x[1]))\n    return [u for _, u in found[:30]]'
+          new='found.sort(key=lambda x: (-x[0], x[1]))\n    urls = [u for _, u in found]\n    big = [u for u in urls if "/files/eshop/big/" in u.lower()]\n    return (big if big else urls)[:30]'
+          if old not in s:
+              raise SystemExit('gallery return marker not found')
+          p.write_text(s.replace(old,new,1),encoding='utf-8')
+          PY
+      - name: Commit gallery cleanup
+        run: |
+          git config user.name 'rebrops-del'
+          git config user.email 'rebrops@gmail.com'
+          git add scripts/import_berhouse_furniture.py
+          git commit -m 'Keep clean high-resolution furniture galleries'
+          git pull --rebase origin main
+          git push origin main
