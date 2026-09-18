@@ -1,0 +1,30 @@
+name: Refresh mattress composition formatter
+on:
+  push:
+    paths:
+      - '.github/workflows/bump-mattress-composition-cache.yml'
+permissions:
+  contents: write
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Bump formatter cache key
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('product.html')
+          s=p.read_text(encoding='utf-8')
+          s=s.replace('assets/product-detail-content-polish.js?v=20260918-description3','assets/product-detail-content-polish.js?v=20260918-description4')
+          p.write_text(s,encoding='utf-8')
+          PY
+      - name: Commit change and remove temporary workflow
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add product.html
+          git commit -m "Refresh mattress composition formatting" || true
+          git rm .github/workflows/bump-mattress-composition-cache.yml
+          git commit -m "Remove temporary mattress formatting workflow"
+          git push
