@@ -11,3 +11,60 @@
 .f-card .f-gallery-count{
   display:none!important;
 }
+
+/* Exact furniture-card alignment. This file loads after all visual themes. */
+@media (min-width:621px){
+  .f-grid{align-items:stretch!important}
+  .f-card{height:100%!important;display:flex!important;flex-direction:column!important}
+  .f-card-body{flex:1!important;display:flex!important;flex-direction:column!important;gap:13px!important;padding:22px!important}
+
+  .f-card-eyebrow{
+    height:14px!important;min-height:14px!important;max-height:14px!important;
+    line-height:14px!important;overflow:hidden!important;white-space:nowrap!important;text-overflow:ellipsis!important
+  }
+  .f-card h3{
+    height:58px!important;min-height:58px!important;max-height:58px!important;
+    line-height:1.08!important;display:-webkit-box!important;-webkit-line-clamp:2!important;
+    -webkit-box-orient:vertical!important;overflow:hidden!important;margin:0!important
+  }
+  .f-card-summary{
+    height:62px!important;min-height:62px!important;max-height:62px!important;
+    line-height:1.62!important;display:-webkit-box!important;-webkit-line-clamp:3!important;
+    -webkit-box-orient:vertical!important;overflow:hidden!important;margin:0!important
+  }
+  .f-premium-specs{
+    height:108px!important;min-height:108px!important;max-height:108px!important;
+    overflow:hidden!important;display:grid!important;grid-template-rows:repeat(3,34px)!important;
+    align-content:center!important;padding:3px 0!important
+  }
+  .f-premium-specs>div{
+    height:34px!important;min-height:34px!important;max-height:34px!important;
+    padding:0!important;display:flex!important;align-items:center!important;justify-content:space-between!important;
+    overflow:hidden!important
+  }
+  .f-premium-specs span,.f-premium-specs b{
+    line-height:1.25!important;display:-webkit-box!important;-webkit-line-clamp:2!important;
+    -webkit-box-orient:vertical!important;overflow:hidden!important
+  }
+
+  .f-card-details:not([open]){height:46px!important;min-height:46px!important;max-height:46px!important}
+  .f-card-details:not([open]) summary{height:46px!important;min-height:46px!important;max-height:46px!important}
+  .f-card-details[open]{height:auto!important;max-height:none!important}
+
+  .f-option{
+    height:78px!important;min-height:78px!important;max-height:78px!important;
+    display:grid!important;grid-template-rows:18px 46px!important;gap:10px!important;padding-top:0!important
+  }
+  .f-option-head{height:18px!important;min-height:18px!important;max-height:18px!important;margin:0!important}
+  .f-size-select{height:46px!important;min-height:46px!important;max-height:46px!important}
+
+  .f-card-bottom{margin-top:auto!important;display:grid!important;gap:9px!important}
+  .f-price-row{
+    height:82px!important;min-height:82px!important;max-height:82px!important;
+    padding-top:7px!important;box-sizing:border-box!important
+  }
+  .product-more-link{height:49px!important;min-height:49px!important;max-height:49px!important}
+  .f-card .max-btn{height:48px!important;min-height:48px!important;max-height:48px!important}
+
+  .f-equalizer-placeholder{visibility:hidden!important;pointer-events:none!important}
+}
