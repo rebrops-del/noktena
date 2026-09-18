@@ -1,0 +1,39 @@
+name: Update home section heading
+
+on:
+  push:
+    paths:
+      - '.github/workflows/temp-home-heading.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Update section copy
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('index.html')
+          s=p.read_text(encoding='utf-8')
+          old='<h2>Похожие модели</h2><p>Подборка кроватей и диванов, которые удобно сравнить по стилю, размеру, цвету и цене.</p>'
+          new='<h2>Популярные модели</h2><p>Подборка кроватей и диванов, которые чаще всего выбирают для дома.</p>'
+          if old not in s:
+              raise SystemExit('Target section copy not found')
+          p.write_text(s.replace(old,new,1),encoding='utf-8')
+          PY
+      - name: Commit changes
+        run: |
+          git config user.name 'rebrops-del'
+          git config user.email 'rebrops@gmail.com'
+          git rm -f .github/workflows/temp-home-heading.yml
+          git add index.html
+          git commit -m 'Improve home recommendations heading'
+          git pull --rebase origin main
+          git push origin main
