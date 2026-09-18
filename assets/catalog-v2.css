@@ -30,7 +30,6 @@
 .f-more-options{display:inline-flex;align-items:center;min-height:32px;padding:0 9px;border-radius:999px;background:#f4f0e8;color:#6f766f}
 @media(max-width:620px){.f-color{min-height:34px;padding:0 10px;font-size:10px}}
 
-
 /* Equal-height furniture cards */
 @media (min-width:621px){
   .f-grid{align-items:stretch}
@@ -56,3 +55,14 @@
   .f-card-details{min-height:46px}
   .f-option{min-height:72px}
 }
+
+/* Refined section navigation: one clean segmented bar instead of five heavy cards */
+.shop-tabs-shell{background:rgba(249,247,242,.88);box-shadow:none;border-bottom:1px solid rgba(22,55,44,.08);padding:8px 0;backdrop-filter:blur(18px)}
+.shop-tabs{width:min(900px,calc(100% - 28px));min-height:58px;margin:0 auto;padding:6px;gap:2px;background:rgba(255,255,255,.94);border:1px solid rgba(23,62,50,.09);border-radius:999px;box-shadow:0 10px 30px rgba(23,62,50,.07)}
+.shop-tab,.shop-tab[data-shop-view="guide"]{flex:1 1 0;min-width:0;min-height:46px;padding:0 14px;justify-content:center;gap:8px;border:0;border-radius:999px;background:transparent;box-shadow:none;color:#52675e}
+.shop-tab>span:last-child{display:block}.shop-tab b{font-family:Onest,"Segoe UI",sans-serif;font-size:13px;line-height:1;font-weight:650;letter-spacing:0}.shop-tab small{display:none}
+.shop-tab-icon{width:28px;height:28px;flex:0 0 28px;border-radius:9px;background:transparent;color:#9a7c4c}.shop-tab-icon svg{width:18px;height:18px;stroke-width:1.7}
+.shop-tab:hover{transform:none;background:#f6f3ed;color:#173e32;box-shadow:none;border:0}.shop-tab:hover .shop-tab-icon{color:#725e3e}
+.shop-tab.is-active{background:#173e32;color:#fff;border:0;box-shadow:0 6px 16px rgba(23,62,50,.18)}.shop-tab.is-active .shop-tab-icon{background:transparent;color:#e6c991}
+@media(max-width:940px){.shop-tabs{width:calc(100% - 20px);justify-content:flex-start;overflow-x:auto;padding:5px;border-radius:18px;gap:3px}.shop-tab,.shop-tab[data-shop-view="guide"]{flex:0 0 auto;min-width:128px;padding:0 13px}.shop-tabs-shell{padding:7px 0}}
+@media(max-width:620px){.shop-tabs-shell{top:64px}.shop-tabs{width:calc(100% - 14px);min-height:54px}.shop-tab,.shop-tab[data-shop-view="guide"]{min-height:42px;min-width:116px;padding:0 11px;gap:6px}.shop-tab-icon{width:24px;height:24px;flex-basis:24px}.shop-tab-icon svg{width:16px;height:16px}.shop-tab b{font-size:11.5px}}
