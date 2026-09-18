@@ -1,6 +1,23 @@
 (() => {
   'use strict';
 
+  function loadPolishLayer(){
+    if(!document.querySelector('link[data-noktena-copy-polish]')){
+      const css=document.createElement('link');
+      css.rel='stylesheet';
+      css.href='assets/catalog-content-polish.css?v=20260918-1';
+      css.dataset.noktenaCopyPolish='1';
+      document.head.appendChild(css);
+    }
+    if(!document.querySelector('script[data-noktena-copy-polish]')){
+      const js=document.createElement('script');
+      js.src='assets/catalog-content-polish.js?v=20260918-1';
+      js.defer=true;
+      js.dataset.noktenaCopyPolish='1';
+      document.head.appendChild(js);
+    }
+  }
+
   function insertAfter(reference, node) {
     if (!reference || !reference.parentNode) return;
     reference.parentNode.insertBefore(node, reference.nextSibling);
@@ -88,6 +105,7 @@
     requestAnimationFrame(normalizeAll);
   }
 
+  loadPolishLayer();
   const observer = new MutationObserver(schedule);
   observer.observe(document.documentElement, { childList: true, subtree: true });
   document.addEventListener('DOMContentLoaded', schedule, { once: true });
