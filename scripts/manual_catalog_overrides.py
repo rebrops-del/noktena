@@ -4,7 +4,6 @@ import re
 from pathlib import Path
 
 FURNITURE = Path("data/furniture.json")
-TARGET_TITLE = 'диван трансформер "лоджия"'
 DESCRIPTION = (
     "Современный прямой диван, который легко превращается в просторное спальное место. "
     "Каркас выполнен из бруса и ДСП. В качестве наполнителя используется пенополиуретан "
@@ -27,6 +26,12 @@ def norm(value):
     return clean(value).lower().replace("ё", "е")
 
 
+def is_lodzhia_transformer(product):
+    title = norm(product.get("title"))
+    title = title.replace('«', '').replace('»', '').replace('"', '')
+    return "диван трансформер" in title and "лоджия" in title
+
+
 def set_spec(specs, names, label, value):
     key = next((k for k in specs if norm(k) in names), label)
     specs[key] = value
@@ -34,9 +39,9 @@ def set_spec(specs, names, label, value):
 
 def main():
     data = json.loads(FURNITURE.read_text(encoding="utf-8"))
-    product = next((p for p in data.get("sofas", []) if norm(p.get("title")) == TARGET_TITLE), None)
+    product = next((p for p in data.get("sofas", []) if is_lodzhia_transformer(p)), None)
     if not product:
-        raise SystemExit('Target sofa not found: Диван трансформер "Лоджия"')
+        raise SystemExit('Target sofa not found: Диван трансформер «Лоджия»')
 
     product["summary"] = SUMMARY
     product["description"] = DESCRIPTION
@@ -62,7 +67,7 @@ def main():
     FURNITURE.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
     check = json.loads(FURNITURE.read_text(encoding="utf-8"))
-    saved = next((p for p in check.get("sofas", []) if norm(p.get("title")) == TARGET_TITLE), None)
+    saved = next((p for p in check.get("sofas", []) if is_lodzhia_transformer(p)), None)
     if not saved or saved.get("description") != DESCRIPTION:
         raise SystemExit("Lodzhia description override was not saved")
     if clean((saved.get("specs") or {}).get("Спальное место")) != SLEEPING_PLACE and not any(
@@ -70,7 +75,7 @@ def main():
     ):
         raise SystemExit("Lodzhia sleeping place override was not saved")
 
-    print('Applied manual override: Диван трансформер "Лоджия"')
+    print('Applied manual override: Диван трансформер «Лоджия»')
 
 
 if __name__ == "__main__":
