@@ -42,11 +42,12 @@ def pretty_title(title):
 
 def pretty_value(value):
     text = clean(value)
-    text = text.replace('*', '×').replace('х', '×').replace('Х', '×')
-    text = re.sub(r'\s*×\s*', '×', text)
-    text = re.sub(r'(?<=\d)мм\b', ' мм', text, flags=re.I)
+    # Normalize only dimension separators between numbers; never replace letters inside words.
+    text = re.sub(r'(?<=\d)\s*[xхХ*]\s*(?=\d)', '×', text)
+    text = re.sub(r'(?<=\d)\s*[×]\s*(?=\d)', '×', text)
+    text = re.sub(r'(?<=\d)\s*мм\b', ' мм', text, flags=re.I)
     text = re.sub(r'\s+([,.;:])', r'\1', text)
-    return pretty_quotes(sentence_case_if_upper(text))
+    return pretty_quotes(text)
 
 
 def remove_source_noise(text):
@@ -229,6 +230,10 @@ def validate(data):
             raise SystemExit(f'Incomplete polished copy: {product.get("title")}')
         if '(ЗР)' in product.get('title', '') or '(BERHOUSE)' in product.get('title', '').upper():
             raise SystemExit(f'Unpolished title remains: {product.get("title")}')
+        # Guard against accidental replacement of the Cyrillic letter "х" inside words.
+        serialized = json.dumps(product, ensure_ascii=False).lower()
+        if 'ме×ан' in serialized or '×олкон' in serialized or 'в×одит' in serialized:
+            raise SystemExit(f'Corrupted text detected: {product.get("title")}')
     if 'допустимая ширина дивана от 1200 до 1410' in json.dumps(data, ensure_ascii=False).lower():
         raise SystemExit('Old Lodgia width paragraph remains')
 
