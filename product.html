@@ -14,10 +14,31 @@
 <link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/product-detail.css?v=20260918-textcolors1">
 <link rel="stylesheet" href="assets/font-refresh.css?v=20260918-2">
+<style>
+.pd-service-strip{padding:16px 0 2px;background:linear-gradient(180deg,rgba(251,250,246,.96),rgba(247,243,235,.72))}
+.pd-service-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.pd-service-item{min-height:66px;display:flex;align-items:center;gap:12px;padding:12px 15px;border:1px solid rgba(23,62,50,.09);border-radius:17px;background:rgba(255,255,255,.78);box-shadow:0 8px 24px rgba(22,48,40,.045)}
+.pd-service-icon{width:34px;height:34px;flex:0 0 34px;display:grid;place-items:center;border-radius:11px;background:#f1eee6;color:#927544;font-size:16px;font-weight:800}
+.pd-service-item b{display:block;margin-bottom:2px;color:#21473b;font-size:11.5px;font-weight:800}
+.pd-service-item span{display:block;color:#7e8a84;font-size:9.5px;line-height:1.35}
+.pd-main{padding-top:18px!important}
+@media(max-width:900px){.pd-service-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:620px){.pd-service-strip{padding:10px 0 0}.pd-service-grid{display:flex;overflow-x:auto;gap:8px;padding-bottom:4px;scrollbar-width:none}.pd-service-grid::-webkit-scrollbar{display:none}.pd-service-item{min-width:230px;min-height:58px;padding:10px 12px}.pd-main{padding-top:12px!important}}
+</style>
 </head>
 <body>
 <div class="pd-top"><div class="pd-wrap"><span><b>НОКТЕНА</b> · федеральная онлайн-сеть товаров для сна</span><span><a href="mailto:noktena@mail.ru">noktena@mail.ru</a> · <a href="tel:+79321207635">+7 (932) 120-76-35</a></span></div></div>
 <header class="pd-nav"><div class="pd-wrap pd-nav-in"><a class="pd-brand" href="/" aria-label="НОКТЕНА"><img src="assets/logo-noktena-final.png?v=20260908-final2" alt="НОКТЕНА" width="1500" height="460"></a><a class="pd-back-top" id="backTop" href="/">← Вернуться в каталог</a></div></header>
+<section class="pd-service-strip" aria-label="Преимущества НОКТЕНА">
+  <div class="pd-wrap">
+    <div class="pd-service-grid">
+      <div class="pd-service-item"><div class="pd-service-icon">✓</div><div><b>Помощь с выбором</b><span>Подберём размер и подходящий вариант</span></div></div>
+      <div class="pd-service-item"><div class="pd-service-icon">⌂</div><div><b>Склад в Берёзовском</b><span>Уточним актуальное наличие перед заказом</span></div></div>
+      <div class="pd-service-item"><div class="pd-service-icon">↗</div><div><b>Доставка по Екатеринбургу</b><span>По вторникам и пятницам</span></div></div>
+      <div class="pd-service-item"><div class="pd-service-icon">→</div><div><b>Консультация в MAX</b><span>Ответим по характеристикам и комплектации</span></div></div>
+    </div>
+  </div>
+</section>
 <main class="pd-main">
   <div class="pd-wrap">
     <nav class="pd-breadcrumbs" id="breadcrumbs" aria-label="Навигация"><a href="/">Главная</a><span>›</span><span>Товар</span></nav>
