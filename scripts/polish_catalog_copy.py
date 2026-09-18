@@ -15,6 +15,15 @@ def norm(value):
     return clean(value).lower().replace('ё', 'е')
 
 
+def color_key(value):
+    """Canonical key for the same human color written with spaces/hyphens."""
+    key = re.sub(r'[^a-zа-я0-9]+', '', norm(value))
+    aliases = {
+        'бордо': 'бордовый',
+    }
+    return aliases.get(key, key)
+
+
 def sentence_case_if_upper(text):
     text = clean(text)
     letters = ''.join(ch for ch in text if ch.isalpha())
@@ -109,13 +118,28 @@ def size_count(product):
     return len(vals)
 
 
+def real_colors(product):
+    """Return unique colors that are actually represented by product variants.
+
+    Product-level `colors` can contain duplicate labels such as `Темно серый`
+    and `Темно-серый`. Variant colors are the source of truth for purchasable
+    options, so use them first and compare through a canonical key.
+    """
+    variant_values = [clean(v.get('color')) for v in product.get('variants') or [] if clean(v.get('color'))]
+    source = variant_values if variant_values else [clean(v) for v in product.get('colors') or [] if clean(v)]
+    out = []
+    seen = set()
+    for value in source:
+        key = color_key(value)
+        if not key or key in seen:
+            continue
+        seen.add(key)
+        out.append(value)
+    return out
+
+
 def color_count(product):
-    vals = []
-    for value in product.get('colors') or []:
-        value = clean(value)
-        if value and value not in vals:
-            vals.append(value)
-    return len(vals)
+    return len(real_colors(product))
 
 
 def russian_count(n, forms):
@@ -193,6 +217,9 @@ def polish_specs(product):
         size = clean(variant.get('size'))
         if size and size not in product['sizes']:
             product['sizes'].append(size)
+    # Keep the product-level list in sync with real purchasable variant colors.
+    # This prevents duplicate labels (space vs hyphen) from inflating UI counts.
+    product['colors'] = real_colors(product)
 
 
 def polish_furniture():
@@ -234,6 +261,11 @@ def validate(data):
         serialized = json.dumps(product, ensure_ascii=False).lower()
         if 'ме×ан' in serialized or '×олкон' in serialized or 'в×одит' in serialized:
             raise SystemExit(f'Corrupted text detected: {product.get("title")}')
+        # Summary color count must always match actual unique purchasable variant colors.
+        colors = color_count(product)
+        match = re.search(r'Доступно:.*?(\d+)\s+(?:цвет|цвета|цветов)', product.get('summary', ''))
+        if match and int(match.group(1)) != colors:
+            raise SystemExit(f'Wrong color count in summary: {product.get("title")} ({match.group(1)} != {colors})')
     if 'допустимая ширина дивана от 1200 до 1410' in json.dumps(data, ensure_ascii=False).lower():
         raise SystemExit('Old Lodgia width paragraph remains')
 
