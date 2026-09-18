@@ -198,7 +198,16 @@
       const catLink=e.target.closest('a[href="#catalog"]');
       if(catLink){e.preventDefault();location.hash='mattresses';}
     });
-    window.addEventListener('hashchange',()=>applyView(routeFromHash()));
+    window.addEventListener('hashchange',()=>{
+      const h=(location.hash||'#home').slice(1).split('?')[0];
+      if(views.has(h)){applyView(h);return}
+      if(['top','guide','delivery','about'].includes(h)){
+        applyView('home',{scroll:false});
+        requestAnimationFrame(()=>document.getElementById(h)?.scrollIntoView({behavior:'smooth',block:'start'}));
+        return;
+      }
+      applyView('home');
+    });
     $('#fSearch')?.addEventListener('input',e=>{const v=routeFromHash();if(v==='beds'||v==='sofas'){state.query[v]=e.target.value;state.page[v]=1;renderFurniture(v)}});
     $('#fSort')?.addEventListener('change',e=>{const v=routeFromHash();if(v==='beds'||v==='sofas'){state.sort[v]=e.target.value;state.page[v]=1;renderFurniture(v)}});
     $('#fSubtype')?.addEventListener('change',e=>{state.subtype=e.target.value;state.page.sofas=1;renderFurniture('sofas')});
