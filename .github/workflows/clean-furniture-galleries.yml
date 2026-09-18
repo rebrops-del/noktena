@@ -7,6 +7,10 @@ on:
       - 'scripts/clean_furniture_galleries.py'
       - '.github/workflows/clean-furniture-galleries.yml'
 
+concurrency:
+  group: clean-furniture-galleries
+  cancel-in-progress: true
+
 permissions:
   contents: write
 
@@ -19,8 +23,8 @@ jobs:
           ref: main
           fetch-depth: 0
       - name: Install dependencies
-        run: pip install requests beautifulsoup4 pillow
-      - name: Keep all real gallery angles and remove visual duplicates
+        run: pip install requests beautifulsoup4
+      - name: Keep all real angles and one photo per displayed color
         run: python scripts/clean_furniture_galleries.py
       - name: Commit cleaned galleries
         run: |
@@ -31,6 +35,6 @@ jobs:
             echo 'No gallery cleanup needed'
             exit 0
           fi
-          git commit -m 'Rebuild furniture galleries from real Berhouse angles'
+          git commit -m 'Keep all furniture angles with one photo per color'
           git pull --rebase origin main
           git push origin main
