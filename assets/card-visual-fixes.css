@@ -12,33 +12,196 @@
   display:none!important;
 }
 
+/* A calm, premium product-card hierarchy shared across the furniture catalog. */
+.f-card{
+  border-color:rgba(18,55,44,.10)!important;
+  box-shadow:0 14px 38px rgba(18,49,40,.065)!important;
+}
+.f-card:hover{
+  transform:translateY(-3px)!important;
+  box-shadow:0 22px 52px rgba(18,49,40,.105)!important;
+}
+.f-card-body{
+  background:linear-gradient(180deg,#fff 0%,#fff 76%,#fdfbf7 100%)!important;
+}
+.f-card-eyebrow{
+  color:#987b4c!important;
+  font-size:8.5px!important;
+  font-weight:600!important;
+  letter-spacing:.12em!important;
+  text-transform:uppercase!important;
+}
+.f-card h3{
+  color:#123b30!important;
+  font-size:20px!important;
+  font-weight:600!important;
+  letter-spacing:-.025em!important;
+  line-height:1.16!important;
+}
+.f-card-summary{
+  color:#66766f!important;
+  font-size:11.5px!important;
+  font-weight:400!important;
+  line-height:1.62!important;
+}
+.f-premium-specs{
+  border-top:1px solid #eee8de!important;
+  border-bottom:1px solid #eee8de!important;
+  background:transparent!important;
+}
+.f-premium-specs>div{
+  border-bottom:1px solid #f2eee7!important;
+}
+.f-premium-specs>div:last-child{border-bottom:0!important}
+.f-premium-specs span{
+  color:#8a948f!important;
+  font-size:9.5px!important;
+  font-weight:400!important;
+}
+.f-premium-specs b{
+  color:#29483d!important;
+  font-size:9.8px!important;
+  font-weight:600!important;
+}
+.f-card-details{
+  border:1px solid #e9e3d8!important;
+  border-radius:13px!important;
+  background:#fbfaf7!important;
+  box-shadow:none!important;
+}
+.f-card-details summary{
+  color:#405b50!important;
+  font-size:10px!important;
+  font-weight:600!important;
+  letter-spacing:.005em!important;
+}
+.f-card-details-plus{
+  background:#f1eadf!important;
+  color:#9b7c49!important;
+}
+.f-card-details-body{
+  background:#fffdfa!important;
+  border-top-color:#eee8de!important;
+}
+.f-card-details-body p{
+  color:#66766f!important;
+  font-size:10.5px!important;
+  line-height:1.7!important;
+  max-height:120px!important;
+}
+.f-card-details-body dl>div{
+  border-bottom-color:#f0ece5!important;
+}
+.f-card-details-body dt{color:#8a948f!important;font-size:9.5px!important}
+.f-card-details-body dd{color:#314f44!important;font-size:9.5px!important;font-weight:600!important}
+.f-card-details-link{color:#7f653b!important;font-weight:600!important;text-decoration:none!important}
+.f-option-head span{
+  color:#6c7a74!important;
+  font-size:9px!important;
+  font-weight:600!important;
+  letter-spacing:.08em!important;
+  text-transform:uppercase!important;
+}
+.f-option-head b{
+  color:#7d8a84!important;
+  font-size:9px!important;
+  font-weight:500!important;
+}
+.f-size-select{
+  border-color:#ddd7cc!important;
+  background:#fcfbf8!important;
+  color:#29483d!important;
+  font-size:10.5px!important;
+  font-weight:500!important;
+}
+.f-price-caption{
+  color:#9a8155!important;
+  font-size:8px!important;
+  font-weight:600!important;
+  letter-spacing:.1em!important;
+}
+.f-price{color:#123f32!important;font-weight:650!important}
+.f-old-price{color:#777f7b!important;font-weight:500!important}
+.f-discount-badge{font-weight:600!important}
+.f-price-promo b{font-weight:600!important}
+.product-more-link{
+  font-weight:600!important;
+  letter-spacing:0!important;
+  box-shadow:0 8px 20px rgba(18,61,49,.14)!important;
+}
+.f-card .max-btn{font-weight:500!important}
+
+/* Mattress cards use the same visual rhythm as beds and sofas. */
+.card{
+  border-color:rgba(18,55,44,.10)!important;
+  box-shadow:0 14px 38px rgba(18,49,40,.065)!important;
+}
+.card:hover{box-shadow:0 22px 52px rgba(18,49,40,.105)!important}
+.card .body{background:linear-gradient(180deg,#fff 0%,#fff 78%,#fdfbf7 100%)!important}
+.card .tag,.card .hit-badge{
+  font-size:8.5px!important;
+  font-weight:600!important;
+  letter-spacing:.08em!important;
+}
+.card .body h3{
+  color:#123b30!important;
+  font-size:20px!important;
+  font-weight:600!important;
+  line-height:1.16!important;
+}
+.card .firmness{
+  background:#f6f7f4!important;
+  border-color:#e7ebe7!important;
+  color:#66766f!important;
+  font-size:10px!important;
+}
+.card .firmness b{color:#3b584d!important;font-weight:600!important}
+.card .spec{
+  border-color:#e9e3d8!important;
+  background:#fbfaf7!important;
+}
+.card .spec summary{color:#405b50!important;font-size:10px!important;font-weight:600!important}
+.card .speccontent{color:#66766f!important;font-size:10.5px!important;line-height:1.7!important}
+.card .label{color:#6c7a74!important;font-size:9px!important;font-weight:600!important}
+.card .size-select{
+  border-color:#ddd7cc!important;
+  background:#fcfbf8!important;
+  color:#29483d!important;
+  font-size:10.5px!important;
+  font-weight:500!important;
+}
+.card .price{color:#123f32!important;font-weight:650!important}
+.card .old-price{color:#777f7b!important;font-weight:500!important}
+.card .discount-badge{font-weight:600!important}
+.card .promo b{font-weight:600!important}
+
 /* Exact furniture-card alignment. This file loads after all visual themes. */
 @media (min-width:621px){
   .f-grid{align-items:stretch!important}
   .f-card{height:100%!important;display:flex!important;flex-direction:column!important}
-  .f-card-body{flex:1!important;display:flex!important;flex-direction:column!important;gap:13px!important;padding:22px!important}
+  .f-card-body{flex:1!important;display:flex!important;flex-direction:column!important;gap:12px!important;padding:21px!important}
 
   .f-card-eyebrow{
     height:14px!important;min-height:14px!important;max-height:14px!important;
     line-height:14px!important;overflow:hidden!important;white-space:nowrap!important;text-overflow:ellipsis!important
   }
   .f-card h3{
-    height:58px!important;min-height:58px!important;max-height:58px!important;
-    line-height:1.08!important;display:-webkit-box!important;-webkit-line-clamp:2!important;
+    height:50px!important;min-height:50px!important;max-height:50px!important;
+    line-height:1.16!important;display:-webkit-box!important;-webkit-line-clamp:2!important;
     -webkit-box-orient:vertical!important;overflow:hidden!important;margin:0!important
   }
   .f-card-summary{
-    height:62px!important;min-height:62px!important;max-height:62px!important;
+    height:57px!important;min-height:57px!important;max-height:57px!important;
     line-height:1.62!important;display:-webkit-box!important;-webkit-line-clamp:3!important;
     -webkit-box-orient:vertical!important;overflow:hidden!important;margin:0!important
   }
   .f-premium-specs{
-    height:108px!important;min-height:108px!important;max-height:108px!important;
-    overflow:hidden!important;display:grid!important;grid-template-rows:repeat(3,34px)!important;
+    height:102px!important;min-height:102px!important;max-height:102px!important;
+    overflow:hidden!important;display:grid!important;grid-template-rows:repeat(3,32px)!important;
     align-content:center!important;padding:3px 0!important
   }
   .f-premium-specs>div{
-    height:34px!important;min-height:34px!important;max-height:34px!important;
+    height:32px!important;min-height:32px!important;max-height:32px!important;
     padding:0!important;display:flex!important;align-items:center!important;justify-content:space-between!important;
     overflow:hidden!important
   }
@@ -47,24 +210,30 @@
     -webkit-box-orient:vertical!important;overflow:hidden!important
   }
 
-  .f-card-details:not([open]){height:46px!important;min-height:46px!important;max-height:46px!important}
-  .f-card-details:not([open]) summary{height:46px!important;min-height:46px!important;max-height:46px!important}
+  .f-card-details:not([open]){height:44px!important;min-height:44px!important;max-height:44px!important}
+  .f-card-details:not([open]) summary{height:44px!important;min-height:44px!important;max-height:44px!important}
   .f-card-details[open]{height:auto!important;max-height:none!important}
 
   .f-option{
-    height:78px!important;min-height:78px!important;max-height:78px!important;
-    display:grid!important;grid-template-rows:18px 46px!important;gap:10px!important;padding-top:0!important
+    height:76px!important;min-height:76px!important;max-height:76px!important;
+    display:grid!important;grid-template-rows:18px 45px!important;gap:9px!important;padding-top:0!important
   }
   .f-option-head{height:18px!important;min-height:18px!important;max-height:18px!important;margin:0!important}
-  .f-size-select{height:46px!important;min-height:46px!important;max-height:46px!important}
+  .f-size-select{height:45px!important;min-height:45px!important;max-height:45px!important}
 
   .f-card-bottom{margin-top:auto!important;display:grid!important;gap:9px!important}
   .f-price-row{
-    height:82px!important;min-height:82px!important;max-height:82px!important;
+    height:78px!important;min-height:78px!important;max-height:78px!important;
     padding-top:7px!important;box-sizing:border-box!important
   }
-  .product-more-link{height:49px!important;min-height:49px!important;max-height:49px!important}
-  .f-card .max-btn{height:48px!important;min-height:48px!important;max-height:48px!important}
+  .product-more-link{height:48px!important;min-height:48px!important;max-height:48px!important}
+  .f-card .max-btn{height:47px!important;min-height:47px!important;max-height:47px!important}
 
   .f-equalizer-placeholder{visibility:hidden!important;pointer-events:none!important}
+}
+
+@media(max-width:620px){
+  .f-card-body{padding:18px!important;gap:11px!important}
+  .f-card h3,.card .body h3{font-size:19px!important}
+  .f-card-summary{font-size:11.5px!important}
 }
