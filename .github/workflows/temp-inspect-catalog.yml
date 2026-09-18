@@ -1,4 +1,4 @@
-name: Temporary NOKTENA color photo patch
+name: Temporary finalize furniture color photos
 
 on:
   push:
@@ -7,91 +7,112 @@ on:
 
 permissions:
   contents: write
+  actions: read
 
 jobs:
-  patch:
+  finalize:
     runs-on: ubuntu-latest
     steps:
+      - name: Wait for earlier furniture import
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          RUN_ID=35336870844
+          for i in $(seq 1 180); do
+            status=$(curl -fsSL \
+              -H "Authorization: Bearer ${GH_TOKEN}" \
+              -H "Accept: application/vnd.github+json" \
+              "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/runs/${RUN_ID}" \
+              | python -c "import sys,json; print(json.load(sys.stdin).get('status','unknown'))")
+            echo "Earlier import status: ${status}"
+            if [ "${status}" = "completed" ]; then
+              break
+            fi
+            sleep 10
+          done
+          if [ "${status}" != "completed" ]; then
+            echo "Earlier import did not finish in time"
+            exit 1
+          fi
+
       - uses: actions/checkout@v4
-      - name: Patch importer, enricher and frontend
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install requests beautifulsoup4
+
+      - name: Remove intentionally excluded beds
         run: |
           python - <<'PY'
+          import json
           from pathlib import Path
-          import re
 
-          p=Path('scripts/import_berhouse_furniture.py')
-          s=p.read_text(encoding='utf-8')
-          old='''                target = "beds" if p["category"] == "beds" else "sofas"\n                result[target].append(p)'''
-          new='''                target = "beds" if p["category"] == "beds" else "sofas"\n                excluded_bed_parts = [\n                    "горизонт мини", "екатеринбург мини", "стандарт мини",\n                    "мета с матрасом", "эко стандарт", "эко екатеринбург",\n                ]\n                normalized_title = p.get("title", "").lower().replace("ё", "е")\n                if target == "beds" and any(part.replace("ё", "е") in normalized_title for part in excluded_bed_parts):\n                    print(f"  SKIP excluded bed: {p.get('title')}")\n                    seen.add(url)\n                    continue\n                result[target].append(p)'''
-          if old in s:
-              s=s.replace(old,new,1)
-          elif 'excluded_bed_parts' not in s:
-              raise SystemExit('Importer insertion marker not found')
-          p.write_text(s,encoding='utf-8')
-
-          p=Path('scripts/enrich_furniture_color_images.py')
-          s=p.read_text(encoding='utf-8')
-          old='''            product["colorImages"] = mapping\n            product["colors"] = unique(existing_colors + list(mapping.keys()))\n            mapped_products += 1'''
-          new='''            product["colorImages"] = mapping\n            product["colors"] = unique(existing_colors + list(mapping.keys()))\n            images = list(product.get("images") or [])\n            for photo in mapping.values():\n                if photo and photo not in images:\n                    images.append(photo)\n            product["images"] = images\n            mapped_products += 1'''
-          if old in s:
-              s=s.replace(old,new,1)
-          elif 'for photo in mapping.values()' not in s:
-              raise SystemExit('Enricher image insertion marker not found')
-          p.write_text(s,encoding='utf-8')
-
-          p=Path('assets/catalog-v2.js')
-          s=p.read_text(encoding='utf-8')
-          marker='  function cardDetailsMarkup(product){'
-          helper='''  function colorImageFor(product,color){\n    if(!color)return '';const map=product?.colorImages||{};if(map[color])return map[color];const wanted=String(color).toLowerCase().replace(/ё/g,'е').replace(/[^a-zа-я0-9]+/g,'');const key=Object.keys(map).find(k=>String(k).toLowerCase().replace(/ё/g,'е').replace(/[^a-zа-я0-9]+/g,'')===wanted);return key?map[key]:'';\n  }\n  function updateCardImage(card,product,color){\n    const src=colorImageFor(product,color);if(!src)return;const img=$('.f-gallery img',card);if(!img||img.getAttribute('src')===src)return;const preload=new Image();preload.onload=()=>{img.classList.add('is-changing');setTimeout(()=>{img.src=src;img.classList.remove('is-changing')},90);};preload.onerror=()=>{};preload.src=src;\n  }\n'''
-          if 'function updateCardImage(' not in s:
-              if marker not in s: raise SystemExit('Catalog helper marker not found')
-              s=s.replace(marker,helper+marker,1)
-          old='''    const imgs=uniq(product.images);const first=imgs[0]||'assets/hero-noktena-final.png?v=20260908-final2';const quick=chooseSpecs(product);const category=product.category==='beds'?'Кровать':'Диван';const link=detailUrl(product);\n    const colors=uniq(product.colors?.length?product.colors:(product.variants||[]).map(v=>v.color));const sizes=sortSizes(product.sizes?.length?product.sizes:(product.variants||[]).map(v=>v.size));const initial=preferredVariant(product,colors[0]||'',sizes[0]||'');const price=initial?.price||product.price;'''
-          new='''    const imgs=uniq(product.images);const quick=chooseSpecs(product);const category=product.category==='beds'?'Кровать':'Диван';const link=detailUrl(product);\n    const colors=uniq(product.colors?.length?product.colors:(product.variants||[]).map(v=>v.color));const sizes=sortSizes(product.sizes?.length?product.sizes:(product.variants||[]).map(v=>v.size));const initial=preferredVariant(product,colors[0]||'',sizes[0]||'');const price=initial?.price||product.price;const first=colorImageFor(product,colors[0]||'')||imgs[0]||'assets/hero-noktena-final.png?v=20260908-final2';'''
-          if old in s:
-              s=s.replace(old,new,1)
-          elif 'const first=colorImageFor(product' not in s:
-              raise SystemExit('Catalog initial image marker not found')
-          old="  function updateCardVariant(card){const product=productById(card?.dataset.productId);if(!product)return;const color=card.dataset.selectedColor||'';const size=card.dataset.selectedSize||'';const variant=preferredVariant(product,color,size);const price=variant?.price||product.price;const el=$('[data-card-price]',card);if(el)el.textContent=rub(price);}" 
-          new="  function updateCardVariant(card){const product=productById(card?.dataset.productId);if(!product)return;const color=card.dataset.selectedColor||'';const size=card.dataset.selectedSize||'';const variant=preferredVariant(product,color,size);const price=variant?.price||product.price;const el=$('[data-card-price]',card);if(el)el.textContent=rub(price);updateCardImage(card,product,color);}" 
-          if old in s:
-              s=s.replace(old,new,1)
-          elif 'updateCardImage(card,product,color)' not in s:
-              raise SystemExit('Catalog update marker not found')
-          p.write_text(s,encoding='utf-8')
-
-          p=Path('assets/product-detail.js')
-          s=p.read_text(encoding='utf-8')
-          marker='  function renderFurniture(product){'
-          helper='''  function colorImageFor(product,color){\n    if(!color)return '';const map=product?.colorImages||{};if(map[color])return map[color];const wanted=String(color).toLowerCase().replace(/ё/g,'е').replace(/[^a-zа-я0-9]+/g,'');const key=Object.keys(map).find(k=>String(k).toLowerCase().replace(/ё/g,'е').replace(/[^a-zа-я0-9]+/g,'')===wanted);return key?map[key]:'';\n  }\n  function updateFurnitureImage(){\n    if(!furnitureProduct||!selectedColor)return;const src=colorImageFor(furnitureProduct,selectedColor);if(!src)return;const index=galleryImages.indexOf(src);if(index>=0){if(index!==galleryIndex)showGallery(index);return;}const img=$('#pdMainImage');const media=$('#pdMainMedia');if(img&&img.getAttribute('src')!==src){const preload=new Image();preload.onload=()=>{img.classList.add('is-changing');setTimeout(()=>{img.src=src;img.classList.remove('is-changing')},90);};preload.onerror=()=>img.classList.remove('is-changing');preload.src=src;}if(media)media.style.setProperty('--pd-bg',`url("${src.replace(/"/g,'\\\\"')}")`);$$('[data-pd-index]').forEach(el=>el.classList.remove('is-active'));\n  }\n'''
-          if 'function updateFurnitureImage(' not in s:
-              if marker not in s: raise SystemExit('Detail helper marker not found')
-              s=s.replace(marker,helper+marker,1)
-          old='    if(!furnitureProduct)return;const variant=variantFor(furnitureProduct,selectedColor,selectedSize);'
-          new='    if(!furnitureProduct)return;updateFurnitureImage();const variant=variantFor(furnitureProduct,selectedColor,selectedSize);'
-          if old in s:
-              s=s.replace(old,new,1)
-          elif 'return;updateFurnitureImage();const variant=' not in s:
-              raise SystemExit('Detail update marker not found')
-          p.write_text(s,encoding='utf-8')
-
-          p=Path('index.html');s=p.read_text(encoding='utf-8')
-          s=re.sub(r"assets/catalog-v2\.js\?v=[^\"']+", 'assets/catalog-v2.js?v=20260918-color1', s)
-          p.write_text(s,encoding='utf-8')
-          p=Path('product.html');s=p.read_text(encoding='utf-8')
-          s=re.sub(r"assets/product-detail\.js\?v=[^\"']+", 'assets/product-detail.js?v=20260918-color1', s)
-          p.write_text(s,encoding='utf-8')
+          path=Path('data/furniture.json')
+          data=json.loads(path.read_text(encoding='utf-8'))
+          excluded=[
+              'горизонт мини','екатеринбург мини','стандарт мини',
+              'мета с матрасом','эко стандарт','эко екатеринбург',
+          ]
+          def low(v): return str(v or '').lower().replace('ё','е')
+          before=len(data.get('beds',[]))
+          data['beds']=[p for p in data.get('beds',[]) if not any(x in low(p.get('title')) for x in excluded)]
+          after=len(data['beds'])
+          path.write_text(json.dumps(data,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+          print(f'Beds: {before} -> {after}; removed {before-after}')
+          leftovers=[p.get('title') for p in data['beds'] if any(x in low(p.get('title')) for x in excluded)]
+          if leftovers:
+              raise SystemExit(f'Excluded beds remain: {leftovers}')
           PY
-      - name: Validate code
+
+      - name: Map selectable colors to source product photos
+        run: python scripts/enrich_furniture_color_images.py
+
+      - name: Validate final furniture data
         run: |
-          node --check assets/catalog-v2.js
-          node --check assets/product-detail.js
-          python -m py_compile scripts/import_berhouse_furniture.py scripts/enrich_furniture_color_images.py
-      - name: Commit code changes
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          data=json.loads(Path('data/furniture.json').read_text(encoding='utf-8'))
+          beds=data.get('beds',[]); sofas=data.get('sofas',[]); allp=beds+sofas
+          excluded=['горизонт мини','екатеринбург мини','стандарт мини','мета с матрасом','эко стандарт','эко екатеринбург']
+          def low(v): return str(v or '').lower().replace('ё','е')
+          bad=[p.get('title') for p in beds if any(x in low(p.get('title')) for x in excluded)]
+          mapped=[p for p in allp if p.get('colorImages')]
+          mappings=sum(len(p.get('colorImages') or {}) for p in mapped)
+          sample=next((p for p in allp if str(p.get('sourceId'))=='24190'),None)
+          print('Beds:',len(beds),'Sofas:',len(sofas),'Mapped products:',len(mapped),'Color-photo mappings:',mappings)
+          if sample:
+              print('Sample 24190 mappings:',sample.get('colorImages'))
+          if bad:
+              raise SystemExit(f'Excluded beds found: {bad}')
+          if len(mapped) < 10 or mappings < 30:
+              raise SystemExit('Too few verified color-photo mappings')
+          if sample and len(sample.get('colorImages') or {}) < 4:
+              raise SystemExit('Known sample 24190 has too few color mappings')
+          for product in mapped:
+              images=set(product.get('images') or [])
+              missing=[url for url in (product.get('colorImages') or {}).values() if url not in images]
+              if missing:
+                  raise SystemExit(f"Color images not in gallery for {product.get('title')}: {missing[:2]}")
+          PY
+
+      - name: Commit final catalog
         run: |
           git config user.name 'rebrops-del'
           git config user.email 'rebrops@gmail.com'
-          git add scripts/import_berhouse_furniture.py scripts/enrich_furniture_color_images.py assets/catalog-v2.js assets/product-detail.js index.html product.html
-          git commit -m 'Switch furniture photos with selected color'
+          git add data/furniture.json
+          if git diff --cached --quiet; then
+            echo 'No furniture data changes'
+            exit 0
+          fi
+          git commit -m 'Map furniture colors to source product photos'
           git pull --rebase origin main
           git push origin main
