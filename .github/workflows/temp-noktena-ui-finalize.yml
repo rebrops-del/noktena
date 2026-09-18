@@ -1,0 +1,58 @@
+name: Finalize NOKTENA UI copy
+
+on:
+  push:
+    paths:
+      - '.github/workflows/temp-noktena-ui-finalize.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  finalize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Update UI copy and asset versions
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+
+          p=Path('index.html')
+          s=p.read_text(encoding='utf-8')
+          s=s.replace('<h2>Рекомендуем посмотреть</h2><p>Подборка моделей из разделов «Кровати» и «Диваны». Перейдите в нужный раздел, чтобы посмотреть весь ассортимент.</p>', '<h2>Похожие модели</h2><p>Подборка кроватей и диванов, которые удобно сравнить по стилю, размеру, цвету и цене.</p>')
+          s=s.replace('<h2>Нужна помощь с выбором?</h2><p>Напишите на <a href="mailto:noktena@mail.ru">noktena@mail.ru</a> или позвоните <a href="tel:+79321207635">+7 (932) 120-76-35</a>. Также можно написать в MAX — подберём подходящие варианты.</p>', '<h2>Поможем подобрать подходящую модель</h2><p>Сообщите размер, предпочтения по жёсткости или цвету и ориентир по бюджету — предложим несколько подходящих вариантов.</p>')
+          s=s.replace('<span>Написать в MAX</span></a></div></div></section>\n<footer', '<span>Получить консультацию в MAX</span></a></div></div></section>\n<footer', 1)
+          s=re.sub(r'assets/catalog-v2\.css\?v=[^"\']+', 'assets/catalog-v2.css?v=20260918-quality1', s)
+          s=re.sub(r'assets/catalog-v2\.js\?v=[^"\']+', 'assets/catalog-v2.js?v=20260918-quality1', s)
+          s=s.replace("f+'?v=20260917-max'", "f+'?v=20260918-quality1'")
+          p.write_text(s,encoding='utf-8')
+
+          p=Path('product.html')
+          s=p.read_text(encoding='utf-8')
+          s=s.replace('<h2>Нужна помощь с выбором?</h2><p>Подскажем по размеру, цвету, характеристикам и доступным вариантам.</p>', '<h2>Поможем проверить выбранный вариант</h2><p>Подтвердим размер, цвет, комплектацию и актуальное наличие перед оформлением.</p>')
+          s=s.replace('<span>Написать в MAX</span>', '<span>Получить консультацию в MAX</span>')
+          s=re.sub(r'assets/product-detail\.css\?v=[^"\']+', 'assets/product-detail.css?v=20260918-quality1', s)
+          s=re.sub(r'assets/product-detail\.js\?v=[^"\']+', 'assets/product-detail.js?v=20260918-quality1', s)
+          p.write_text(s,encoding='utf-8')
+          PY
+      - name: Validate frontend JavaScript
+        run: |
+          node --check assets/catalog-v2.js
+          node --check assets/product-detail.js
+          grep -q 'Похожие модели' index.html
+          grep -q '20260918-quality1' index.html
+          grep -q '20260918-quality1' product.html
+      - name: Commit UI finalization
+        run: |
+          git config user.name 'rebrops-del'
+          git config user.email 'rebrops@gmail.com'
+          git rm -f .github/workflows/temp-noktena-ui-finalize.yml
+          git add index.html product.html
+          git commit -m 'Finalize NOKTENA catalog UI copy'
+          git pull --rebase origin main
+          git push origin main
