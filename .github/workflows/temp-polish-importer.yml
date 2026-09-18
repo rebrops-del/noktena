@@ -1,0 +1,41 @@
+name: Temporary furniture data cleanup
+
+on:
+  push:
+    paths:
+      - '.github/workflows/temp-polish-importer.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Tighten specs and product summaries
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('scripts/import_berhouse_furniture.py')
+          s=p.read_text(encoding='utf-8')
+          old='''    joined = "\\n".join(lines)\n    for label in KNOWN_LABELS:\n        if any(k.lower() == label.lower() for k in specs):\n            continue\n        m = re.search(rf"(?:^|\\n){re.escape(label)}\\s*:?\\s*\\n?([^\\n]{{1,180}})", joined, re.I)\n        if m:\n            v = clean(m.group(1))\n            if v and v.lower() != label.lower() and v.lower() not in UI_LINES:\n                specs[label] = v\n\n    out = {}\n    for k, v in specs.items():\n        k, v = clean(k).rstrip(":"), clean(v)\n        if not k or not v or len(k) > 80 or len(v) > 220:\n            continue\n'''
+          new='''    # Fallback only from actual label/value rows. Do not take words such as\n    # "Материал обивки" from marketing paragraphs — that creates noisy specs.\n    for label in KNOWN_LABELS:\n        if any(k.lower() == label.lower() for k in specs):\n            continue\n        for i, line in enumerate(lines):\n            raw = clean(line)\n            if not raw:\n                continue\n            if raw.rstrip(":").lower() == label.lower() and i + 1 < len(lines):\n                v = clean(lines[i + 1])\n                if v and len(v) <= 140 and v.lower() not in UI_LINES and not MONEY_RE.search(v):\n                    specs[label] = v\n                    break\n            m = re.match(rf"^{re.escape(label)}\\s*:\\s*(.+)$", raw, re.I)\n            if m:\n                v = clean(m.group(1))\n                if v and len(v) <= 140 and v.lower() not in UI_LINES:\n                    specs[label] = v\n                    break\n\n    out = {}\n    for k, v in specs.items():\n        k, v = clean(k).rstrip(":"), clean(v)\n        if not k or not v or len(k) > 80 or len(v) > 160:\n            continue\n'''
+          if old not in s:
+              raise SystemExit('parse_specs marker not found')
+          s=s.replace(old,new,1)
+          old2='''def make_summary(description, fallback):\n    text = clean(description)\n    if not text:\n        return fallback\n    sentence = re.split(r"(?<=[.!?])\\s+", text)[0]\n    return sentence[:240].rstrip()\n'''
+          new2='''def make_summary(description, fallback):\n    text = clean(description)\n    if not text:\n        return fallback\n    parts = [clean(x) for x in re.split(r"(?<=[.!?])\\s+", text) if clean(x)]\n    picked = []\n    for part in parts:\n        candidate = " ".join(picked + [part])\n        if picked and len(candidate) > 210:\n            break\n        picked.append(part)\n        if len(candidate) >= 95 or len(picked) >= 2:\n            break\n    result = " ".join(picked) or text\n    return result[:220].rstrip()\n'''
+          if old2 not in s:
+              raise SystemExit('make_summary marker not found')
+          s=s.replace(old2,new2,1)
+          p.write_text(s,encoding='utf-8')
+          PY
+      - name: Commit importer cleanup
+        run: |
+          git config user.name 'rebrops-del'
+          git config user.email 'rebrops@gmail.com'
+          git add scripts/import_berhouse_furniture.py
+          git commit -m 'Clean furniture specs and improve catalog summaries'
+          git pull --rebase origin main
+          git push origin main
