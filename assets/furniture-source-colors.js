@@ -128,38 +128,29 @@
     return variantColors.length ? { ...product, colors: variantColors } : product;
   }
 
-  function realGalleryOnly(product) {
+  function keepCuratedGallery(product) {
     if (!product || !Array.isArray(product.images)) return product;
-    const pid = clean(product.sourceId);
-    if (!pid) return product;
-    const escaped = pid.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const realName = new RegExp(`^${escaped}(?:[a-z]+\\d+)?\\.(?:jpe?g|png|webp)$`, 'i');
-    const seen = new Set();
     const images = [];
+    const seen = new Set();
     for (const raw of product.images) {
       const url = clean(raw);
       if (!url) continue;
-      let name = '';
-      try { name = new URL(url, location.href).pathname.split('/').pop() || ''; }
-      catch { name = url.split(/[?#]/)[0].split('/').pop() || ''; }
-      if (!realName.test(name)) continue;
       const key = url.split(/[?#]/)[0];
       if (seen.has(key)) continue;
       seen.add(key);
       images.push(url);
     }
-    return images.length ? { ...product, images } : product;
+    return { ...product, images };
   }
 
   function normalizeCatalog(data) {
     if (!data || typeof data !== 'object') return data;
     return {
       ...data,
-      beds: Array.isArray(data.beds) ? data.beds.map(p => realGalleryOnly(normalizeBed(p))) : [],
-      // Sofa variant labels are authoritative. Color-specific photos remain in
-      // colorImages and are shown only after a shade is selected; they are not
-      // repeated as gallery thumbnails.
-      sofas: Array.isArray(data.sofas) ? data.sofas.map(p => realGalleryOnly(preserveSofa(p))) : []
+      beds: Array.isArray(data.beds) ? data.beds.map(p => keepCuratedGallery(normalizeBed(p))) : [],
+      // The backend gallery is already curated to all real angles plus exactly
+      // one photo for each color; do not discard those color photos here.
+      sofas: Array.isArray(data.sofas) ? data.sofas.map(p => keepCuratedGallery(preserveSofa(p))) : []
     };
   }
 
