@@ -12,7 +12,7 @@
     .trim();
 
   const quotedCase=text=>text.replace(/"([^"]+)"/g,(_,inside)=>`"${inside.toLowerCase().replace(/(^|[\s-])([а-яёa-z])/giu,(m,p,c)=>p+c.toUpperCase())}"`);
-  const escapeHtml=value=>String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#39;'}[ch]));
+  const escapeHtml=value=>String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
 
   function titleCase(value=''){
     let text=tidy(value);
@@ -160,7 +160,7 @@
     const raw=String(description.textContent||'').replace(/\s+/g,' ').trim();
     const sentences=raw.split(/(?<=[.!?])\s+/).map(cleanMattressItem).filter(Boolean);
     for(const sentence of sentences){
-      let firmness=sentence.match(/^Ж[её]сткость\s*:?[\s—-]*(максимально\s+ж[её]сткая|выше\s+средней|ниже\s+средней|средняя|мягкая|ж[её]сткая)\s+(.+)$/i);
+      const firmness=sentence.match(/^Ж[её]сткость\s*:?[\s—-]*(максимально\s+ж[её]сткая|выше\s+средней|ниже\s+средней|средняя|мягкая|ж[её]сткая)\s+(.+)$/i);
       if(firmness){
         addFact('Жёсткость',firmness[1]);
         for(const part of splitTopLevel(firmness[2])){
