@@ -1,12 +1,17 @@
 #!/usr/bin/env python3
 import json
+import re
 import sys
 from pathlib import Path
+from urllib.parse import urljoin
+
+from bs4 import BeautifulSoup
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from import_berhouse_furniture import parse_product, clean
+from import_berhouse_furniture import parse_product, clean, get
 
 DATA = Path('data/furniture.json')
+COLOR_RE = re.compile(r'(?:Цвет фасада|Цвет корпуса|Цвет)\s*:\s*([^;\n<]+)', re.I)
 
 
 def uniq(values):
@@ -19,6 +24,31 @@ def uniq(values):
             seen.add(key)
             out.append(value)
     return out
+
+
+def norm(value):
+    return re.sub(r'[^a-zа-я0-9]+', '', clean(value).lower().replace('ё','е'))
+
+
+def exact_variant_image_map(url):
+    """Read Berhouse variant blocks where exact color name and its image coexist."""
+    r=get(url)
+    soup=BeautifulSoup(r.text, 'html.parser')
+    result={}
+    for block in soup.select('.variantsList .block'):
+        head=block.select_one('.head')
+        img=block.select_one('.iconka img') or block.find('img')
+        if not head or not img:
+            continue
+        text=clean(head.get_text(' ', strip=True))
+        m=COLOR_RE.search(text)
+        src=img.get('src') or img.get('data-src') or img.get('data-original')
+        if not m or not src:
+            continue
+        color=clean(m.group(1))
+        if color and color not in result:
+            result[color]=urljoin(r.url, src)
+    return result
 
 
 def main():
@@ -35,6 +65,7 @@ def main():
         group='sofas_corner' if str(product.get('subtype','')).lower().startswith('угл') else 'sofas_straight'
         try:
             fresh=parse_product(url, group)
+            source_image_map=exact_variant_image_map(url)
         except Exception as exc:
             failed.append((product.get('id'), str(exc)))
             print(f'WARN {idx}/{len(sofas)} {product.get("title")}: {exc}', file=sys.stderr)
@@ -46,40 +77,43 @@ def main():
             failed.append((product.get('id'), 'no colors/variants parsed'))
             continue
 
-        old_colors=uniq(product.get('colors') or [])
-        old_map=product.get('colorImages') or {}
+        by_norm={norm(k):(k,v) for k,v in source_image_map.items() if k and v}
         new_map={}
-        if old_map:
-            # Berhouse renders sofa color variants in the same order as their
-            # swatch/product images. Preserve image associations while replacing
-            # the public label with the exact current Berhouse variant label.
-            for pos, new_color in enumerate(fresh_colors):
-                if pos < len(old_colors):
-                    old_color=old_colors[pos]
-                    if old_color in old_map:
-                        new_map[new_color]=old_map[old_color]
-            # Keep only mappings that are keyed by an authoritative current label.
-            if len(new_map) != len(fresh_colors):
-                new_map={c: old_map.get(c) for c in fresh_colors if old_map.get(c)}
+        missing=[]
+        for color in fresh_colors:
+            found=by_norm.get(norm(color))
+            if found:
+                new_map[color]=found[1]
+            else:
+                missing.append(color)
 
-        before=(product.get('colors'), product.get('variants'))
+        if missing:
+            failed.append((product.get('id'), f'missing exact photos for {missing}; source keys={list(source_image_map)}'))
+            print(f'WARN {idx}/{len(sofas)} {product.get("title")}: missing exact photos {missing}', file=sys.stderr)
+            continue
+
+        before=(product.get('colors'), product.get('variants'), product.get('colorImages'))
         product['colors']=fresh_colors
         product['variants']=fresh_variants
-        if new_map:
-            product['colorImages']=new_map
-        elif 'colorImages' in product:
-            product['colorImages']={}
+        product['colorImages']=new_map
 
-        if before != (product.get('colors'), product.get('variants')):
+        images=list(product.get('images') or [])
+        for color in fresh_colors:
+            image=new_map[color]
+            if image not in images:
+                images.append(image)
+        product['images']=images
+
+        if before != (product.get('colors'), product.get('variants'), product.get('colorImages')):
             changed += 1
-        print(f'OK {idx}/{len(sofas)} {product.get("title")}: {fresh_colors}')
+        print(f'OK {idx}/{len(sofas)} {product.get("title")}: {[(c,new_map[c].rsplit("/",1)[-1]) for c in fresh_colors]}')
 
     if failed:
         print('FAILED:', failed, file=sys.stderr)
-        raise SystemExit(f'Could not refresh {len(failed)} sofa products')
+        raise SystemExit(f'Could not safely refresh {len(failed)} sofa products; no file written')
 
-    DATA.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding='utf-8')
-    print(f'Updated {changed} of {len(sofas)} sofas from live Berhouse variant labels')
+    DATA.write_text(json.dumps(data, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+    print(f'Updated {changed} of {len(sofas)} sofas with exact Berhouse color-to-photo links')
 
 
 if __name__ == '__main__':
