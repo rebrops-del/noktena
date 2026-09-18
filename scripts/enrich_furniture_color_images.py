@@ -244,6 +244,11 @@ def main():
         if mapping:
             product["colorImages"] = mapping
             product["colors"] = unique(existing_colors + list(mapping.keys()))
+            images = list(product.get("images") or [])
+            for photo in mapping.values():
+                if photo and photo not in images:
+                    images.append(photo)
+            product["images"] = images
             mapped_products += 1
             mapped_colors += len(mapping)
             print(f"[{index}/{len(products)}] {product.get('title')} -> {len(mapping)} color photos")

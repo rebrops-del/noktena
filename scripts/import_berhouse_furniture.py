@@ -446,6 +446,15 @@ def main():
             try:
                 p = parse_product(url, group)
                 target = "beds" if p["category"] == "beds" else "sofas"
+                excluded_bed_parts = [
+                    "горизонт мини", "екатеринбург мини", "стандарт мини",
+                    "мета с матрасом", "эко стандарт", "эко екатеринбург",
+                ]
+                normalized_title = p.get("title", "").lower().replace("ё", "е")
+                if target == "beds" and any(part.replace("ё", "е") in normalized_title for part in excluded_bed_parts):
+                    print(f"  SKIP excluded bed: {p.get('title')}")
+                    seen.add(url)
+                    continue
                 result[target].append(p)
                 seen.add(url)
                 print(f"  [{i}/{len(urls)}] {p['title']} | {p['price']} | {len(p['images'])} photos | {len(p['variants'])} variants")

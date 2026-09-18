@@ -58,6 +58,12 @@
     const vars=Array.isArray(product.variants)?product.variants:[];
     return vars.find(v=>(!color||v.color===color)&&(!size||v.size===size))||vars.find(v=>(!size||v.size===size))||vars.find(v=>(!color||v.color===color))||null;
   }
+  function colorImageFor(product,color){
+    if(!color)return '';const map=product?.colorImages||{};if(map[color])return map[color];const wanted=String(color).toLowerCase().replace(/ё/g,'е').replace(/[^a-zа-я0-9]+/g,'');const key=Object.keys(map).find(k=>String(k).toLowerCase().replace(/ё/g,'е').replace(/[^a-zа-я0-9]+/g,'')===wanted);return key?map[key]:'';
+  }
+  function updateCardImage(card,product,color){
+    const src=colorImageFor(product,color);if(!src)return;const img=$('.f-gallery img',card);if(!img||img.getAttribute('src')===src)return;const preload=new Image();preload.onload=()=>{img.classList.add('is-changing');setTimeout(()=>{img.src=src;img.classList.remove('is-changing')},90);};preload.onerror=()=>{};preload.src=src;
+  }
   function cardDetailsMarkup(product){
     const entries=Object.entries(product.specs||{}).filter(([k,v])=>k&&v);
     const description=String(product.description||'').trim();
@@ -66,8 +72,8 @@
   }
 
   function cardMarkup(product){
-    const imgs=uniq(product.images);const first=imgs[0]||'assets/hero-noktena-final.png?v=20260908-final2';const quick=chooseSpecs(product);const category=product.category==='beds'?'Кровать':'Диван';const link=detailUrl(product);
-    const colors=uniq(product.colors?.length?product.colors:(product.variants||[]).map(v=>v.color));const sizes=sortSizes(product.sizes?.length?product.sizes:(product.variants||[]).map(v=>v.size));const initial=preferredVariant(product,colors[0]||'',sizes[0]||'');const price=initial?.price||product.price;
+    const imgs=uniq(product.images);const quick=chooseSpecs(product);const category=product.category==='beds'?'Кровать':'Диван';const link=detailUrl(product);
+    const colors=uniq(product.colors?.length?product.colors:(product.variants||[]).map(v=>v.color));const sizes=sortSizes(product.sizes?.length?product.sizes:(product.variants||[]).map(v=>v.size));const initial=preferredVariant(product,colors[0]||'',sizes[0]||'');const price=initial?.price||product.price;const first=colorImageFor(product,colors[0]||'')||imgs[0]||'assets/hero-noktena-final.png?v=20260908-final2';
     state.gallery.set(product.id,0);
     return `<article class="f-card product-open-card" data-product-id="${esc(product.id)}" data-product-link="${esc(link)}" data-selected-color="${esc(colors[0]||'')}" data-selected-size="${esc(sizes[0]||'')}">
       <div class="f-gallery" data-gallery-id="${esc(product.id)}">
@@ -95,7 +101,7 @@
   }
 
   function productById(id){return [...state.data.beds,...state.data.sofas].find(x=>x.id===id);}
-  function updateCardVariant(card){const product=productById(card?.dataset.productId);if(!product)return;const color=card.dataset.selectedColor||'';const size=card.dataset.selectedSize||'';const variant=preferredVariant(product,color,size);const price=variant?.price||product.price;const el=$('[data-card-price]',card);if(el)el.textContent=rub(price);}
+  function updateCardVariant(card){const product=productById(card?.dataset.productId);if(!product)return;const color=card.dataset.selectedColor||'';const size=card.dataset.selectedSize||'';const variant=preferredVariant(product,color,size);const price=variant?.price||product.price;const el=$('[data-card-price]',card);if(el)el.textContent=rub(price);updateCardImage(card,product,color);}
   function setGallery(id,delta){
     const product=productById(id);if(!product)return;const imgs=uniq(product.images);if(imgs.length<2)return;const current=state.gallery.get(id)||0;const next=(current+delta+imgs.length)%imgs.length;const g=document.querySelector(`[data-gallery-id="${CSS.escape(id)}"]`);if(!g)return;const img=$('img',g);if(!img)return;const preload=new Image();preload.onload=()=>{state.gallery.set(id,next);img.classList.add('is-changing');setTimeout(()=>{img.src=imgs[next];img.classList.remove('is-changing')},90);const counter=$('.f-gallery-count',g);if(counter)counter.textContent=`${next+1} / ${imgs.length}`;};preload.src=imgs[next];
   }
