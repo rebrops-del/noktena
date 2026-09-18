@@ -21,27 +21,14 @@ jobs:
           python - <<'PY'
           from pathlib import Path
           import re
-
           p=Path('assets/catalog-v2.js')
           s=p.read_text(encoding='utf-8')
           pattern=r"function renderHomeHits\(\)\{.*?\}\n  async function loadFurniture"
-          replacement="""function renderHomeHits(){
-    const mount=$('#homeHitsGrid');if(!mount)return;
-    if(!state.loaded){mount.innerHTML='<div class=\"f-loading\">Подбираем модели…</div>';return;}
-    const excluded=p=>{const t=String(p?.title||'').toLowerCase();return t.includes('детская кровать стандарт')||(t.includes('диван тахта')&&t.includes('кушетка')&&t.includes('левый угол'));};
-    const beds=state.data.beds.filter(p=>!excluded(p));
-    const sofas=state.data.sofas.filter(p=>!excluded(p));
-    const bedHits=beds.filter(x=>x.hit),sofaHits=sofas.filter(x=>x.hit);
-    const bedPicks=(bedHits.length>=3?bedHits:beds).slice(0,3);
-    const sofaPicks=(sofaHits.length>=3?sofaHits:sofas).slice(0,3);
-    mount.innerHTML=[...bedPicks,...sofaPicks].map(cardMarkup).join('');
-  }
-  async function loadFurniture"""
+          replacement="function renderHomeHits(){const mount=$('#homeHitsGrid');if(!mount)return;if(!state.loaded){mount.innerHTML='<div class=\"f-loading\">Подбираем модели…</div>';return;}const excluded=p=>{const t=String(p?.title||'').toLowerCase();return t.includes('детская кровать стандарт')||(t.includes('диван тахта')&&t.includes('кушетка')&&t.includes('левый угол'));};const beds=state.data.beds.filter(p=>!excluded(p));const sofas=state.data.sofas.filter(p=>!excluded(p));const bedHits=beds.filter(x=>x.hit),sofaHits=sofas.filter(x=>x.hit);const bedPicks=(bedHits.length>=3?bedHits:beds).slice(0,3);const sofaPicks=(sofaHits.length>=3?sofaHits:sofas).slice(0,3);mount.innerHTML=[...bedPicks,...sofaPicks].map(cardMarkup).join('');}\n  async function loadFurniture"
           ns,n=re.subn(pattern,replacement,s,flags=re.S)
           if n!=1:
               raise SystemExit(f'renderHomeHits replacement count={n}')
           p.write_text(ns,encoding='utf-8')
-
           p=Path('index.html')
           s=p.read_text(encoding='utf-8')
           s=re.sub(r'assets/catalog-v2\.js\?v=[^"\']+', 'assets/catalog-v2.js?v=20260918-homepicks2', s)
