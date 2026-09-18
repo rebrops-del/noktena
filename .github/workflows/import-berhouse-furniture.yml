@@ -32,4 +32,5 @@ jobs:
             exit 0
           fi
           git commit -m 'Sync Berhouse beds and sofas'
-          git push
+          git pull --rebase origin main
+          git push origin main
