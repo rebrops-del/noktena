@@ -84,9 +84,8 @@ def parse_controls(block):
 
 
 def selected_label_from_block(block, control_name, value, known_label=""):
-    # The label attached to the option that was posted is authoritative.
-    # Berhouse can return markup with a different option preselected; reading
-    # that value first shifted some color names to the next photograph.
+    # This label is used only to associate Berhouse gallery photos with a
+    # selector value. Public color names are taken from parsed product variants.
     known = clean(known_label)
     generic = {
         "цвет", "фасада", "корпуса", "обивки", "ткани",
@@ -220,9 +219,13 @@ def color_images_for_product(product):
 
     explore({}, block)
 
-    # Preserve aliases already used in NOKTENA data, including Бордо/Бордовый.
+    # Add exact Berhouse variant labels as aliases only when a normalized
+    # gallery label matches. Never invent or replace the public color names.
     normalized = {norm(label): photo for label, photo in mapping.items() if norm(label)}
-    for color in product.get("colors") or []:
+    source_colors = [v.get("color") for v in product.get("variants", []) if v.get("color")]
+    if not source_colors:
+        source_colors = product.get("colors") or []
+    for color in source_colors:
         key = norm(color)
         if key in normalized:
             mapping.setdefault(clean(color), normalized[key])
@@ -250,13 +253,16 @@ def main():
     mapped_colors = 0
 
     for index, product in enumerate(products, 1):
-        existing_colors = unique(product.get("colors") or [v.get("color") for v in product.get("variants", [])])
+        variant_colors = unique(v.get("color") for v in product.get("variants", []) if v.get("color"))
+        existing_colors = variant_colors or unique(product.get("colors") or [])
         mapping = color_images_for_product(product)
         if existing_colors or mapping:
             products_with_colors += 1
         if mapping:
             product["colorImages"] = mapping
-            product["colors"] = unique(existing_colors + list(mapping.keys()))
+            # Public color labels are authoritative Berhouse variant labels.
+            # Photo-mapping labels must never be appended to this list.
+            product["colors"] = existing_colors
             images = list(product.get("images") or [])
             for photo in mapping.values():
                 if photo and photo not in images:
