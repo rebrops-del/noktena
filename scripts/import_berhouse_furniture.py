@@ -218,20 +218,31 @@ def parse_specs(soup, lines):
             if k and v:
                 specs.setdefault(k, v)
 
-    joined = "\n".join(lines)
+    # Fallback only from actual label/value rows. Do not take words such as
+    # "Материал обивки" from marketing paragraphs — that creates noisy specs.
     for label in KNOWN_LABELS:
         if any(k.lower() == label.lower() for k in specs):
             continue
-        m = re.search(rf"(?:^|\n){re.escape(label)}\s*:?\s*\n?([^\n]{{1,180}})", joined, re.I)
-        if m:
-            v = clean(m.group(1))
-            if v and v.lower() != label.lower() and v.lower() not in UI_LINES:
-                specs[label] = v
+        for i, line in enumerate(lines):
+            raw = clean(line)
+            if not raw:
+                continue
+            if raw.rstrip(":").lower() == label.lower() and i + 1 < len(lines):
+                v = clean(lines[i + 1])
+                if v and len(v) <= 140 and v.lower() not in UI_LINES and not MONEY_RE.search(v):
+                    specs[label] = v
+                    break
+            m = re.match(rf"^{re.escape(label)}\s*:\s*(.+)$", raw, re.I)
+            if m:
+                v = clean(m.group(1))
+                if v and len(v) <= 140 and v.lower() not in UI_LINES:
+                    specs[label] = v
+                    break
 
     out = {}
     for k, v in specs.items():
         k, v = clean(k).rstrip(":"), clean(v)
-        if not k or not v or len(k) > 80 or len(v) > 220:
+        if not k or not v or len(k) > 80 or len(v) > 160:
             continue
         if k.lower() in UI_LINES:
             continue
@@ -354,8 +365,17 @@ def make_summary(description, fallback):
     text = clean(description)
     if not text:
         return fallback
-    sentence = re.split(r"(?<=[.!?])\s+", text)[0]
-    return sentence[:240].rstrip()
+    parts = [clean(x) for x in re.split(r"(?<=[.!?])\s+", text) if clean(x)]
+    picked = []
+    for part in parts:
+        candidate = " ".join(picked + [part])
+        if picked and len(candidate) > 210:
+            break
+        picked.append(part)
+        if len(candidate) >= 95 or len(picked) >= 2:
+            break
+    result = " ".join(picked) or text
+    return result[:220].rstrip()
 
 
 def parse_product(url, group):
