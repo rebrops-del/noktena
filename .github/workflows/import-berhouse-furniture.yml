@@ -24,12 +24,12 @@ jobs:
         run: python scripts/import_berhouse_furniture.py
       - name: Commit imported catalog
         run: |
-          if git diff --quiet -- data/furniture.json; then
-            echo 'No catalog changes'
-            exit 0
-          fi
           git config user.name 'rebrops-del'
           git config user.email 'rebrops@gmail.com'
           git add data/furniture.json
+          if git diff --cached --quiet; then
+            echo 'No catalog changes'
+            exit 0
+          fi
           git commit -m 'Sync Berhouse beds and sofas'
           git push
