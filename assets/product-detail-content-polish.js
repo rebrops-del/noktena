@@ -185,6 +185,21 @@
       }
     }
 
+    const normalizedComposition=[];
+    const firmnessPrefix=/^Ж[её]сткость\s*:?[\s—-]*(максимально\s+ж[её]сткая|выше\s+средней|ниже\s+средней|средняя|мягкая|ж[её]сткая)(?:\s+|$)(.*)$/i;
+    for(const originalItem of composition){
+      const item=cleanMattressItem(originalItem);
+      const match=item.match(firmnessPrefix);
+      if(match){
+        addFact('Жёсткость',match[1]);
+        const remainder=cleanMattressItem(match[2]||'');
+        if(remainder)normalizedComposition.push(remainder);
+        continue;
+      }
+      if(item)normalizedComposition.push(item);
+    }
+    composition.splice(0,composition.length,...normalizedComposition);
+
     if(!composition.length&&!facts.length)return;
     ensureMattressStyles();
 
