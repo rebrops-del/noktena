@@ -1,6 +1,6 @@
 {
   "source": "https://m.berhouse.ru",
-  "generatedAt": "2026-09-18T10:52:52Z",
+  "generatedAt": "2026-09-18T11:39:39Z",
   "beds": [
     {
       "id": "berhouse-24190",
@@ -762,9 +762,7 @@
         "Бежевый",
         "Белый",
         "Коричневый",
-        "Бордовый",
-        "Черный",
-        "фасада"
+        "Черный"
       ],
       "sizes": [
         "1200х2000 мм",
@@ -781,13 +779,15 @@
       "brand": "Berhouse",
       "colorImages": {
         "Бежевый": "https://berhouse.ru/files/eshop/big/24190_420811.jpg",
-        "Бирюзовый": "https://berhouse.ru/files/eshop/big/24190_420791.jpg",
-        "Бордо": "https://berhouse.ru/files/eshop/big/24190_420792.jpg",
+        "Белый": "https://berhouse.ru/files/eshop/big/24190_420791.jpg",
+        "Бирюзовый": "https://berhouse.ru/files/eshop/big/24190_420796.jpg",
+        "Бордовый": "https://berhouse.ru/files/eshop/big/24190_420792.jpg",
         "Коричневый": "https://berhouse.ru/files/eshop/big/24190_420813.jpg",
         "Светло серый": "https://berhouse.ru/files/eshop/big/24190_420793.jpg",
         "Серый": "https://berhouse.ru/files/eshop/big/24190_420789.jpg",
         "Темно серый": "https://berhouse.ru/files/eshop/big/24190_420790.jpg",
-        "фасада": "https://berhouse.ru/files/eshop/big/24190_420837.jpg"
+        "Черный": "https://berhouse.ru/files/eshop/big/24190_420837.jpg",
+        "Бордо": "https://berhouse.ru/files/eshop/big/24190_420792.jpg"
       }
     },
     {
@@ -2879,9 +2879,10 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24251/",
       "brand": "Berhouse",
       "colorImages": {
-        "Серый": "https://berhouse.ru/files/eshop/big/24251_421395.jpg",
+        "Светло серый": "https://berhouse.ru/files/eshop/big/24251_421395.jpg",
         "Темно серый": "https://berhouse.ru/files/eshop/big/24251_421396.jpg",
-        "Темно-серый": "https://berhouse.ru/files/eshop/big/24251_421396.jpg"
+        "Темно-серый": "https://berhouse.ru/files/eshop/big/24251_421396.jpg",
+        "Светло-серый": "https://berhouse.ru/files/eshop/big/24251_421395.jpg"
       }
     },
     {
@@ -2965,7 +2966,10 @@
         "Серый",
         "Бежевый",
         "Голубой",
-        "Розовый"
+        "Розовый",
+        "Серо бежевый",
+        "Серо синий",
+        "Ярко розовый"
       ],
       "sizes": [
         "800х1600"
@@ -2975,10 +2979,10 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24139/",
       "brand": "Berhouse",
       "colorImages": {
-        "Бежевый": "https://berhouse.ru/files/eshop/big/24139_419530.jpg",
-        "Голубой": "https://berhouse.ru/files/eshop/big/24139_419531.jpg",
+        "Серо бежевый": "https://berhouse.ru/files/eshop/big/24139_419530.jpg",
+        "Серо синий": "https://berhouse.ru/files/eshop/big/24139_419531.jpg",
         "Серый": "https://berhouse.ru/files/eshop/big/24139_419529.jpg",
-        "Розовый": "https://berhouse.ru/files/eshop/big/24139_419532.jpg"
+        "Ярко розовый": "https://berhouse.ru/files/eshop/big/24139_419532.jpg"
       }
     },
     {
@@ -3062,7 +3066,10 @@
         "Серый",
         "Бежевый",
         "Голубой",
-        "Розовый"
+        "Розовый",
+        "Серо бежевый",
+        "Серо синий",
+        "Ярко розовый"
       ],
       "sizes": [
         "800х1600"
@@ -3072,10 +3079,10 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24140/",
       "brand": "Berhouse",
       "colorImages": {
-        "Бежевый": "https://berhouse.ru/files/eshop/big/24140_419534.jpg",
-        "Голубой": "https://berhouse.ru/files/eshop/big/24140_419535.jpg",
+        "Серо бежевый": "https://berhouse.ru/files/eshop/big/24140_419534.jpg",
+        "Серо синий": "https://berhouse.ru/files/eshop/big/24140_419535.jpg",
         "Серый": "https://berhouse.ru/files/eshop/big/24140_419533.jpg",
-        "Розовый": "https://berhouse.ru/files/eshop/big/24140_419536.jpg"
+        "Ярко розовый": "https://berhouse.ru/files/eshop/big/24140_419536.jpg"
       }
     },
     {
@@ -7780,7 +7787,8 @@
         "Серый",
         "Светло-серый",
         "Бордо",
-        "Бирюзовый"
+        "Бирюзовый",
+        "Черный"
       ],
       "sizes": [
         "900х2000 мм",
@@ -7799,11 +7807,15 @@
         "Бежевый": "https://berhouse.ru/files/eshop/big/13128_103637.jpg",
         "Белый": "https://berhouse.ru/files/eshop/big/13128_103636.jpg",
         "Бирюзовый": "https://berhouse.ru/files/eshop/big/13128_103651.jpg",
-        "Бордо": "https://berhouse.ru/files/eshop/big/13128_103650.jpg",
+        "Бордовый": "https://berhouse.ru/files/eshop/big/13128_103650.jpg",
         "Коричневый": "https://berhouse.ru/files/eshop/big/13128_103634.jpg",
-        "Серый": "https://berhouse.ru/files/eshop/big/13128_103648.jpg",
+        "Светло серый": "https://berhouse.ru/files/eshop/big/13128_103648.jpg",
+        "Серый": "https://berhouse.ru/files/eshop/big/13128_103653.jpg",
+        "Темно серый": "https://berhouse.ru/files/eshop/big/13128_103647.jpg",
+        "Черный": "https://berhouse.ru/files/eshop/big/13128_103635.jpg",
         "Темно-серый": "https://berhouse.ru/files/eshop/big/13128_103647.jpg",
-        "Кольт Ч": "https://berhouse.ru/files/eshop/big/13128_103635.jpg"
+        "Светло-серый": "https://berhouse.ru/files/eshop/big/13128_103648.jpg",
+        "Бордо": "https://berhouse.ru/files/eshop/big/13128_103650.jpg"
       }
     },
     {
@@ -16375,11 +16387,12 @@
         "Бежевый": "https://berhouse.ru/files/eshop/big/24253_421521.jpg",
         "Белый": "https://berhouse.ru/files/eshop/big/24253_421522.jpg",
         "Бирюзовый": "https://berhouse.ru/files/eshop/big/24253_421497.jpg",
-        "Бордо": "https://berhouse.ru/files/eshop/big/24253_421498.jpg",
+        "Бордовый": "https://berhouse.ru/files/eshop/big/24253_421498.jpg",
         "Коричневый": "https://berhouse.ru/files/eshop/big/24253_421523.jpg",
         "Светло серый": "https://berhouse.ru/files/eshop/big/24253_421501.jpg",
         "Серый": "https://berhouse.ru/files/eshop/big/24253_421500.jpg",
-        "Темно серый": "https://berhouse.ru/files/eshop/big/24253_421502.jpg"
+        "Темно серый": "https://berhouse.ru/files/eshop/big/24253_421502.jpg",
+        "Бордо": "https://berhouse.ru/files/eshop/big/24253_421498.jpg"
       }
     },
     {
@@ -23600,7 +23613,8 @@
         "Мятный",
         "Бледно розовый",
         "Серый",
-        "Синий"
+        "Синий",
+        "желтый,Желтая охра"
       ],
       "sizes": [
         "800х1900 мм",
@@ -23623,7 +23637,7 @@
         "Мятный": "https://berhouse.ru/files/eshop/big/24163_420223.png",
         "Серый": "https://berhouse.ru/files/eshop/big/24163_420225.png",
         "Синий": "https://berhouse.ru/files/eshop/big/24163_420226.png",
-        "Желтая охра": "https://berhouse.ru/files/eshop/big/24163_420222.png"
+        "желтый,Желтая охра": "https://berhouse.ru/files/eshop/big/24163_420222.png"
       }
     },
     {
@@ -29021,7 +29035,8 @@
         "Зеленый",
         "Кремовый",
         "Серый",
-        "Синий"
+        "Синий",
+        "желтый,Желтая охра"
       ],
       "sizes": [
         "800х2000 мм",
@@ -29044,7 +29059,7 @@
         "Мятный": "https://berhouse.ru/files/eshop/big/24167_420485.png",
         "Серый": "https://berhouse.ru/files/eshop/big/24167_420492.png",
         "Синий": "https://berhouse.ru/files/eshop/big/24167_420493.png",
-        "Желтая охра": "https://berhouse.ru/files/eshop/big/24167_420487.png"
+        "желтый,Желтая охра": "https://berhouse.ru/files/eshop/big/24167_420487.png"
       }
     },
     {
@@ -30766,7 +30781,8 @@
         "Кремовый",
         "Зеленый",
         "Серый",
-        "Синий"
+        "Синий",
+        "желтый,Желтая охра"
       ],
       "sizes": [
         "800х2000 мм",
@@ -30789,7 +30805,7 @@
         "Мятный": "https://berhouse.ru/files/eshop/big/24168_420539.png",
         "Серый": "https://berhouse.ru/files/eshop/big/24168_420546.png",
         "Синий": "https://berhouse.ru/files/eshop/big/24168_420547.png",
-        "Желтая охра": "https://berhouse.ru/files/eshop/big/24168_420541.png"
+        "желтый,Желтая охра": "https://berhouse.ru/files/eshop/big/24168_420541.png"
       }
     },
     {
@@ -36453,7 +36469,12 @@
         "Кемел",
         "Биттер",
         "Грей",
-        "Кофе"
+        "Кофе",
+        "Бежево коричневый",
+        "Лазурный",
+        "Светло коричневый",
+        "Серый",
+        "Темно серый"
       ],
       "sizes": [],
       "hit": true,
@@ -36461,11 +36482,11 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24148/",
       "brand": "Berhouse",
       "colorImages": {
-        "Кемел": "https://berhouse.ru/files/eshop/big/24148_419576.jpg",
-        "Азур": "https://berhouse.ru/files/eshop/big/24148_419575.jpg",
-        "Кофе": "https://berhouse.ru/files/eshop/big/24148_419580.jpg",
-        "Грей": "https://berhouse.ru/files/eshop/big/24148_419579.jpg",
-        "Биттер": "https://berhouse.ru/files/eshop/big/24148_419578.jpg"
+        "Бежево коричневый": "https://berhouse.ru/files/eshop/big/24148_419576.jpg",
+        "Лазурный": "https://berhouse.ru/files/eshop/big/24148_419575.jpg",
+        "Светло коричневый": "https://berhouse.ru/files/eshop/big/24148_419580.jpg",
+        "Серый": "https://berhouse.ru/files/eshop/big/24148_419579.jpg",
+        "Темно серый": "https://berhouse.ru/files/eshop/big/24148_419578.jpg"
       }
     },
     {
@@ -36562,7 +36583,12 @@
         "Грей",
         "Биттер",
         "Кофе",
-        "Кемел"
+        "Кемел",
+        "Бежево коричневый",
+        "Лазурный",
+        "Светло коричневый",
+        "Серый",
+        "Темно серый"
       ],
       "sizes": [],
       "hit": true,
@@ -36570,11 +36596,11 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24147/",
       "brand": "Berhouse",
       "colorImages": {
-        "Кемел": "https://berhouse.ru/files/eshop/big/24147_419574.jpg",
-        "Азур": "https://berhouse.ru/files/eshop/big/24147_419569.jpg",
-        "Кофе": "https://berhouse.ru/files/eshop/big/24147_419573.jpg",
-        "Грей": "https://berhouse.ru/files/eshop/big/24147_419571.jpg",
-        "Биттер": "https://berhouse.ru/files/eshop/big/24147_419572.jpg"
+        "Бежево коричневый": "https://berhouse.ru/files/eshop/big/24147_419574.jpg",
+        "Лазурный": "https://berhouse.ru/files/eshop/big/24147_419569.jpg",
+        "Светло коричневый": "https://berhouse.ru/files/eshop/big/24147_419573.jpg",
+        "Серый": "https://berhouse.ru/files/eshop/big/24147_419571.jpg",
+        "Темно серый": "https://berhouse.ru/files/eshop/big/24147_419572.jpg"
       }
     },
     {
@@ -36669,7 +36695,12 @@
         "Грей",
         "Кофе",
         "Азур",
-        "Кемел"
+        "Кемел",
+        "Бежево коричневый",
+        "Капучино",
+        "Лазурный",
+        "Серый",
+        "Темно серый"
       ],
       "sizes": [],
       "hit": false,
@@ -36677,11 +36708,11 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24115/",
       "brand": "Berhouse",
       "colorImages": {
-        "Кофе": "https://berhouse.ru/files/eshop/big/24115_419407.jpg",
-        "Кемел": "https://berhouse.ru/files/eshop/big/24115_419522.jpg",
-        "Азур": "https://berhouse.ru/files/eshop/big/24115_419521.jpg",
-        "Грей": "https://berhouse.ru/files/eshop/big/24115_419405.jpg",
-        "Биттер": "https://berhouse.ru/files/eshop/big/24115_419403.jpg"
+        "Бежево коричневый": "https://berhouse.ru/files/eshop/big/24115_419407.jpg",
+        "Капучино": "https://berhouse.ru/files/eshop/big/24115_419522.jpg",
+        "Лазурный": "https://berhouse.ru/files/eshop/big/24115_419521.jpg",
+        "Серый": "https://berhouse.ru/files/eshop/big/24115_419405.jpg",
+        "Темно серый": "https://berhouse.ru/files/eshop/big/24115_419403.jpg"
       }
     },
     {
@@ -36775,7 +36806,12 @@
         "Грей",
         "Кофе",
         "Азур",
-        "Кемел"
+        "Кемел",
+        "Капучино",
+        "Лазурный",
+        "Светло коричневый",
+        "Серый",
+        "Темно серый"
       ],
       "sizes": [],
       "hit": true,
@@ -36783,11 +36819,11 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24114/",
       "brand": "Berhouse",
       "colorImages": {
-        "Кемел": "https://berhouse.ru/files/eshop/big/24114_419525.jpg",
-        "Азур": "https://berhouse.ru/files/eshop/big/24114_419524.jpg",
-        "Кофе": "https://berhouse.ru/files/eshop/big/24114_419401.jpg",
-        "Грей": "https://berhouse.ru/files/eshop/big/24114_419399.jpg",
-        "Биттер": "https://berhouse.ru/files/eshop/big/24114_419397.jpg"
+        "Капучино": "https://berhouse.ru/files/eshop/big/24114_419525.jpg",
+        "Лазурный": "https://berhouse.ru/files/eshop/big/24114_419524.jpg",
+        "Светло коричневый": "https://berhouse.ru/files/eshop/big/24114_419401.jpg",
+        "Серый": "https://berhouse.ru/files/eshop/big/24114_419399.jpg",
+        "Темно серый": "https://berhouse.ru/files/eshop/big/24114_419397.jpg"
       }
     },
     {
@@ -36923,7 +36959,15 @@
         "Оранж Велюто 27",
         "Темно серый Велюто 32",
         "Синий Велюто 54",
-        "Азур Велюто 44"
+        "Азур Велюто 44",
+        "Бежевый",
+        "Бордовый",
+        "Коричневый",
+        "Лазурный",
+        "Оранжевый",
+        "Серый",
+        "Синий",
+        "Темно серый"
       ],
       "sizes": [],
       "hit": false,
@@ -36931,14 +36975,14 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24169/",
       "brand": "Berhouse",
       "colorImages": {
-        "Беж Велюто 05": "https://berhouse.ru/files/eshop/big/24169_420598.jpg",
-        "Бордо Велюто 25": "https://berhouse.ru/files/eshop/big/24169_420601.jpg",
-        "Коричневый Велюто 23": "https://berhouse.ru/files/eshop/big/24169_420600.jpg",
-        "Азур Велюто 44": "https://berhouse.ru/files/eshop/big/24169_420605.jpg",
-        "Оранж Велюто 27": "https://berhouse.ru/files/eshop/big/24169_420602.jpg",
-        "Серый Велюто 12": "https://berhouse.ru/files/eshop/big/24169_420599.jpg",
-        "Синий Велюто 54": "https://berhouse.ru/files/eshop/big/24169_420604.jpg",
-        "Темно серый Велюто 32": "https://berhouse.ru/files/eshop/big/24169_420603.jpg"
+        "Бежевый": "https://berhouse.ru/files/eshop/big/24169_420598.jpg",
+        "Бордовый": "https://berhouse.ru/files/eshop/big/24169_420601.jpg",
+        "Коричневый": "https://berhouse.ru/files/eshop/big/24169_420600.jpg",
+        "Лазурный": "https://berhouse.ru/files/eshop/big/24169_420605.jpg",
+        "Оранжевый": "https://berhouse.ru/files/eshop/big/24169_420602.jpg",
+        "Серый": "https://berhouse.ru/files/eshop/big/24169_420599.jpg",
+        "Синий": "https://berhouse.ru/files/eshop/big/24169_420604.jpg",
+        "Темно серый": "https://berhouse.ru/files/eshop/big/24169_420603.jpg"
       }
     },
     {
@@ -37031,7 +37075,12 @@
         "Грей",
         "Кофе",
         "Азур",
-        "Кемел"
+        "Кемел",
+        "Капучино",
+        "Лазурный",
+        "Светло коричневый",
+        "Серый",
+        "Темно серый"
       ],
       "sizes": [],
       "hit": true,
@@ -37039,11 +37088,11 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24133/",
       "brand": "Berhouse",
       "colorImages": {
-        "Кемел": "https://berhouse.ru/files/eshop/big/24133_419528.jpg",
-        "Азур": "https://berhouse.ru/files/eshop/big/24133_419526.jpg",
-        "Кофе": "https://berhouse.ru/files/eshop/big/24133_419395.jpg",
-        "Грей": "https://berhouse.ru/files/eshop/big/24133_419392.jpg",
-        "Биттер": "https://berhouse.ru/files/eshop/big/24133_419391.jpg"
+        "Капучино": "https://berhouse.ru/files/eshop/big/24133_419528.jpg",
+        "Лазурный": "https://berhouse.ru/files/eshop/big/24133_419526.jpg",
+        "Светло коричневый": "https://berhouse.ru/files/eshop/big/24133_419395.jpg",
+        "Серый": "https://berhouse.ru/files/eshop/big/24133_419392.jpg",
+        "Темно серый": "https://berhouse.ru/files/eshop/big/24133_419391.jpg"
       }
     },
     {
@@ -37179,7 +37228,15 @@
         "Оранж Велюто 27",
         "Темно серый Велюто 32",
         "Синий Велюто 54",
-        "Азур Велюто 44"
+        "Азур Велюто 44",
+        "Бежевый",
+        "Бордовый",
+        "Коричневый",
+        "Лазурный",
+        "Оранжевый",
+        "Серый",
+        "Синий",
+        "Темно серый"
       ],
       "sizes": [],
       "hit": false,
@@ -37187,14 +37244,14 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24178/",
       "brand": "Berhouse",
       "colorImages": {
-        "Беж Велюто 05": "https://berhouse.ru/files/eshop/big/24178_420672.png",
-        "Бордо Велюто 25": "https://berhouse.ru/files/eshop/big/24178_420670.png",
-        "Коричневый Велюто 23": "https://berhouse.ru/files/eshop/big/24178_420671.png",
-        "Азур Велюто 44": "https://berhouse.ru/files/eshop/big/24178_420677.png",
-        "Оранж Велюто 27": "https://berhouse.ru/files/eshop/big/24178_420674.png",
-        "Серый Велюто 12": "https://berhouse.ru/files/eshop/big/24178_420673.png",
-        "Синий Велюто 54": "https://berhouse.ru/files/eshop/big/24178_420676.png",
-        "Темно серый Велюто 32": "https://berhouse.ru/files/eshop/big/24178_420675.png"
+        "Бежевый": "https://berhouse.ru/files/eshop/big/24178_420672.png",
+        "Бордовый": "https://berhouse.ru/files/eshop/big/24178_420670.png",
+        "Коричневый": "https://berhouse.ru/files/eshop/big/24178_420671.png",
+        "Лазурный": "https://berhouse.ru/files/eshop/big/24178_420677.png",
+        "Оранжевый": "https://berhouse.ru/files/eshop/big/24178_420674.png",
+        "Серый": "https://berhouse.ru/files/eshop/big/24178_420673.png",
+        "Синий": "https://berhouse.ru/files/eshop/big/24178_420676.png",
+        "Темно серый": "https://berhouse.ru/files/eshop/big/24178_420675.png"
       }
     },
     {
@@ -37331,7 +37388,8 @@
         "Светло коричневый",
         "Серый",
         "Серо коричневый",
-        "Коричневый"
+        "Коричневый",
+        "Бежево коричневый"
       ],
       "sizes": [],
       "hit": false,
@@ -37339,7 +37397,7 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24192/",
       "brand": "Berhouse",
       "colorImages": {
-        "Серо коричневый": "https://berhouse.ru/files/eshop/big/24192_420918.png",
+        "Бежево коричневый": "https://berhouse.ru/files/eshop/big/24192_420918.png",
         "Голубой": "https://berhouse.ru/files/eshop/big/24192_420914.png",
         "Зеленый": "https://berhouse.ru/files/eshop/big/24192_420912.png",
         "Коричневый": "https://berhouse.ru/files/eshop/big/24192_420919.png",
@@ -37483,7 +37541,8 @@
         "Светло коричневый",
         "Серый",
         "Серо коричневый",
-        "Коричневый"
+        "Коричневый",
+        "Бежево коричневый"
       ],
       "sizes": [],
       "hit": false,
@@ -37491,7 +37550,7 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24272/",
       "brand": "Berhouse",
       "colorImages": {
-        "Серо коричневый": "https://berhouse.ru/files/eshop/big/24272_421687.png",
+        "Бежево коричневый": "https://berhouse.ru/files/eshop/big/24272_421687.png",
         "Голубой": "https://berhouse.ru/files/eshop/big/24272_421683.png",
         "Зеленый": "https://berhouse.ru/files/eshop/big/24272_421681.png",
         "Коричневый": "https://berhouse.ru/files/eshop/big/24272_421688.png",
@@ -37697,7 +37756,15 @@
         "Оранж Велюто 27",
         "Темно серый Велюто 32",
         "Синий Велюто 54",
-        "Азур Велюто 44"
+        "Азур Велюто 44",
+        "Бежевый",
+        "Бордовый",
+        "Коричневый",
+        "Лазурный",
+        "Оранжевый",
+        "Серый",
+        "Синий",
+        "Темно серый"
       ],
       "sizes": [],
       "hit": false,
@@ -37705,14 +37772,14 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24176/",
       "brand": "Berhouse",
       "colorImages": {
-        "Беж Велюто 05": "https://berhouse.ru/files/eshop/big/24176_420656.png",
-        "Бордо Велюто 25": "https://berhouse.ru/files/eshop/big/24176_420654.png",
-        "Коричневый Велюто 23": "https://berhouse.ru/files/eshop/big/24176_420655.png",
-        "Азур Велюто 44": "https://berhouse.ru/files/eshop/big/24176_420661.png",
-        "Оранж Велюто 27": "https://berhouse.ru/files/eshop/big/24176_420658.png",
-        "Серый Велюто 12": "https://berhouse.ru/files/eshop/big/24176_420657.png",
-        "Синий Велюто 54": "https://berhouse.ru/files/eshop/big/24176_420660.png",
-        "Темно серый Велюто 32": "https://berhouse.ru/files/eshop/big/24176_420659.png"
+        "Бежевый": "https://berhouse.ru/files/eshop/big/24176_420656.png",
+        "Бордовый": "https://berhouse.ru/files/eshop/big/24176_420654.png",
+        "Коричневый": "https://berhouse.ru/files/eshop/big/24176_420655.png",
+        "Лазурный": "https://berhouse.ru/files/eshop/big/24176_420661.png",
+        "Оранжевый": "https://berhouse.ru/files/eshop/big/24176_420658.png",
+        "Серый": "https://berhouse.ru/files/eshop/big/24176_420657.png",
+        "Синий": "https://berhouse.ru/files/eshop/big/24176_420660.png",
+        "Темно серый": "https://berhouse.ru/files/eshop/big/24176_420659.png"
       }
     },
     {
@@ -37891,7 +37958,18 @@
         "Левис 08 велюр",
         "Левис 09 велюр",
         "Серый велюр",
-        "Азур велюр"
+        "Азур велюр",
+        "Бежевый",
+        "Изумрудный",
+        "Капучино",
+        "Коричневый",
+        "Кремовый",
+        "Лазурный",
+        "Оливковый",
+        "Светло серый",
+        "Серый",
+        "Темно серый",
+        "Шоколадный"
       ],
       "sizes": [],
       "hit": false,
@@ -37899,17 +37977,17 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24375/",
       "brand": "Berhouse",
       "colorImages": {
-        "Кемел рогожка": "https://berhouse.ru/files/eshop/big/24375_422474.jpg",
-        "Азур рогожка": "https://berhouse.ru/files/eshop/big/24375_422478.jpg",
-        "Левис 04 велюр": "https://berhouse.ru/files/eshop/big/24375_422480.jpg",
-        "Кофе рогожка": "https://berhouse.ru/files/eshop/big/24375_422477.jpg",
-        "Левис 02 велюр": "https://berhouse.ru/files/eshop/big/24375_422479.jpg",
-        "Азур велюр": "https://berhouse.ru/files/eshop/big/24375_422484.jpg",
-        "Серый велюр": "https://berhouse.ru/files/eshop/big/24375_422483.jpg",
-        "Левис 08 велюр": "https://berhouse.ru/files/eshop/big/24375_422481.jpg",
-        "Грей рогожка": "https://berhouse.ru/files/eshop/big/24375_422475.jpg",
-        "Биттер рогожка": "https://berhouse.ru/files/eshop/big/24375_422476.jpg",
-        "Левис 09 велюр": "https://berhouse.ru/files/eshop/big/24375_422482.jpg"
+        "Бежевый": "https://berhouse.ru/files/eshop/big/24375_422474.jpg",
+        "Изумрудный": "https://berhouse.ru/files/eshop/big/24375_422478.jpg",
+        "Капучино": "https://berhouse.ru/files/eshop/big/24375_422480.jpg",
+        "Коричневый": "https://berhouse.ru/files/eshop/big/24375_422477.jpg",
+        "Кремовый": "https://berhouse.ru/files/eshop/big/24375_422479.jpg",
+        "Лазурный": "https://berhouse.ru/files/eshop/big/24375_422484.jpg",
+        "Оливковый": "https://berhouse.ru/files/eshop/big/24375_422483.jpg",
+        "Светло серый": "https://berhouse.ru/files/eshop/big/24375_422481.jpg",
+        "Серый": "https://berhouse.ru/files/eshop/big/24375_422475.jpg",
+        "Темно серый": "https://berhouse.ru/files/eshop/big/24375_422476.jpg",
+        "Шоколадный": "https://berhouse.ru/files/eshop/big/24375_422482.jpg"
       }
     },
     {
@@ -38088,7 +38166,18 @@
         "Левис 08 велюр",
         "Левис 09 велюр",
         "Серый велюр",
-        "Азур велюр"
+        "Азур велюр",
+        "Бежевый",
+        "Изумрудный",
+        "Капучино",
+        "Коричневый",
+        "Кремовый",
+        "Лазурный",
+        "Оливковый",
+        "Светло серый",
+        "Серый",
+        "Темно серый",
+        "Шоколадный"
       ],
       "sizes": [],
       "hit": false,
@@ -38096,17 +38185,17 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24379/",
       "brand": "Berhouse",
       "colorImages": {
-        "Кемел рогожка": "https://berhouse.ru/files/eshop/big/24379_422518.jpg",
-        "Азур рогожка": "https://berhouse.ru/files/eshop/big/24379_422522.jpg",
-        "Левис 04 велюр": "https://berhouse.ru/files/eshop/big/24379_422524.jpg",
-        "Кофе рогожка": "https://berhouse.ru/files/eshop/big/24379_422521.jpg",
-        "Левис 02 велюр": "https://berhouse.ru/files/eshop/big/24379_422523.jpg",
-        "Азур велюр": "https://berhouse.ru/files/eshop/big/24379_422528.jpg",
-        "Серый велюр": "https://berhouse.ru/files/eshop/big/24379_422527.jpg",
-        "Левис 08 велюр": "https://berhouse.ru/files/eshop/big/24379_422525.jpg",
-        "Грей рогожка": "https://berhouse.ru/files/eshop/big/24379_422519.jpg",
-        "Биттер рогожка": "https://berhouse.ru/files/eshop/big/24379_422520.jpg",
-        "Левис 09 велюр": "https://berhouse.ru/files/eshop/big/24379_422526.jpg"
+        "Бежевый": "https://berhouse.ru/files/eshop/big/24379_422518.jpg",
+        "Изумрудный": "https://berhouse.ru/files/eshop/big/24379_422522.jpg",
+        "Капучино": "https://berhouse.ru/files/eshop/big/24379_422524.jpg",
+        "Коричневый": "https://berhouse.ru/files/eshop/big/24379_422521.jpg",
+        "Кремовый": "https://berhouse.ru/files/eshop/big/24379_422523.jpg",
+        "Лазурный": "https://berhouse.ru/files/eshop/big/24379_422528.jpg",
+        "Оливковый": "https://berhouse.ru/files/eshop/big/24379_422527.jpg",
+        "Светло серый": "https://berhouse.ru/files/eshop/big/24379_422525.jpg",
+        "Серый": "https://berhouse.ru/files/eshop/big/24379_422519.jpg",
+        "Темно серый": "https://berhouse.ru/files/eshop/big/24379_422520.jpg",
+        "Шоколадный": "https://berhouse.ru/files/eshop/big/24379_422526.jpg"
       }
     },
     {
@@ -38286,7 +38375,18 @@
         "Левис 08 велюр",
         "Левис 09 велюр",
         "Серый велюр",
-        "Азур велюр"
+        "Азур велюр",
+        "Бежевый",
+        "Изумрудный",
+        "Капучино",
+        "Коричневый",
+        "Кремовый",
+        "Лазурный",
+        "Оливковый",
+        "Светло серый",
+        "Серый",
+        "Темно серый",
+        "Шоколадный"
       ],
       "sizes": [],
       "hit": false,
@@ -38294,17 +38394,17 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24377/",
       "brand": "Berhouse",
       "colorImages": {
-        "Кемел рогожка": "https://berhouse.ru/files/eshop/big/24377_422496.jpg",
-        "Азур рогожка": "https://berhouse.ru/files/eshop/big/24377_422500.jpg",
-        "Левис 04 велюр": "https://berhouse.ru/files/eshop/big/24377_422502.jpg",
-        "Кофе рогожка": "https://berhouse.ru/files/eshop/big/24377_422499.jpg",
-        "Левис 02 велюр": "https://berhouse.ru/files/eshop/big/24377_422501.jpg",
-        "Азур велюр": "https://berhouse.ru/files/eshop/big/24377_422506.jpg",
-        "Серый велюр": "https://berhouse.ru/files/eshop/big/24377_422505.jpg",
-        "Левис 08 велюр": "https://berhouse.ru/files/eshop/big/24377_422503.jpg",
-        "Грей рогожка": "https://berhouse.ru/files/eshop/big/24377_422497.jpg",
-        "Биттер рогожка": "https://berhouse.ru/files/eshop/big/24377_422498.jpg",
-        "Левис 09 велюр": "https://berhouse.ru/files/eshop/big/24377_422504.jpg"
+        "Бежевый": "https://berhouse.ru/files/eshop/big/24377_422496.jpg",
+        "Изумрудный": "https://berhouse.ru/files/eshop/big/24377_422500.jpg",
+        "Капучино": "https://berhouse.ru/files/eshop/big/24377_422502.jpg",
+        "Коричневый": "https://berhouse.ru/files/eshop/big/24377_422499.jpg",
+        "Кремовый": "https://berhouse.ru/files/eshop/big/24377_422501.jpg",
+        "Лазурный": "https://berhouse.ru/files/eshop/big/24377_422506.jpg",
+        "Оливковый": "https://berhouse.ru/files/eshop/big/24377_422505.jpg",
+        "Светло серый": "https://berhouse.ru/files/eshop/big/24377_422503.jpg",
+        "Серый": "https://berhouse.ru/files/eshop/big/24377_422497.jpg",
+        "Темно серый": "https://berhouse.ru/files/eshop/big/24377_422498.jpg",
+        "Шоколадный": "https://berhouse.ru/files/eshop/big/24377_422504.jpg"
       }
     },
     {
@@ -38483,7 +38583,18 @@
         "Левис 08 велюр",
         "Левис 09 велюр",
         "Серый велюр",
-        "Азур велюр"
+        "Азур велюр",
+        "Бежевый",
+        "Изумрудный",
+        "Капучино",
+        "Коричневый",
+        "Кремовый",
+        "Лазурный",
+        "Оливковый",
+        "Светло серый",
+        "Серый",
+        "Темно серый",
+        "Шоколадный"
       ],
       "sizes": [],
       "hit": false,
@@ -38491,17 +38602,17 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24376/",
       "brand": "Berhouse",
       "colorImages": {
-        "Кемел рогожка": "https://berhouse.ru/files/eshop/big/24376_422485.jpg",
-        "Азур рогожка": "https://berhouse.ru/files/eshop/big/24376_422489.jpg",
-        "Левис 04 велюр": "https://berhouse.ru/files/eshop/big/24376_422491.jpg",
-        "Кофе рогожка": "https://berhouse.ru/files/eshop/big/24376_422488.jpg",
-        "Левис 02 велюр": "https://berhouse.ru/files/eshop/big/24376_422490.jpg",
-        "Азур велюр": "https://berhouse.ru/files/eshop/big/24376_422495.jpg",
-        "Серый велюр": "https://berhouse.ru/files/eshop/big/24376_422494.jpg",
-        "Левис 08 велюр": "https://berhouse.ru/files/eshop/big/24376_422492.jpg",
-        "Грей рогожка": "https://berhouse.ru/files/eshop/big/24376_422486.jpg",
-        "Биттер рогожка": "https://berhouse.ru/files/eshop/big/24376_422487.jpg",
-        "Левис 09 велюр": "https://berhouse.ru/files/eshop/big/24376_422493.jpg"
+        "Бежевый": "https://berhouse.ru/files/eshop/big/24376_422485.jpg",
+        "Изумрудный": "https://berhouse.ru/files/eshop/big/24376_422489.jpg",
+        "Капучино": "https://berhouse.ru/files/eshop/big/24376_422491.jpg",
+        "Коричневый": "https://berhouse.ru/files/eshop/big/24376_422488.jpg",
+        "Кремовый": "https://berhouse.ru/files/eshop/big/24376_422490.jpg",
+        "Лазурный": "https://berhouse.ru/files/eshop/big/24376_422495.jpg",
+        "Оливковый": "https://berhouse.ru/files/eshop/big/24376_422494.jpg",
+        "Светло серый": "https://berhouse.ru/files/eshop/big/24376_422492.jpg",
+        "Серый": "https://berhouse.ru/files/eshop/big/24376_422486.jpg",
+        "Темно серый": "https://berhouse.ru/files/eshop/big/24376_422487.jpg",
+        "Шоколадный": "https://berhouse.ru/files/eshop/big/24376_422493.jpg"
       }
     },
     {
@@ -38680,7 +38791,18 @@
         "Левис 08 велюр",
         "Левис 09 велюр",
         "Серый велюр",
-        "Азур велюр"
+        "Азур велюр",
+        "Бежевый",
+        "Изумрудный",
+        "Капучино",
+        "Коричневый",
+        "Кремовый",
+        "Лазурный",
+        "Оливковый",
+        "Светло серый",
+        "Серый",
+        "Темно серый",
+        "Шоколадный"
       ],
       "sizes": [],
       "hit": false,
@@ -38688,17 +38810,17 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24381/",
       "brand": "Berhouse",
       "colorImages": {
-        "Кемел рогожка": "https://berhouse.ru/files/eshop/big/24381_422540.jpg",
-        "Азур рогожка": "https://berhouse.ru/files/eshop/big/24381_422544.jpg",
-        "Левис 04 велюр": "https://berhouse.ru/files/eshop/big/24381_422546.jpg",
-        "Кофе рогожка": "https://berhouse.ru/files/eshop/big/24381_422543.jpg",
-        "Левис 02 велюр": "https://berhouse.ru/files/eshop/big/24381_422545.jpg",
-        "Азур велюр": "https://berhouse.ru/files/eshop/big/24381_422550.jpg",
-        "Серый велюр": "https://berhouse.ru/files/eshop/big/24381_422549.jpg",
-        "Левис 08 велюр": "https://berhouse.ru/files/eshop/big/24381_422547.jpg",
-        "Грей рогожка": "https://berhouse.ru/files/eshop/big/24381_422541.jpg",
-        "Биттер рогожка": "https://berhouse.ru/files/eshop/big/24381_422542.jpg",
-        "Левис 09 велюр": "https://berhouse.ru/files/eshop/big/24381_422548.jpg"
+        "Бежевый": "https://berhouse.ru/files/eshop/big/24381_422540.jpg",
+        "Изумрудный": "https://berhouse.ru/files/eshop/big/24381_422544.jpg",
+        "Капучино": "https://berhouse.ru/files/eshop/big/24381_422546.jpg",
+        "Коричневый": "https://berhouse.ru/files/eshop/big/24381_422543.jpg",
+        "Кремовый": "https://berhouse.ru/files/eshop/big/24381_422545.jpg",
+        "Лазурный": "https://berhouse.ru/files/eshop/big/24381_422550.jpg",
+        "Оливковый": "https://berhouse.ru/files/eshop/big/24381_422549.jpg",
+        "Светло серый": "https://berhouse.ru/files/eshop/big/24381_422547.jpg",
+        "Серый": "https://berhouse.ru/files/eshop/big/24381_422541.jpg",
+        "Темно серый": "https://berhouse.ru/files/eshop/big/24381_422542.jpg",
+        "Шоколадный": "https://berhouse.ru/files/eshop/big/24381_422548.jpg"
       }
     },
     {
@@ -38877,7 +38999,18 @@
         "Левис 08 велюр",
         "Левис 09 велюр",
         "Серый велюр",
-        "Азур велюр"
+        "Азур велюр",
+        "Бежевый",
+        "Изумрудный",
+        "Капучино",
+        "Коричневый",
+        "Кремовый",
+        "Лазурный",
+        "Оливковый",
+        "Светло серый",
+        "Серый",
+        "Темно серый",
+        "Шоколадный"
       ],
       "sizes": [],
       "hit": false,
@@ -38885,17 +39018,17 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24380/",
       "brand": "Berhouse",
       "colorImages": {
-        "Кемел рогожка": "https://berhouse.ru/files/eshop/big/24380_422529.jpg",
-        "Азур рогожка": "https://berhouse.ru/files/eshop/big/24380_422533.png",
-        "Левис 04 велюр": "https://berhouse.ru/files/eshop/big/24380_422535.png",
-        "Кофе рогожка": "https://berhouse.ru/files/eshop/big/24380_422532.png",
-        "Левис 02 велюр": "https://berhouse.ru/files/eshop/big/24380_422534.png",
-        "Азур велюр": "https://berhouse.ru/files/eshop/big/24380_422539.jpg",
-        "Серый велюр": "https://berhouse.ru/files/eshop/big/24380_422538.jpg",
-        "Левис 08 велюр": "https://berhouse.ru/files/eshop/big/24380_422536.jpg",
-        "Грей рогожка": "https://berhouse.ru/files/eshop/big/24380_422530.jpg",
-        "Биттер рогожка": "https://berhouse.ru/files/eshop/big/24380_422531.png",
-        "Левис 09 велюр": "https://berhouse.ru/files/eshop/big/24380_422537.jpg"
+        "Бежевый": "https://berhouse.ru/files/eshop/big/24380_422529.jpg",
+        "Изумрудный": "https://berhouse.ru/files/eshop/big/24380_422533.png",
+        "Капучино": "https://berhouse.ru/files/eshop/big/24380_422535.png",
+        "Коричневый": "https://berhouse.ru/files/eshop/big/24380_422532.png",
+        "Кремовый": "https://berhouse.ru/files/eshop/big/24380_422534.png",
+        "Лазурный": "https://berhouse.ru/files/eshop/big/24380_422539.jpg",
+        "Оливковый": "https://berhouse.ru/files/eshop/big/24380_422538.jpg",
+        "Светло серый": "https://berhouse.ru/files/eshop/big/24380_422536.jpg",
+        "Серый": "https://berhouse.ru/files/eshop/big/24380_422530.jpg",
+        "Темно серый": "https://berhouse.ru/files/eshop/big/24380_422531.png",
+        "Шоколадный": "https://berhouse.ru/files/eshop/big/24380_422537.jpg"
       }
     },
     {
@@ -39074,7 +39207,18 @@
         "Левис 08 велюр",
         "Левис 09 велюр",
         "Серый велюр",
-        "Азур велюр"
+        "Азур велюр",
+        "Бежевый",
+        "Изумрудный",
+        "Капучино",
+        "Коричневый",
+        "Кремовый",
+        "Лазурный",
+        "Оливковый",
+        "Светло серый",
+        "Серый",
+        "Темно серый",
+        "Шоколадный"
       ],
       "sizes": [],
       "hit": false,
@@ -39082,17 +39226,17 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24378/",
       "brand": "Berhouse",
       "colorImages": {
-        "Кемел рогожка": "https://berhouse.ru/files/eshop/big/24378_422507.jpg",
-        "Азур рогожка": "https://berhouse.ru/files/eshop/big/24378_422511.jpg",
-        "Левис 04 велюр": "https://berhouse.ru/files/eshop/big/24378_422513.jpg",
-        "Кофе рогожка": "https://berhouse.ru/files/eshop/big/24378_422510.jpg",
-        "Левис 02 велюр": "https://berhouse.ru/files/eshop/big/24378_422512.jpg",
-        "Азур велюр": "https://berhouse.ru/files/eshop/big/24378_422517.jpg",
-        "Серый велюр": "https://berhouse.ru/files/eshop/big/24378_422516.jpg",
-        "Левис 08 велюр": "https://berhouse.ru/files/eshop/big/24378_422514.jpg",
-        "Грей рогожка": "https://berhouse.ru/files/eshop/big/24378_422508.jpg",
-        "Биттер рогожка": "https://berhouse.ru/files/eshop/big/24378_422509.jpg",
-        "Левис 09 велюр": "https://berhouse.ru/files/eshop/big/24378_422515.jpg"
+        "Бежевый": "https://berhouse.ru/files/eshop/big/24378_422507.jpg",
+        "Изумрудный": "https://berhouse.ru/files/eshop/big/24378_422511.jpg",
+        "Капучино": "https://berhouse.ru/files/eshop/big/24378_422513.jpg",
+        "Коричневый": "https://berhouse.ru/files/eshop/big/24378_422510.jpg",
+        "Кремовый": "https://berhouse.ru/files/eshop/big/24378_422512.jpg",
+        "Лазурный": "https://berhouse.ru/files/eshop/big/24378_422517.jpg",
+        "Оливковый": "https://berhouse.ru/files/eshop/big/24378_422516.jpg",
+        "Светло серый": "https://berhouse.ru/files/eshop/big/24378_422514.jpg",
+        "Серый": "https://berhouse.ru/files/eshop/big/24378_422508.jpg",
+        "Темно серый": "https://berhouse.ru/files/eshop/big/24378_422509.jpg",
+        "Шоколадный": "https://berhouse.ru/files/eshop/big/24378_422515.jpg"
       }
     },
     {
@@ -39272,7 +39416,16 @@
         "Левис 09 велюр",
         "Серый велюр",
         "Азур велюр",
-        "фасада"
+        "Бежевый",
+        "Изумрудный",
+        "Капучино",
+        "Коричневый",
+        "Кремовый",
+        "Лазурный",
+        "Оливковый",
+        "Светло серый",
+        "Темно серый",
+        "Шоколадный"
       ],
       "sizes": [],
       "hit": false,
@@ -39280,17 +39433,17 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24374/",
       "brand": "Berhouse",
       "colorImages": {
-        "Кемел рогожка": "https://berhouse.ru/files/eshop/big/24374_422463.jpg",
-        "Азур рогожка": "https://berhouse.ru/files/eshop/big/24374_422467.jpg",
-        "Левис 04 велюр": "https://berhouse.ru/files/eshop/big/24374_422469.jpg",
-        "Кофе рогожка": "https://berhouse.ru/files/eshop/big/24374_422466.jpg",
-        "Левис 02 велюр": "https://berhouse.ru/files/eshop/big/24374_422468.jpg",
-        "Азур велюр": "https://berhouse.ru/files/eshop/big/24374_422473.jpg",
-        "Серый велюр": "https://berhouse.ru/files/eshop/big/24374_422472.jpg",
-        "Левис 08 велюр": "https://berhouse.ru/files/eshop/big/24374_422470.jpg",
-        "фасада": "https://berhouse.ru/files/eshop/big/24374_422464.jpg",
-        "Биттер рогожка": "https://berhouse.ru/files/eshop/big/24374_422465.jpg",
-        "Левис 09 велюр": "https://berhouse.ru/files/eshop/big/24374_422471.jpg"
+        "Бежевый": "https://berhouse.ru/files/eshop/big/24374_422463.jpg",
+        "Изумрудный": "https://berhouse.ru/files/eshop/big/24374_422467.jpg",
+        "Капучино": "https://berhouse.ru/files/eshop/big/24374_422469.jpg",
+        "Коричневый": "https://berhouse.ru/files/eshop/big/24374_422466.jpg",
+        "Кремовый": "https://berhouse.ru/files/eshop/big/24374_422468.jpg",
+        "Лазурный": "https://berhouse.ru/files/eshop/big/24374_422473.jpg",
+        "Оливковый": "https://berhouse.ru/files/eshop/big/24374_422472.jpg",
+        "Светло серый": "https://berhouse.ru/files/eshop/big/24374_422470.jpg",
+        "Серый": "https://berhouse.ru/files/eshop/big/24374_422464.jpg",
+        "Темно серый": "https://berhouse.ru/files/eshop/big/24374_422465.jpg",
+        "Шоколадный": "https://berhouse.ru/files/eshop/big/24374_422471.jpg"
       }
     },
     {
@@ -39470,7 +39623,18 @@
         "Левис 08 велюр",
         "Левис 09 велюр",
         "Серый велюр",
-        "Азур велюр"
+        "Азур велюр",
+        "Бежевый",
+        "Изумрудный",
+        "Капучино",
+        "Коричневый",
+        "Кремовый",
+        "Лазурный",
+        "Оливковый",
+        "Светло серый",
+        "Серый",
+        "Темно серый",
+        "Шоколадный"
       ],
       "sizes": [],
       "hit": false,
@@ -39478,17 +39642,17 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24372/",
       "brand": "Berhouse",
       "colorImages": {
-        "Кемел рогожка": "https://berhouse.ru/files/eshop/big/24372_422441.jpg",
-        "Азур рогожка": "https://berhouse.ru/files/eshop/big/24372_422445.jpg",
-        "Левис 04 велюр": "https://berhouse.ru/files/eshop/big/24372_422447.",
-        "Кофе рогожка": "https://berhouse.ru/files/eshop/big/24372_422444.jpg",
-        "Левис 02 велюр": "https://berhouse.ru/files/eshop/big/24372_422446.jpg",
-        "Азур велюр": "https://berhouse.ru/files/eshop/big/24372_422451.jpg",
-        "Серый велюр": "https://berhouse.ru/files/eshop/big/24372_422450.jpg",
-        "Левис 08 велюр": "https://berhouse.ru/files/eshop/big/24372_422448.jpg",
-        "Грей рогожка": "https://berhouse.ru/files/eshop/big/24372_422442.jpg",
-        "Биттер рогожка": "https://berhouse.ru/files/eshop/big/24372_422443.jpg",
-        "Левис 09 велюр": "https://berhouse.ru/files/eshop/big/24372_422449.jpg"
+        "Бежевый": "https://berhouse.ru/files/eshop/big/24372_422441.jpg",
+        "Изумрудный": "https://berhouse.ru/files/eshop/big/24372_422445.jpg",
+        "Капучино": "https://berhouse.ru/files/eshop/big/24372_422447.",
+        "Коричневый": "https://berhouse.ru/files/eshop/big/24372_422444.jpg",
+        "Кремовый": "https://berhouse.ru/files/eshop/big/24372_422446.jpg",
+        "Лазурный": "https://berhouse.ru/files/eshop/big/24372_422451.jpg",
+        "Оливковый": "https://berhouse.ru/files/eshop/big/24372_422450.jpg",
+        "Светло серый": "https://berhouse.ru/files/eshop/big/24372_422448.jpg",
+        "Серый": "https://berhouse.ru/files/eshop/big/24372_422442.jpg",
+        "Темно серый": "https://berhouse.ru/files/eshop/big/24372_422443.jpg",
+        "Шоколадный": "https://berhouse.ru/files/eshop/big/24372_422449.jpg"
       }
     },
     {
@@ -39668,7 +39832,18 @@
         "Левис 08 велюр",
         "Левис 09 велюр",
         "Серый велюр",
-        "Азур велюр"
+        "Азур велюр",
+        "Бежевый",
+        "Изумрудный",
+        "Капучино",
+        "Коричневый",
+        "Кремовый",
+        "Лазурный",
+        "Оливковый",
+        "Светло серый",
+        "Серый",
+        "Темно серый",
+        "Шоколадный"
       ],
       "sizes": [],
       "hit": false,
@@ -39676,17 +39851,17 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24370/",
       "brand": "Berhouse",
       "colorImages": {
-        "Кемел рогожка": "https://berhouse.ru/files/eshop/big/24370_422419.jpg",
-        "Азур рогожка": "https://berhouse.ru/files/eshop/big/24370_422423.jpg",
-        "Левис 04 велюр": "https://berhouse.ru/files/eshop/big/24370_422425.jpg",
-        "Кофе рогожка": "https://berhouse.ru/files/eshop/big/24370_422422.jpg",
-        "Левис 02 велюр": "https://berhouse.ru/files/eshop/big/24370_422424.jpg",
-        "Азур велюр": "https://berhouse.ru/files/eshop/big/24370_422429.jpg",
-        "Серый велюр": "https://berhouse.ru/files/eshop/big/24370_422428.jpg",
-        "Левис 08 велюр": "https://berhouse.ru/files/eshop/big/24370_422426.jpg",
-        "Грей рогожка": "https://berhouse.ru/files/eshop/big/24370_422420.jpg",
-        "Биттер рогожка": "https://berhouse.ru/files/eshop/big/24370_422421.jpg",
-        "Левис 09 велюр": "https://berhouse.ru/files/eshop/big/24370_422427.jpg"
+        "Бежевый": "https://berhouse.ru/files/eshop/big/24370_422419.jpg",
+        "Изумрудный": "https://berhouse.ru/files/eshop/big/24370_422423.jpg",
+        "Капучино": "https://berhouse.ru/files/eshop/big/24370_422425.jpg",
+        "Коричневый": "https://berhouse.ru/files/eshop/big/24370_422422.jpg",
+        "Кремовый": "https://berhouse.ru/files/eshop/big/24370_422424.jpg",
+        "Лазурный": "https://berhouse.ru/files/eshop/big/24370_422429.jpg",
+        "Оливковый": "https://berhouse.ru/files/eshop/big/24370_422428.jpg",
+        "Светло серый": "https://berhouse.ru/files/eshop/big/24370_422426.jpg",
+        "Серый": "https://berhouse.ru/files/eshop/big/24370_422420.jpg",
+        "Темно серый": "https://berhouse.ru/files/eshop/big/24370_422421.jpg",
+        "Шоколадный": "https://berhouse.ru/files/eshop/big/24370_422427.jpg"
       }
     },
     {
@@ -39866,7 +40041,18 @@
         "Левис 08 велюр",
         "Левис 09 велюр",
         "Серый велюр",
-        "Азур велюр"
+        "Азур велюр",
+        "Бежевый",
+        "Изумрудный",
+        "Капучино",
+        "Коричневый",
+        "Кремовый",
+        "Лазурный",
+        "Оливковый",
+        "Светло серый",
+        "Серый",
+        "Темно серый",
+        "Шоколадный"
       ],
       "sizes": [],
       "hit": false,
@@ -39874,17 +40060,17 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24373/",
       "brand": "Berhouse",
       "colorImages": {
-        "Кемел рогожка": "https://berhouse.ru/files/eshop/big/24373_422452.jpg",
-        "Азур рогожка": "https://berhouse.ru/files/eshop/big/24373_422456.jpg",
-        "Левис 04 велюр": "https://berhouse.ru/files/eshop/big/24373_422458.jpg",
-        "Кофе рогожка": "https://berhouse.ru/files/eshop/big/24373_422455.jpg",
-        "Левис 02 велюр": "https://berhouse.ru/files/eshop/big/24373_422457.jpg",
-        "Азур велюр": "https://berhouse.ru/files/eshop/big/24373_422462.jpg",
-        "Серый велюр": "https://berhouse.ru/files/eshop/big/24373_422461.jpg",
-        "Левис 08 велюр": "https://berhouse.ru/files/eshop/big/24373_422459.jpg",
-        "Грей рогожка": "https://berhouse.ru/files/eshop/big/24373_422453.jpg",
-        "Биттер рогожка": "https://berhouse.ru/files/eshop/big/24373_422454.jpg",
-        "Левис 09 велюр": "https://berhouse.ru/files/eshop/big/24373_422460.jpg"
+        "Бежевый": "https://berhouse.ru/files/eshop/big/24373_422452.jpg",
+        "Изумрудный": "https://berhouse.ru/files/eshop/big/24373_422456.jpg",
+        "Капучино": "https://berhouse.ru/files/eshop/big/24373_422458.jpg",
+        "Коричневый": "https://berhouse.ru/files/eshop/big/24373_422455.jpg",
+        "Кремовый": "https://berhouse.ru/files/eshop/big/24373_422457.jpg",
+        "Лазурный": "https://berhouse.ru/files/eshop/big/24373_422462.jpg",
+        "Оливковый": "https://berhouse.ru/files/eshop/big/24373_422461.jpg",
+        "Светло серый": "https://berhouse.ru/files/eshop/big/24373_422459.jpg",
+        "Серый": "https://berhouse.ru/files/eshop/big/24373_422453.jpg",
+        "Темно серый": "https://berhouse.ru/files/eshop/big/24373_422454.jpg",
+        "Шоколадный": "https://berhouse.ru/files/eshop/big/24373_422460.jpg"
       }
     },
     {
@@ -40064,7 +40250,18 @@
         "Левис 08 велюр",
         "Левис 09 велюр",
         "Серый велюр",
-        "Азур велюр"
+        "Азур велюр",
+        "Бежевый",
+        "Изумрудный",
+        "Капучино",
+        "Коричневый",
+        "Кремовый",
+        "Лазурный",
+        "Оливковый",
+        "Светло серый",
+        "Серый",
+        "Темно серый",
+        "Шоколадный"
       ],
       "sizes": [],
       "hit": false,
@@ -40072,17 +40269,17 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24368/",
       "brand": "Berhouse",
       "colorImages": {
-        "Кемел рогожка": "https://berhouse.ru/files/eshop/big/24368_422405.jpg",
-        "Азур рогожка": "https://berhouse.ru/files/eshop/big/24368_422412.jpg",
-        "Левис 04 велюр": "https://berhouse.ru/files/eshop/big/24368_422414.jpg",
-        "Кофе рогожка": "https://berhouse.ru/files/eshop/big/24368_422411.jpg",
-        "Левис 02 велюр": "https://berhouse.ru/files/eshop/big/24368_422413.jpg",
-        "Азур велюр": "https://berhouse.ru/files/eshop/big/24368_422418.jpg",
-        "Серый велюр": "https://berhouse.ru/files/eshop/big/24368_422417.jpg",
-        "Левис 08 велюр": "https://berhouse.ru/files/eshop/big/24368_422415.jpg",
-        "Грей рогожка": "https://berhouse.ru/files/eshop/big/24368_422406.jpg",
-        "Биттер рогожка": "https://berhouse.ru/files/eshop/big/24368_422407.jpg",
-        "Левис 09 велюр": "https://berhouse.ru/files/eshop/big/24368_422416.jpg"
+        "Бежевый": "https://berhouse.ru/files/eshop/big/24368_422405.jpg",
+        "Изумрудный": "https://berhouse.ru/files/eshop/big/24368_422412.jpg",
+        "Капучино": "https://berhouse.ru/files/eshop/big/24368_422414.jpg",
+        "Коричневый": "https://berhouse.ru/files/eshop/big/24368_422411.jpg",
+        "Кремовый": "https://berhouse.ru/files/eshop/big/24368_422413.jpg",
+        "Лазурный": "https://berhouse.ru/files/eshop/big/24368_422418.jpg",
+        "Оливковый": "https://berhouse.ru/files/eshop/big/24368_422417.jpg",
+        "Светло серый": "https://berhouse.ru/files/eshop/big/24368_422415.jpg",
+        "Серый": "https://berhouse.ru/files/eshop/big/24368_422406.jpg",
+        "Темно серый": "https://berhouse.ru/files/eshop/big/24368_422407.jpg",
+        "Шоколадный": "https://berhouse.ru/files/eshop/big/24368_422416.jpg"
       }
     },
     {
@@ -40262,7 +40459,18 @@
         "Левис 08 велюр",
         "Левис 09 велюр",
         "Серый велюр",
-        "Азур велюр"
+        "Азур велюр",
+        "Бежевый",
+        "Изумрудный",
+        "Капучино",
+        "Коричневый",
+        "Кремовый",
+        "Лазурный",
+        "Оливковый",
+        "Светло серый",
+        "Серый",
+        "Темно серый",
+        "Шоколадный"
       ],
       "sizes": [],
       "hit": false,
@@ -40270,17 +40478,17 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24371/",
       "brand": "Berhouse",
       "colorImages": {
-        "Кемел рогожка": "https://berhouse.ru/files/eshop/big/24371_422430.jpg",
-        "Азур рогожка": "https://berhouse.ru/files/eshop/big/24371_422434.jpg",
-        "Левис 04 велюр": "https://berhouse.ru/files/eshop/big/24371_422436.jpg",
-        "Кофе рогожка": "https://berhouse.ru/files/eshop/big/24371_422433.jpg",
-        "Левис 02 велюр": "https://berhouse.ru/files/eshop/big/24371_422435.jpg",
-        "Азур велюр": "https://berhouse.ru/files/eshop/big/24371_422440.jpg",
-        "Серый велюр": "https://berhouse.ru/files/eshop/big/24371_422439.jpg",
-        "Левис 08 велюр": "https://berhouse.ru/files/eshop/big/24371_422437.jpg",
-        "Грей рогожка": "https://berhouse.ru/files/eshop/big/24371_422431.jpg",
-        "Биттер рогожка": "https://berhouse.ru/files/eshop/big/24371_422432.jpg",
-        "Левис 09 велюр": "https://berhouse.ru/files/eshop/big/24371_422438."
+        "Бежевый": "https://berhouse.ru/files/eshop/big/24371_422430.jpg",
+        "Изумрудный": "https://berhouse.ru/files/eshop/big/24371_422434.jpg",
+        "Капучино": "https://berhouse.ru/files/eshop/big/24371_422436.jpg",
+        "Коричневый": "https://berhouse.ru/files/eshop/big/24371_422433.jpg",
+        "Кремовый": "https://berhouse.ru/files/eshop/big/24371_422435.jpg",
+        "Лазурный": "https://berhouse.ru/files/eshop/big/24371_422440.jpg",
+        "Оливковый": "https://berhouse.ru/files/eshop/big/24371_422439.jpg",
+        "Светло серый": "https://berhouse.ru/files/eshop/big/24371_422437.jpg",
+        "Серый": "https://berhouse.ru/files/eshop/big/24371_422431.jpg",
+        "Темно серый": "https://berhouse.ru/files/eshop/big/24371_422432.jpg",
+        "Шоколадный": "https://berhouse.ru/files/eshop/big/24371_422438."
       }
     },
     {
@@ -40416,7 +40624,15 @@
         "Оранж Велюто 27",
         "Темно серый Велюто 32",
         "Синий Велюто 54",
-        "Азур Велюто 44"
+        "Азур Велюто 44",
+        "Бежевый",
+        "Бордовый",
+        "Коричневый",
+        "Лазурный",
+        "Оранжевый",
+        "Серый",
+        "Синий",
+        "Темно серый"
       ],
       "sizes": [],
       "hit": false,
@@ -40424,14 +40640,14 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24170/",
       "brand": "Berhouse",
       "colorImages": {
-        "Беж Велюто 05": "https://berhouse.ru/files/eshop/big/24170_420608.png",
-        "Бордо Велюто 25": "https://berhouse.ru/files/eshop/big/24170_420606.png",
-        "Коричневый Велюто 23": "https://berhouse.ru/files/eshop/big/24170_420607.png",
-        "Азур Велюто 44": "https://berhouse.ru/files/eshop/big/24170_420613.png",
-        "Оранж Велюто 27": "https://berhouse.ru/files/eshop/big/24170_420610.png",
-        "Серый Велюто 12": "https://berhouse.ru/files/eshop/big/24170_420609.png",
-        "Синий Велюто 54": "https://berhouse.ru/files/eshop/big/24170_420612.png",
-        "Темно серый Велюто 32": "https://berhouse.ru/files/eshop/big/24170_420611.png"
+        "Бежевый": "https://berhouse.ru/files/eshop/big/24170_420608.png",
+        "Бордовый": "https://berhouse.ru/files/eshop/big/24170_420606.png",
+        "Коричневый": "https://berhouse.ru/files/eshop/big/24170_420607.png",
+        "Лазурный": "https://berhouse.ru/files/eshop/big/24170_420613.png",
+        "Оранжевый": "https://berhouse.ru/files/eshop/big/24170_420610.png",
+        "Серый": "https://berhouse.ru/files/eshop/big/24170_420609.png",
+        "Синий": "https://berhouse.ru/files/eshop/big/24170_420612.png",
+        "Темно серый": "https://berhouse.ru/files/eshop/big/24170_420611.png"
       }
     },
     {
@@ -40525,7 +40741,12 @@
         "Биттер",
         "Грей",
         "Кемел",
-        "Кофе"
+        "Кофе",
+        "Капучино",
+        "Лазурный",
+        "Светло коричневый",
+        "Серый",
+        "Темно серый"
       ],
       "sizes": [],
       "hit": false,
@@ -40533,11 +40754,11 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24365/",
       "brand": "Berhouse",
       "colorImages": {
-        "Кемел": "https://berhouse.ru/files/eshop/big/24365_422397.jpg",
-        "Азур": "https://berhouse.ru/files/eshop/big/24365_422394.jpg",
-        "Кофе": "https://berhouse.ru/files/eshop/big/24365_422398.jpg",
-        "Грей": "https://berhouse.ru/files/eshop/big/24365_422396.jpg",
-        "Биттер": "https://berhouse.ru/files/eshop/big/24365_422395.jpg"
+        "Капучино": "https://berhouse.ru/files/eshop/big/24365_422397.jpg",
+        "Лазурный": "https://berhouse.ru/files/eshop/big/24365_422394.jpg",
+        "Светло коричневый": "https://berhouse.ru/files/eshop/big/24365_422398.jpg",
+        "Серый": "https://berhouse.ru/files/eshop/big/24365_422396.jpg",
+        "Темно серый": "https://berhouse.ru/files/eshop/big/24365_422395.jpg"
       }
     },
     {
@@ -40798,7 +41019,15 @@
         "Оранж Велюто 27",
         "Темно серый Велюто 32",
         "Синий Велюто 54",
-        "Азур Велюто 44"
+        "Азур Велюто 44",
+        "Бежевый",
+        "Бордовый",
+        "Коричневый",
+        "Лазурный",
+        "Оранжевый",
+        "Серый",
+        "Синий",
+        "Темно серый"
       ],
       "sizes": [],
       "hit": false,
@@ -40806,14 +41035,14 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24175/",
       "brand": "Berhouse",
       "colorImages": {
-        "Беж Велюто 05": "https://berhouse.ru/files/eshop/big/24175_420648.png",
-        "Бордо Велюто 25": "https://berhouse.ru/files/eshop/big/24175_420646.png",
-        "Коричневый Велюто 23": "https://berhouse.ru/files/eshop/big/24175_420647.png",
-        "Азур Велюто 44": "https://berhouse.ru/files/eshop/big/24175_420653.png",
-        "Оранж Велюто 27": "https://berhouse.ru/files/eshop/big/24175_420650.png",
-        "Серый Велюто 12": "https://berhouse.ru/files/eshop/big/24175_420649.png",
-        "Синий Велюто 54": "https://berhouse.ru/files/eshop/big/24175_420652.png",
-        "Темно серый Велюто 32": "https://berhouse.ru/files/eshop/big/24175_420651.png"
+        "Бежевый": "https://berhouse.ru/files/eshop/big/24175_420648.png",
+        "Бордовый": "https://berhouse.ru/files/eshop/big/24175_420646.png",
+        "Коричневый": "https://berhouse.ru/files/eshop/big/24175_420647.png",
+        "Лазурный": "https://berhouse.ru/files/eshop/big/24175_420653.png",
+        "Оранжевый": "https://berhouse.ru/files/eshop/big/24175_420650.png",
+        "Серый": "https://berhouse.ru/files/eshop/big/24175_420649.png",
+        "Синий": "https://berhouse.ru/files/eshop/big/24175_420652.png",
+        "Темно серый": "https://berhouse.ru/files/eshop/big/24175_420651.png"
       }
     },
     {
@@ -40949,7 +41178,15 @@
         "Оранж Велюто 27",
         "Темно серый Велюто 32",
         "Синий Велюто 54",
-        "Азур Велюто 44"
+        "Азур Велюто 44",
+        "Бежевый",
+        "Бордовый",
+        "Коричневый",
+        "Лазурный",
+        "Оранжевый",
+        "Серый",
+        "Синий",
+        "Темно серый"
       ],
       "sizes": [],
       "hit": false,
@@ -40957,14 +41194,14 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24177/",
       "brand": "Berhouse",
       "colorImages": {
-        "Беж Велюто 05": "https://berhouse.ru/files/eshop/big/24177_420664.png",
-        "Бордо Велюто 25": "https://berhouse.ru/files/eshop/big/24177_420662.png",
-        "Коричневый Велюто 23": "https://berhouse.ru/files/eshop/big/24177_420663.png",
-        "Азур Велюто 44": "https://berhouse.ru/files/eshop/big/24177_420669.png",
-        "Оранж Велюто 27": "https://berhouse.ru/files/eshop/big/24177_420666.png",
-        "Серый Велюто 12": "https://berhouse.ru/files/eshop/big/24177_420665.png",
-        "Синий Велюто 54": "https://berhouse.ru/files/eshop/big/24177_420668.png",
-        "Темно серый Велюто 32": "https://berhouse.ru/files/eshop/big/24177_420667.png"
+        "Бежевый": "https://berhouse.ru/files/eshop/big/24177_420664.png",
+        "Бордовый": "https://berhouse.ru/files/eshop/big/24177_420662.png",
+        "Коричневый": "https://berhouse.ru/files/eshop/big/24177_420663.png",
+        "Лазурный": "https://berhouse.ru/files/eshop/big/24177_420669.png",
+        "Оранжевый": "https://berhouse.ru/files/eshop/big/24177_420666.png",
+        "Серый": "https://berhouse.ru/files/eshop/big/24177_420665.png",
+        "Синий": "https://berhouse.ru/files/eshop/big/24177_420668.png",
+        "Темно серый": "https://berhouse.ru/files/eshop/big/24177_420667.png"
       }
     },
     {
@@ -41100,7 +41337,15 @@
         "Оранж Велюто 27",
         "Темно серый Велюто 32",
         "Синий Велюто 54",
-        "Азур Велюто 44"
+        "Азур Велюто 44",
+        "Бежевый",
+        "Бордовый",
+        "Коричневый",
+        "Лазурный",
+        "Оранжевый",
+        "Серый",
+        "Синий",
+        "Темно серый"
       ],
       "sizes": [],
       "hit": false,
@@ -41108,14 +41353,14 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24171/",
       "brand": "Berhouse",
       "colorImages": {
-        "Беж Велюто 05": "https://berhouse.ru/files/eshop/big/24171_420616.png",
-        "Бордо Велюто 25": "https://berhouse.ru/files/eshop/big/24171_420614.png",
-        "Коричневый Велюто 23": "https://berhouse.ru/files/eshop/big/24171_420615.png",
-        "Азур Велюто 44": "https://berhouse.ru/files/eshop/big/24171_420621.png",
-        "Оранж Велюто 27": "https://berhouse.ru/files/eshop/big/24171_420618.png",
-        "Серый Велюто 12": "https://berhouse.ru/files/eshop/big/24171_420617.png",
-        "Синий Велюто 54": "https://berhouse.ru/files/eshop/big/24171_420620.png",
-        "Темно серый Велюто 32": "https://berhouse.ru/files/eshop/big/24171_420619.png"
+        "Бежевый": "https://berhouse.ru/files/eshop/big/24171_420616.png",
+        "Бордовый": "https://berhouse.ru/files/eshop/big/24171_420614.png",
+        "Коричневый": "https://berhouse.ru/files/eshop/big/24171_420615.png",
+        "Лазурный": "https://berhouse.ru/files/eshop/big/24171_420621.png",
+        "Оранжевый": "https://berhouse.ru/files/eshop/big/24171_420618.png",
+        "Серый": "https://berhouse.ru/files/eshop/big/24171_420617.png",
+        "Синий": "https://berhouse.ru/files/eshop/big/24171_420620.png",
+        "Темно серый": "https://berhouse.ru/files/eshop/big/24171_420619.png"
       }
     },
     {
@@ -41252,7 +41497,8 @@
         "Светло коричневый",
         "Серый",
         "Серо коричневый",
-        "Коричневый"
+        "Коричневый",
+        "Бежево коричневый"
       ],
       "sizes": [],
       "hit": false,
@@ -41260,7 +41506,7 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24224/",
       "brand": "Berhouse",
       "colorImages": {
-        "Серо коричневый": "https://berhouse.ru/files/eshop/big/24224_421185.png",
+        "Бежево коричневый": "https://berhouse.ru/files/eshop/big/24224_421185.png",
         "Голубой": "https://berhouse.ru/files/eshop/big/24224_421181.png",
         "Зеленый": "https://berhouse.ru/files/eshop/big/24224_421179.png",
         "Коричневый": "https://berhouse.ru/files/eshop/big/24224_421186.png",
@@ -41404,7 +41650,8 @@
         "Светло коричневый",
         "Серый",
         "Серо коричневый",
-        "Коричневый"
+        "Коричневый",
+        "Бежево коричневый"
       ],
       "sizes": [],
       "hit": false,
@@ -41412,7 +41659,7 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24226/",
       "brand": "Berhouse",
       "colorImages": {
-        "Серо коричневый": "https://berhouse.ru/files/eshop/big/24226_421201.png",
+        "Бежево коричневый": "https://berhouse.ru/files/eshop/big/24226_421201.png",
         "Голубой": "https://berhouse.ru/files/eshop/big/24226_421197.png",
         "Зеленый": "https://berhouse.ru/files/eshop/big/24226_421195.png",
         "Коричневый": "https://berhouse.ru/files/eshop/big/24226_421202.png",
@@ -41556,7 +41803,8 @@
         "Светло коричневый",
         "Серый",
         "Серо коричневый",
-        "Коричневый"
+        "Коричневый",
+        "Бежево коричневый"
       ],
       "sizes": [],
       "hit": false,
@@ -41564,7 +41812,7 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24228/",
       "brand": "Berhouse",
       "colorImages": {
-        "Серо коричневый": "https://berhouse.ru/files/eshop/big/24228_421217.png",
+        "Бежево коричневый": "https://berhouse.ru/files/eshop/big/24228_421217.png",
         "Голубой": "https://berhouse.ru/files/eshop/big/24228_421213.png",
         "Зеленый": "https://berhouse.ru/files/eshop/big/24228_421211.png",
         "Коричневый": "https://berhouse.ru/files/eshop/big/24228_421218.png",
@@ -41708,7 +41956,8 @@
         "Светло коричневый",
         "Серый",
         "Серо коричневый",
-        "Коричневый"
+        "Коричневый",
+        "Бежево коричневый"
       ],
       "sizes": [],
       "hit": false,
@@ -41716,7 +41965,7 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24263/",
       "brand": "Berhouse",
       "colorImages": {
-        "Серо коричневый": "https://berhouse.ru/files/eshop/big/24263_421615.png",
+        "Бежево коричневый": "https://berhouse.ru/files/eshop/big/24263_421615.png",
         "Голубой": "https://berhouse.ru/files/eshop/big/24263_421611.png",
         "Зеленый": "https://berhouse.ru/files/eshop/big/24263_421609.png",
         "Коричневый": "https://berhouse.ru/files/eshop/big/24263_421616.png",
@@ -41859,7 +42108,15 @@
         "Оранж Велюто 27",
         "Темно серый Велюто 32",
         "Синий Велюто 54",
-        "Азур Велюто 44"
+        "Азур Велюто 44",
+        "Бежевый",
+        "Бордовый",
+        "Коричневый",
+        "Лазурный",
+        "Оранжевый",
+        "Серый",
+        "Синий",
+        "Темно серый"
       ],
       "sizes": [],
       "hit": false,
@@ -41867,14 +42124,14 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24173/",
       "brand": "Berhouse",
       "colorImages": {
-        "Беж Велюто 05": "https://berhouse.ru/files/eshop/big/24173_420632.png",
-        "Бордо Велюто 25": "https://berhouse.ru/files/eshop/big/24173_420630.png",
-        "Коричневый Велюто 23": "https://berhouse.ru/files/eshop/big/24173_420631.png",
-        "Азур Велюто 44": "https://berhouse.ru/files/eshop/big/24173_420637.png",
-        "Оранж Велюто 27": "https://berhouse.ru/files/eshop/big/24173_420634.png",
-        "Серый Велюто 12": "https://berhouse.ru/files/eshop/big/24173_420633.png",
-        "Синий Велюто 54": "https://berhouse.ru/files/eshop/big/24173_420636.png",
-        "Темно серый Велюто 32": "https://berhouse.ru/files/eshop/big/24173_420635.png"
+        "Бежевый": "https://berhouse.ru/files/eshop/big/24173_420632.png",
+        "Бордовый": "https://berhouse.ru/files/eshop/big/24173_420630.png",
+        "Коричневый": "https://berhouse.ru/files/eshop/big/24173_420631.png",
+        "Лазурный": "https://berhouse.ru/files/eshop/big/24173_420637.png",
+        "Оранжевый": "https://berhouse.ru/files/eshop/big/24173_420634.png",
+        "Серый": "https://berhouse.ru/files/eshop/big/24173_420633.png",
+        "Синий": "https://berhouse.ru/files/eshop/big/24173_420636.png",
+        "Темно серый": "https://berhouse.ru/files/eshop/big/24173_420635.png"
       }
     },
     {
@@ -42011,7 +42268,8 @@
         "Светло коричневый",
         "Серый",
         "Серо коричневый",
-        "Коричневый"
+        "Коричневый",
+        "Бежево коричневый"
       ],
       "sizes": [],
       "hit": false,
@@ -42019,7 +42277,7 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24202/",
       "brand": "Berhouse",
       "colorImages": {
-        "Серо коричневый": "https://berhouse.ru/files/eshop/big/24202_420992.png",
+        "Бежево коричневый": "https://berhouse.ru/files/eshop/big/24202_420992.png",
         "Голубой": "https://berhouse.ru/files/eshop/big/24202_420988.png",
         "Зеленый": "https://berhouse.ru/files/eshop/big/24202_420986.png",
         "Коричневый": "https://berhouse.ru/files/eshop/big/24202_420993.png",
@@ -42162,7 +42420,15 @@
         "Оранж Велюто 27",
         "Темно серый Велюто 32",
         "Синий Велюто 54",
-        "Азур Велюто 44"
+        "Азур Велюто 44",
+        "Бежевый",
+        "Бордовый",
+        "Коричневый",
+        "Лазурный",
+        "Оранжевый",
+        "Серый",
+        "Синий",
+        "Темно серый"
       ],
       "sizes": [],
       "hit": false,
@@ -42170,14 +42436,14 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24174/",
       "brand": "Berhouse",
       "colorImages": {
-        "Беж Велюто 05": "https://berhouse.ru/files/eshop/big/24174_420640.png",
-        "Бордо Велюто 25": "https://berhouse.ru/files/eshop/big/24174_420638.png",
-        "Коричневый Велюто 23": "https://berhouse.ru/files/eshop/big/24174_420639.png",
-        "Азур Велюто 44": "https://berhouse.ru/files/eshop/big/24174_420645.png",
-        "Оранж Велюто 27": "https://berhouse.ru/files/eshop/big/24174_420642.png",
-        "Серый Велюто 12": "https://berhouse.ru/files/eshop/big/24174_420641.png",
-        "Синий Велюто 54": "https://berhouse.ru/files/eshop/big/24174_420644.png",
-        "Темно серый Велюто 32": "https://berhouse.ru/files/eshop/big/24174_420643.png"
+        "Бежевый": "https://berhouse.ru/files/eshop/big/24174_420640.png",
+        "Бордовый": "https://berhouse.ru/files/eshop/big/24174_420638.png",
+        "Коричневый": "https://berhouse.ru/files/eshop/big/24174_420639.png",
+        "Лазурный": "https://berhouse.ru/files/eshop/big/24174_420645.png",
+        "Оранжевый": "https://berhouse.ru/files/eshop/big/24174_420642.png",
+        "Серый": "https://berhouse.ru/files/eshop/big/24174_420641.png",
+        "Синий": "https://berhouse.ru/files/eshop/big/24174_420644.png",
+        "Темно серый": "https://berhouse.ru/files/eshop/big/24174_420643.png"
       }
     },
     {
@@ -42314,7 +42580,8 @@
         "Светло коричневый",
         "Серый",
         "Серо коричневый",
-        "Коричневый"
+        "Коричневый",
+        "Бежево коричневый"
       ],
       "sizes": [],
       "hit": false,
@@ -42322,7 +42589,7 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24277/",
       "brand": "Berhouse",
       "colorImages": {
-        "Серо коричневый": "https://berhouse.ru/files/eshop/big/24277_421727.png",
+        "Бежево коричневый": "https://berhouse.ru/files/eshop/big/24277_421727.png",
         "Голубой": "https://berhouse.ru/files/eshop/big/24277_421723.png",
         "Зеленый": "https://berhouse.ru/files/eshop/big/24277_421721.png",
         "Коричневый": "https://berhouse.ru/files/eshop/big/24277_421728.png",
@@ -42466,7 +42733,8 @@
         "Светло коричневый",
         "Серый",
         "Серо коричневый",
-        "Коричневый"
+        "Коричневый",
+        "Бежево коричневый"
       ],
       "sizes": [],
       "hit": false,
@@ -42474,7 +42742,7 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24225/",
       "brand": "Berhouse",
       "colorImages": {
-        "Серо коричневый": "https://berhouse.ru/files/eshop/big/24225_421193.png",
+        "Бежево коричневый": "https://berhouse.ru/files/eshop/big/24225_421193.png",
         "Голубой": "https://berhouse.ru/files/eshop/big/24225_421189.png",
         "Зеленый": "https://berhouse.ru/files/eshop/big/24225_421187.png",
         "Коричневый": "https://berhouse.ru/files/eshop/big/24225_421194.png",
@@ -42618,7 +42886,8 @@
         "Светло коричневый",
         "Серый",
         "Серо коричневый",
-        "Коричневый"
+        "Коричневый",
+        "Бежево коричневый"
       ],
       "sizes": [],
       "hit": false,
@@ -42626,7 +42895,7 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24227/",
       "brand": "Berhouse",
       "colorImages": {
-        "Серо коричневый": "https://berhouse.ru/files/eshop/big/24227_421209.png",
+        "Бежево коричневый": "https://berhouse.ru/files/eshop/big/24227_421209.png",
         "Голубой": "https://berhouse.ru/files/eshop/big/24227_421205.png",
         "Зеленый": "https://berhouse.ru/files/eshop/big/24227_421203.png",
         "Коричневый": "https://berhouse.ru/files/eshop/big/24227_421210.png",
@@ -42770,7 +43039,8 @@
         "Светло коричневый",
         "Серый",
         "Серо коричневый",
-        "Коричневый"
+        "Коричневый",
+        "Бежево коричневый"
       ],
       "sizes": [],
       "hit": false,
@@ -42778,7 +43048,7 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24229/",
       "brand": "Berhouse",
       "colorImages": {
-        "Серо коричневый": "https://berhouse.ru/files/eshop/big/24229_421225.png",
+        "Бежево коричневый": "https://berhouse.ru/files/eshop/big/24229_421225.png",
         "Голубой": "https://berhouse.ru/files/eshop/big/24229_421221.png",
         "Зеленый": "https://berhouse.ru/files/eshop/big/24229_421219.png",
         "Коричневый": "https://berhouse.ru/files/eshop/big/24229_421226.png",
@@ -42922,7 +43192,8 @@
         "Светло коричневый",
         "Серый",
         "Серо коричневый",
-        "Коричневый"
+        "Коричневый",
+        "Бежево коричневый"
       ],
       "sizes": [],
       "hit": false,
@@ -42930,7 +43201,7 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24264/",
       "brand": "Berhouse",
       "colorImages": {
-        "Серо коричневый": "https://berhouse.ru/files/eshop/big/24264_421623.png",
+        "Бежево коричневый": "https://berhouse.ru/files/eshop/big/24264_421623.png",
         "Голубой": "https://berhouse.ru/files/eshop/big/24264_421619.png",
         "Зеленый": "https://berhouse.ru/files/eshop/big/24264_421617.png",
         "Коричневый": "https://berhouse.ru/files/eshop/big/24264_421624.png",
@@ -43073,7 +43344,15 @@
         "Оранж Велюто 27",
         "Темно серый Велюто 32",
         "Синий Велюто 54",
-        "Азур Велюто 44"
+        "Азур Велюто 44",
+        "Бежевый",
+        "Бордовый",
+        "Коричневый",
+        "Лазурный",
+        "Оранжевый",
+        "Серый",
+        "Синий",
+        "Темно серый"
       ],
       "sizes": [],
       "hit": false,
@@ -43081,14 +43360,14 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24172/",
       "brand": "Berhouse",
       "colorImages": {
-        "Беж Велюто 05": "https://berhouse.ru/files/eshop/big/24172_420624.jpg",
-        "Бордо Велюто 25": "https://berhouse.ru/files/eshop/big/24172_420622.jpg",
-        "Коричневый Велюто 23": "https://berhouse.ru/files/eshop/big/24172_420623.jpg",
-        "Азур Велюто 44": "https://berhouse.ru/files/eshop/big/24172_420629.jpg",
-        "Оранж Велюто 27": "https://berhouse.ru/files/eshop/big/24172_420626.jpg",
-        "Серый Велюто 12": "https://berhouse.ru/files/eshop/big/24172_420625.jpg",
-        "Синий Велюто 54": "https://berhouse.ru/files/eshop/big/24172_420628.jpg",
-        "Темно серый Велюто 32": "https://berhouse.ru/files/eshop/big/24172_420627.jpg"
+        "Бежевый": "https://berhouse.ru/files/eshop/big/24172_420624.jpg",
+        "Бордовый": "https://berhouse.ru/files/eshop/big/24172_420622.jpg",
+        "Коричневый": "https://berhouse.ru/files/eshop/big/24172_420623.jpg",
+        "Лазурный": "https://berhouse.ru/files/eshop/big/24172_420629.jpg",
+        "Оранжевый": "https://berhouse.ru/files/eshop/big/24172_420626.jpg",
+        "Серый": "https://berhouse.ru/files/eshop/big/24172_420625.jpg",
+        "Синий": "https://berhouse.ru/files/eshop/big/24172_420628.jpg",
+        "Темно серый": "https://berhouse.ru/files/eshop/big/24172_420627.jpg"
       }
     },
     {
@@ -43225,7 +43504,8 @@
         "Светло коричневый",
         "Серый",
         "Серо коричневый",
-        "Коричневый"
+        "Коричневый",
+        "Бежево коричневый"
       ],
       "sizes": [],
       "hit": false,
@@ -43233,7 +43513,7 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24203/",
       "brand": "Berhouse",
       "colorImages": {
-        "Серо коричневый": "https://berhouse.ru/files/eshop/big/24203_421000.png",
+        "Бежево коричневый": "https://berhouse.ru/files/eshop/big/24203_421000.png",
         "Голубой": "https://berhouse.ru/files/eshop/big/24203_420996.png",
         "Зеленый": "https://berhouse.ru/files/eshop/big/24203_420994.png",
         "Коричневый": "https://berhouse.ru/files/eshop/big/24203_421001.png",
@@ -43377,7 +43657,8 @@
         "Светло коричневый",
         "Серый",
         "Серо коричневый",
-        "Коричневый"
+        "Коричневый",
+        "Бежево коричневый"
       ],
       "sizes": [],
       "hit": false,
@@ -43385,7 +43666,7 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24230/",
       "brand": "Berhouse",
       "colorImages": {
-        "Серо коричневый": "https://berhouse.ru/files/eshop/big/24230_421233.png",
+        "Бежево коричневый": "https://berhouse.ru/files/eshop/big/24230_421233.png",
         "Голубой": "https://berhouse.ru/files/eshop/big/24230_421229.png",
         "Зеленый": "https://berhouse.ru/files/eshop/big/24230_421227.png",
         "Коричневый": "https://berhouse.ru/files/eshop/big/24230_421234.png",
@@ -43529,7 +43810,8 @@
         "Светло коричневый",
         "Серый",
         "Серо коричневый",
-        "Коричневый"
+        "Коричневый",
+        "Бежево коричневый"
       ],
       "sizes": [],
       "hit": false,
@@ -43537,7 +43819,7 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24287/",
       "brand": "Berhouse",
       "colorImages": {
-        "Серо коричневый": "https://berhouse.ru/files/eshop/big/24287_421798.png",
+        "Бежево коричневый": "https://berhouse.ru/files/eshop/big/24287_421798.png",
         "Голубой": "https://berhouse.ru/files/eshop/big/24287_421794.png",
         "Зеленый": "https://berhouse.ru/files/eshop/big/24287_421792.png",
         "Коричневый": "https://berhouse.ru/files/eshop/big/24287_421799.png",
@@ -43681,7 +43963,8 @@
         "Светло серый",
         "Голубой",
         "Светло коричневый",
-        "Серый"
+        "Серый",
+        "Бежево коричневый"
       ],
       "sizes": [],
       "hit": false,
@@ -43689,7 +43972,7 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24207/",
       "brand": "Berhouse",
       "colorImages": {
-        "Серо коричневый": "https://berhouse.ru/files/eshop/big/24207_421034.png",
+        "Бежево коричневый": "https://berhouse.ru/files/eshop/big/24207_421034.png",
         "Голубой": "https://berhouse.ru/files/eshop/big/24207_421037.png",
         "Зеленый": "https://berhouse.ru/files/eshop/big/24207_421033.png",
         "Коричневый": "https://berhouse.ru/files/eshop/big/24207_421032.png",
@@ -43832,7 +44115,15 @@
         "Оранж Велюто 27",
         "Темно серый Велюто 32",
         "Азур Велюто 44",
-        "Синий Велюто 54"
+        "Синий Велюто 54",
+        "Бежевый",
+        "Бордовый",
+        "Коричневый",
+        "Лазурный",
+        "Оранжевый",
+        "Серый",
+        "Синий",
+        "Темно серый"
       ],
       "sizes": [],
       "hit": false,
@@ -43840,14 +44131,14 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24183/",
       "brand": "Berhouse",
       "colorImages": {
-        "Беж Велюто 05": "https://berhouse.ru/files/eshop/big/24183_420764.png",
-        "Бордо Велюто 25": "https://berhouse.ru/files/eshop/big/24183_420767.png",
-        "Коричневый Велюто 23": "https://berhouse.ru/files/eshop/big/24183_420766.png",
-        "Азур Велюто 44": "https://berhouse.ru/files/eshop/big/24183_420770.png",
-        "Оранж Велюто 27": "https://berhouse.ru/files/eshop/big/24183_420768.png",
-        "Серый Велюто 12": "https://berhouse.ru/files/eshop/big/24183_420765.png",
-        "Синий Велюто 54": "https://berhouse.ru/files/eshop/big/24183_420771.png",
-        "Темно серый Велюто 32": "https://berhouse.ru/files/eshop/big/24183_420769.png"
+        "Бежевый": "https://berhouse.ru/files/eshop/big/24183_420764.png",
+        "Бордовый": "https://berhouse.ru/files/eshop/big/24183_420767.png",
+        "Коричневый": "https://berhouse.ru/files/eshop/big/24183_420766.png",
+        "Лазурный": "https://berhouse.ru/files/eshop/big/24183_420770.png",
+        "Оранжевый": "https://berhouse.ru/files/eshop/big/24183_420768.png",
+        "Серый": "https://berhouse.ru/files/eshop/big/24183_420765.png",
+        "Синий": "https://berhouse.ru/files/eshop/big/24183_420771.png",
+        "Темно серый": "https://berhouse.ru/files/eshop/big/24183_420769.png"
       }
     },
     {
@@ -43984,7 +44275,8 @@
         "Светло коричневый",
         "Серый",
         "Серо коричневый",
-        "Коричневый"
+        "Коричневый",
+        "Бежево коричневый"
       ],
       "sizes": [],
       "hit": false,
@@ -43992,7 +44284,7 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24204/",
       "brand": "Berhouse",
       "colorImages": {
-        "Серо коричневый": "https://berhouse.ru/files/eshop/big/24204_421008.png",
+        "Бежево коричневый": "https://berhouse.ru/files/eshop/big/24204_421008.png",
         "Голубой": "https://berhouse.ru/files/eshop/big/24204_421004.png",
         "Зеленый": "https://berhouse.ru/files/eshop/big/24204_421002.png",
         "Коричневый": "https://berhouse.ru/files/eshop/big/24204_421009.png",
@@ -44135,7 +44427,15 @@
         "Оранж Велюто 27",
         "Темно серый Велюто 32",
         "Азур Велюто 44",
-        "Синий Велюто 54"
+        "Синий Велюто 54",
+        "Бежевый",
+        "Бордовый",
+        "Коричневый",
+        "Лазурный",
+        "Оранжевый",
+        "Серый",
+        "Синий",
+        "Темно серый"
       ],
       "sizes": [],
       "hit": false,
@@ -44143,14 +44443,14 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24182/",
       "brand": "Berhouse",
       "colorImages": {
-        "Беж Велюто 05": "https://berhouse.ru/files/eshop/big/24182_420756.png",
-        "Бордо Велюто 25": "https://berhouse.ru/files/eshop/big/24182_420759.png",
-        "Коричневый Велюто 23": "https://berhouse.ru/files/eshop/big/24182_420758.png",
-        "Азур Велюто 44": "https://berhouse.ru/files/eshop/big/24182_420762.png",
-        "Оранж Велюто 27": "https://berhouse.ru/files/eshop/big/24182_420760.png",
-        "Серый Велюто 12": "https://berhouse.ru/files/eshop/big/24182_420757.png",
-        "Синий Велюто 54": "https://berhouse.ru/files/eshop/big/24182_420763.png",
-        "Темно серый Велюто 32": "https://berhouse.ru/files/eshop/big/24182_420761.png"
+        "Бежевый": "https://berhouse.ru/files/eshop/big/24182_420756.png",
+        "Бордовый": "https://berhouse.ru/files/eshop/big/24182_420759.png",
+        "Коричневый": "https://berhouse.ru/files/eshop/big/24182_420758.png",
+        "Лазурный": "https://berhouse.ru/files/eshop/big/24182_420762.png",
+        "Оранжевый": "https://berhouse.ru/files/eshop/big/24182_420760.png",
+        "Серый": "https://berhouse.ru/files/eshop/big/24182_420757.png",
+        "Синий": "https://berhouse.ru/files/eshop/big/24182_420763.png",
+        "Темно серый": "https://berhouse.ru/files/eshop/big/24182_420761.png"
       }
     },
     {
@@ -44287,7 +44587,8 @@
         "Светло коричневый",
         "Серый",
         "Серо коричневый",
-        "Коричневый"
+        "Коричневый",
+        "Бежево коричневый"
       ],
       "sizes": [],
       "hit": false,
@@ -44295,7 +44596,7 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24195/",
       "brand": "Berhouse",
       "colorImages": {
-        "Серо коричневый": "https://berhouse.ru/files/eshop/big/24195_420950.png",
+        "Бежево коричневый": "https://berhouse.ru/files/eshop/big/24195_420950.png",
         "Голубой": "https://berhouse.ru/files/eshop/big/24195_420946.png",
         "Зеленый": "https://berhouse.ru/files/eshop/big/24195_420944.png",
         "Коричневый": "https://berhouse.ru/files/eshop/big/24195_420951.png",
@@ -44439,8 +44740,7 @@
         "Светло коричневый",
         "Серый",
         "Бежево коричневый",
-        "Коричневый",
-        "фасада"
+        "Коричневый"
       ],
       "sizes": [],
       "hit": false,
@@ -44448,7 +44748,14 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24278/",
       "brand": "Berhouse",
       "colorImages": {
-        "фасада": "https://berhouse.ru/files/eshop/big/24278_421735.png"
+        "Бежево коричневый": "https://berhouse.ru/files/eshop/big/24278_421735.png",
+        "Голубой": "https://berhouse.ru/files/eshop/big/24278_421731.png",
+        "Зеленый": "https://berhouse.ru/files/eshop/big/24278_421729.png",
+        "Коричневый": "https://berhouse.ru/files/eshop/big/24278_421736.png",
+        "Светло коричневый": "https://berhouse.ru/files/eshop/big/24278_421733.png",
+        "Светло серый": "https://berhouse.ru/files/eshop/big/24278_421730.png",
+        "Серый": "https://berhouse.ru/files/eshop/big/24278_421734.png",
+        "Синий": "https://berhouse.ru/files/eshop/big/24278_421732.png"
       }
     },
     {
@@ -44585,7 +44892,8 @@
         "Светло коричневый",
         "Серый",
         "Серо коричневый",
-        "Коричневый"
+        "Коричневый",
+        "Бежево коричневый"
       ],
       "sizes": [],
       "hit": false,
@@ -44593,7 +44901,7 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24273/",
       "brand": "Berhouse",
       "colorImages": {
-        "Серо коричневый": "https://berhouse.ru/files/eshop/big/24273_421695.png",
+        "Бежево коричневый": "https://berhouse.ru/files/eshop/big/24273_421695.png",
         "Голубой": "https://berhouse.ru/files/eshop/big/24273_421691.png",
         "Зеленый": "https://berhouse.ru/files/eshop/big/24273_421689.png",
         "Коричневый": "https://berhouse.ru/files/eshop/big/24273_421696.png",
@@ -44737,7 +45045,8 @@
         "Светло коричневый",
         "Серый",
         "Серо коричневый",
-        "Коричневый"
+        "Коричневый",
+        "Бежево коричневый"
       ],
       "sizes": [],
       "hit": false,
@@ -44745,7 +45054,7 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24238/",
       "brand": "Berhouse",
       "colorImages": {
-        "Серо коричневый": "https://berhouse.ru/files/eshop/big/24238_421297.png",
+        "Бежево коричневый": "https://berhouse.ru/files/eshop/big/24238_421297.png",
         "Голубой": "https://berhouse.ru/files/eshop/big/24238_421293.png",
         "Зеленый": "https://berhouse.ru/files/eshop/big/24238_421291.png",
         "Коричневый": "https://berhouse.ru/files/eshop/big/24238_421298.png",
@@ -44889,7 +45198,8 @@
         "Светло коричневый",
         "Серый",
         "Серо коричневый",
-        "Коричневый"
+        "Коричневый",
+        "Бежево коричневый"
       ],
       "sizes": [],
       "hit": false,
@@ -44897,7 +45207,7 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24239/",
       "brand": "Berhouse",
       "colorImages": {
-        "Серо коричневый": "https://berhouse.ru/files/eshop/big/24239_421305.png",
+        "Бежево коричневый": "https://berhouse.ru/files/eshop/big/24239_421305.png",
         "Голубой": "https://berhouse.ru/files/eshop/big/24239_421301.png",
         "Зеленый": "https://berhouse.ru/files/eshop/big/24239_421299.png",
         "Коричневый": "https://berhouse.ru/files/eshop/big/24239_421306.png",
@@ -45041,7 +45351,8 @@
         "Светло коричневый",
         "Серый",
         "Серо коричневый",
-        "Коричневый"
+        "Коричневый",
+        "Бежево коричневый"
       ],
       "sizes": [],
       "hit": false,
@@ -45049,7 +45360,7 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24249/",
       "brand": "Berhouse",
       "colorImages": {
-        "Серо коричневый": "https://berhouse.ru/files/eshop/big/24249_421385.png",
+        "Бежево коричневый": "https://berhouse.ru/files/eshop/big/24249_421385.png",
         "Голубой": "https://berhouse.ru/files/eshop/big/24249_421381.png",
         "Зеленый": "https://berhouse.ru/files/eshop/big/24249_421379.png",
         "Коричневый": "https://berhouse.ru/files/eshop/big/24249_421386.png",
@@ -45193,7 +45504,8 @@
         "Светло коричневый",
         "Серый",
         "Серо коричневый",
-        "Коричневый"
+        "Коричневый",
+        "Бежево коричневый"
       ],
       "sizes": [],
       "hit": false,
@@ -45201,7 +45513,7 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24290/",
       "brand": "Berhouse",
       "colorImages": {
-        "Серо коричневый": "https://berhouse.ru/files/eshop/big/24290_421822.png",
+        "Бежево коричневый": "https://berhouse.ru/files/eshop/big/24290_421822.png",
         "Голубой": "https://berhouse.ru/files/eshop/big/24290_421818.png",
         "Зеленый": "https://berhouse.ru/files/eshop/big/24290_421816.png",
         "Коричневый": "https://berhouse.ru/files/eshop/big/24290_421823.png",
@@ -45345,7 +45657,8 @@
         "Светло коричневый",
         "Серый",
         "Серо коричневый",
-        "Коричневый"
+        "Коричневый",
+        "Бежево коричневый"
       ],
       "sizes": [],
       "hit": false,
@@ -45353,7 +45666,7 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24205/",
       "brand": "Berhouse",
       "colorImages": {
-        "Серо коричневый": "https://berhouse.ru/files/eshop/big/24205_421016.png",
+        "Бежево коричневый": "https://berhouse.ru/files/eshop/big/24205_421016.png",
         "Голубой": "https://berhouse.ru/files/eshop/big/24205_421012.png",
         "Зеленый": "https://berhouse.ru/files/eshop/big/24205_421010.png",
         "Коричневый": "https://berhouse.ru/files/eshop/big/24205_421017.png",
@@ -45497,7 +45810,8 @@
         "Светло коричневый",
         "Серый",
         "Серо коричневый",
-        "Коричневый"
+        "Коричневый",
+        "Бежево коричневый"
       ],
       "sizes": [],
       "hit": false,
@@ -45505,7 +45819,7 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24285/",
       "brand": "Berhouse",
       "colorImages": {
-        "Серо коричневый": "https://berhouse.ru/files/eshop/big/24285_421783.png",
+        "Бежево коричневый": "https://berhouse.ru/files/eshop/big/24285_421783.png",
         "Голубой": "https://berhouse.ru/files/eshop/big/24285_421779.png",
         "Зеленый": "https://berhouse.ru/files/eshop/big/24285_421777.png",
         "Коричневый": "https://berhouse.ru/files/eshop/big/24285_421784.png",
@@ -45648,7 +45962,15 @@
         "Оранж Велюто 27",
         "Темно серый Велюто 32",
         "Азур Велюто 44",
-        "Синий Велюто 54"
+        "Синий Велюто 54",
+        "Бежевый",
+        "Бордовый",
+        "Коричневый",
+        "Лазурный",
+        "Оранжевый",
+        "Серый",
+        "Синий",
+        "Темно серый"
       ],
       "sizes": [],
       "hit": false,
@@ -45656,14 +45978,14 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24185/",
       "brand": "Berhouse",
       "colorImages": {
-        "Беж Велюто 05": "https://berhouse.ru/files/eshop/big/24185_420780.png",
-        "Бордо Велюто 25": "https://berhouse.ru/files/eshop/big/24185_420783.png",
-        "Коричневый Велюто 23": "https://berhouse.ru/files/eshop/big/24185_420782.png",
-        "Азур Велюто 44": "https://berhouse.ru/files/eshop/big/24185_420786.png",
-        "Оранж Велюто 27": "https://berhouse.ru/files/eshop/big/24185_420784.png",
-        "Серый Велюто 12": "https://berhouse.ru/files/eshop/big/24185_420781.png",
-        "Синий Велюто 54": "https://berhouse.ru/files/eshop/big/24185_420787.png",
-        "Темно серый Велюто 32": "https://berhouse.ru/files/eshop/big/24185_420785.png"
+        "Бежевый": "https://berhouse.ru/files/eshop/big/24185_420780.png",
+        "Бордовый": "https://berhouse.ru/files/eshop/big/24185_420783.png",
+        "Коричневый": "https://berhouse.ru/files/eshop/big/24185_420782.png",
+        "Лазурный": "https://berhouse.ru/files/eshop/big/24185_420786.png",
+        "Оранжевый": "https://berhouse.ru/files/eshop/big/24185_420784.png",
+        "Серый": "https://berhouse.ru/files/eshop/big/24185_420781.png",
+        "Синий": "https://berhouse.ru/files/eshop/big/24185_420787.png",
+        "Темно серый": "https://berhouse.ru/files/eshop/big/24185_420785.png"
       }
     },
     {
@@ -45828,7 +46150,9 @@
         "Серо коричневый",
         "Коричневый",
         "Бирюзовый",
-        "Желтый"
+        "Желтый",
+        "Бежево коричневый",
+        "желтый,Желтая охра"
       ],
       "sizes": [],
       "hit": false,
@@ -45836,7 +46160,7 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24193/",
       "brand": "Berhouse",
       "colorImages": {
-        "Серо коричневый": "https://berhouse.ru/files/eshop/big/24193_420926.png",
+        "Бежево коричневый": "https://berhouse.ru/files/eshop/big/24193_420926.png",
         "Бирюзовый": "https://berhouse.ru/files/eshop/big/24193_420940.png",
         "Голубой": "https://berhouse.ru/files/eshop/big/24193_420922.png",
         "Зеленый": "https://berhouse.ru/files/eshop/big/24193_420920.png",
@@ -45845,7 +46169,7 @@
         "Светло серый": "https://berhouse.ru/files/eshop/big/24193_420921.png",
         "Серый": "https://berhouse.ru/files/eshop/big/24193_420925.png",
         "Синий": "https://berhouse.ru/files/eshop/big/24193_420923.png",
-        "Желтый": "https://berhouse.ru/files/eshop/big/24193_420941.png"
+        "желтый,Желтая охра": "https://berhouse.ru/files/eshop/big/24193_420941.png"
       }
     },
     {
@@ -45982,7 +46306,8 @@
         "Светло коричневый",
         "Серый",
         "Серо коричневый",
-        "Коричневый"
+        "Коричневый",
+        "Бежево коричневый"
       ],
       "sizes": [],
       "hit": false,
@@ -45990,7 +46315,7 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24240/",
       "brand": "Berhouse",
       "colorImages": {
-        "Серо коричневый": "https://berhouse.ru/files/eshop/big/24240_421313.png",
+        "Бежево коричневый": "https://berhouse.ru/files/eshop/big/24240_421313.png",
         "Голубой": "https://berhouse.ru/files/eshop/big/24240_421309.png",
         "Зеленый": "https://berhouse.ru/files/eshop/big/24240_421307.png",
         "Коричневый": "https://berhouse.ru/files/eshop/big/24240_421314.png",
@@ -46134,7 +46459,8 @@
         "Светло коричневый",
         "Серый",
         "Серо коричневый",
-        "Коричневый"
+        "Коричневый",
+        "Бежево коричневый"
       ],
       "sizes": [],
       "hit": false,
@@ -46142,7 +46468,7 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24258/",
       "brand": "Berhouse",
       "colorImages": {
-        "Серо коричневый": "https://berhouse.ru/files/eshop/big/24258_421575.png",
+        "Бежево коричневый": "https://berhouse.ru/files/eshop/big/24258_421575.png",
         "Голубой": "https://berhouse.ru/files/eshop/big/24258_421571.png",
         "Зеленый": "https://berhouse.ru/files/eshop/big/24258_421569.png",
         "Коричневый": "https://berhouse.ru/files/eshop/big/24258_421576.png",
@@ -46286,7 +46612,8 @@
         "Светло коричневый",
         "Серый",
         "Серо коричневый",
-        "Коричневый"
+        "Коричневый",
+        "Бежево коричневый"
       ],
       "sizes": [],
       "hit": false,
@@ -46294,7 +46621,7 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24265/",
       "brand": "Berhouse",
       "colorImages": {
-        "Серо коричневый": "https://berhouse.ru/files/eshop/big/24265_421631.png",
+        "Бежево коричневый": "https://berhouse.ru/files/eshop/big/24265_421631.png",
         "Голубой": "https://berhouse.ru/files/eshop/big/24265_421627.png",
         "Зеленый": "https://berhouse.ru/files/eshop/big/24265_421625.png",
         "Коричневый": "https://berhouse.ru/files/eshop/big/24265_421632.png",
@@ -46438,7 +46765,8 @@
         "Светло коричневый",
         "Серый",
         "Серо коричневый",
-        "Коричневый"
+        "Коричневый",
+        "Бежево коричневый"
       ],
       "sizes": [],
       "hit": false,
@@ -46446,7 +46774,7 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24206/",
       "brand": "Berhouse",
       "colorImages": {
-        "Серо коричневый": "https://berhouse.ru/files/eshop/big/24206_421024.png",
+        "Бежево коричневый": "https://berhouse.ru/files/eshop/big/24206_421024.png",
         "Голубой": "https://berhouse.ru/files/eshop/big/24206_421020.png",
         "Зеленый": "https://berhouse.ru/files/eshop/big/24206_421018.png",
         "Коричневый": "https://berhouse.ru/files/eshop/big/24206_421025.png",
@@ -46590,7 +46918,8 @@
         "Светло коричневый",
         "Серый",
         "Серо коричневый",
-        "Коричневый"
+        "Коричневый",
+        "Бежево коричневый"
       ],
       "sizes": [],
       "hit": false,
@@ -46598,7 +46927,7 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24245/",
       "brand": "Berhouse",
       "colorImages": {
-        "Серо коричневый": "https://berhouse.ru/files/eshop/big/24245_421353.png",
+        "Бежево коричневый": "https://berhouse.ru/files/eshop/big/24245_421353.png",
         "Голубой": "https://berhouse.ru/files/eshop/big/24245_421349.png",
         "Зеленый": "https://berhouse.ru/files/eshop/big/24245_421347.png",
         "Коричневый": "https://berhouse.ru/files/eshop/big/24245_421354.png",
@@ -46742,7 +47071,8 @@
         "Светло коричневый",
         "Серый",
         "Серо коричневый",
-        "Коричневый"
+        "Коричневый",
+        "Бежево коричневый"
       ],
       "sizes": [],
       "hit": false,
@@ -46750,7 +47080,7 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24244/",
       "brand": "Berhouse",
       "colorImages": {
-        "Серо коричневый": "https://berhouse.ru/files/eshop/big/24244_421345.png",
+        "Бежево коричневый": "https://berhouse.ru/files/eshop/big/24244_421345.png",
         "Голубой": "https://berhouse.ru/files/eshop/big/24244_421341.png",
         "Зеленый": "https://berhouse.ru/files/eshop/big/24244_421339.png",
         "Коричневый": "https://berhouse.ru/files/eshop/big/24244_421346.png",
@@ -46894,7 +47224,8 @@
         "Светло коричневый",
         "Серый",
         "Серо коричневый",
-        "Коричневый"
+        "Коричневый",
+        "Бежево коричневый"
       ],
       "sizes": [],
       "hit": false,
@@ -46902,7 +47233,7 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24231/",
       "brand": "Berhouse",
       "colorImages": {
-        "Серо коричневый": "https://berhouse.ru/files/eshop/big/24231_421241.png",
+        "Бежево коричневый": "https://berhouse.ru/files/eshop/big/24231_421241.png",
         "Голубой": "https://berhouse.ru/files/eshop/big/24231_421237.png",
         "Зеленый": "https://berhouse.ru/files/eshop/big/24231_421235.png",
         "Коричневый": "https://berhouse.ru/files/eshop/big/24231_421242.png",
@@ -47046,7 +47377,8 @@
         "Светло коричневый",
         "Серый",
         "Серо коричневый",
-        "Коричневый"
+        "Коричневый",
+        "Бежево коричневый"
       ],
       "sizes": [],
       "hit": false,
@@ -47054,7 +47386,7 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24254/",
       "brand": "Berhouse",
       "colorImages": {
-        "Серо коричневый": "https://berhouse.ru/files/eshop/big/24254_421543.png",
+        "Бежево коричневый": "https://berhouse.ru/files/eshop/big/24254_421543.png",
         "Голубой": "https://berhouse.ru/files/eshop/big/24254_421539.png",
         "Зеленый": "https://berhouse.ru/files/eshop/big/24254_421537.png",
         "Коричневый": "https://berhouse.ru/files/eshop/big/24254_421544.png",
@@ -47198,7 +47530,8 @@
         "Светло коричневый",
         "Серый",
         "Серо коричневый",
-        "Коричневый"
+        "Коричневый",
+        "Бежево коричневый"
       ],
       "sizes": [],
       "hit": false,
@@ -47206,7 +47539,7 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24276/",
       "brand": "Berhouse",
       "colorImages": {
-        "Серо коричневый": "https://berhouse.ru/files/eshop/big/24276_421719.png",
+        "Бежево коричневый": "https://berhouse.ru/files/eshop/big/24276_421719.png",
         "Голубой": "https://berhouse.ru/files/eshop/big/24276_421715.png",
         "Зеленый": "https://berhouse.ru/files/eshop/big/24276_421713.png",
         "Коричневый": "https://berhouse.ru/files/eshop/big/24276_421720.png",
@@ -47350,7 +47683,8 @@
         "Светло коричневый",
         "Серый",
         "Серо коричневый",
-        "Коричневый"
+        "Коричневый",
+        "Бежево коричневый"
       ],
       "sizes": [],
       "hit": false,
@@ -47358,7 +47692,7 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24208/",
       "brand": "Berhouse",
       "colorImages": {
-        "Серо коричневый": "https://berhouse.ru/files/eshop/big/24208_421054.png",
+        "Бежево коричневый": "https://berhouse.ru/files/eshop/big/24208_421054.png",
         "Голубой": "https://berhouse.ru/files/eshop/big/24208_421050.png",
         "Зеленый": "https://berhouse.ru/files/eshop/big/24208_421048.png",
         "Коричневый": "https://berhouse.ru/files/eshop/big/24208_421055.png",
@@ -47502,7 +47836,8 @@
         "Светло коричневый",
         "Серый",
         "Серо коричневый",
-        "Коричневый"
+        "Коричневый",
+        "Бежево коричневый"
       ],
       "sizes": [],
       "hit": false,
@@ -47510,7 +47845,7 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24210/",
       "brand": "Berhouse",
       "colorImages": {
-        "Серо коричневый": "https://berhouse.ru/files/eshop/big/24210_421070.png",
+        "Бежево коричневый": "https://berhouse.ru/files/eshop/big/24210_421070.png",
         "Голубой": "https://berhouse.ru/files/eshop/big/24210_421066.png",
         "Зеленый": "https://berhouse.ru/files/eshop/big/24210_421064.png",
         "Коричневый": "https://berhouse.ru/files/eshop/big/24210_421071.png",
@@ -47654,7 +47989,8 @@
         "Светло коричневый",
         "Серый",
         "Серо коричневый",
-        "Коричневый"
+        "Коричневый",
+        "Бежево коричневый"
       ],
       "sizes": [],
       "hit": false,
@@ -47662,7 +47998,7 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24241/",
       "brand": "Berhouse",
       "colorImages": {
-        "Серо коричневый": "https://berhouse.ru/files/eshop/big/24241_421321.png",
+        "Бежево коричневый": "https://berhouse.ru/files/eshop/big/24241_421321.png",
         "Голубой": "https://berhouse.ru/files/eshop/big/24241_421317.png",
         "Зеленый": "https://berhouse.ru/files/eshop/big/24241_421315.png",
         "Коричневый": "https://berhouse.ru/files/eshop/big/24241_421322.png",
@@ -47806,7 +48142,8 @@
         "Светло коричневый",
         "Серый",
         "Серо коричневый",
-        "Коричневый"
+        "Коричневый",
+        "Бежево коричневый"
       ],
       "sizes": [],
       "hit": false,
@@ -47814,7 +48151,7 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24242/",
       "brand": "Berhouse",
       "colorImages": {
-        "Серо коричневый": "https://berhouse.ru/files/eshop/big/24242_421329.png",
+        "Бежево коричневый": "https://berhouse.ru/files/eshop/big/24242_421329.png",
         "Голубой": "https://berhouse.ru/files/eshop/big/24242_421325.png",
         "Зеленый": "https://berhouse.ru/files/eshop/big/24242_421323.png",
         "Коричневый": "https://berhouse.ru/files/eshop/big/24242_421330.png",
@@ -47958,7 +48295,8 @@
         "Светло коричневый",
         "Серый",
         "Серо коричневый",
-        "Коричневый"
+        "Коричневый",
+        "Бежево коричневый"
       ],
       "sizes": [],
       "hit": false,
@@ -47966,7 +48304,7 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24267/",
       "brand": "Berhouse",
       "colorImages": {
-        "Серо коричневый": "https://berhouse.ru/files/eshop/big/24267_421647.png",
+        "Бежево коричневый": "https://berhouse.ru/files/eshop/big/24267_421647.png",
         "Голубой": "https://berhouse.ru/files/eshop/big/24267_421643.png",
         "Зеленый": "https://berhouse.ru/files/eshop/big/24267_421641.png",
         "Коричневый": "https://berhouse.ru/files/eshop/big/24267_421648.png",
@@ -48110,7 +48448,8 @@
         "Светло коричневый",
         "Серый",
         "Серо коричневый",
-        "Коричневый"
+        "Коричневый",
+        "Бежево коричневый"
       ],
       "sizes": [],
       "hit": false,
@@ -48118,7 +48457,7 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24288/",
       "brand": "Berhouse",
       "colorImages": {
-        "Серо коричневый": "https://berhouse.ru/files/eshop/big/24288_421806.png",
+        "Бежево коричневый": "https://berhouse.ru/files/eshop/big/24288_421806.png",
         "Голубой": "https://berhouse.ru/files/eshop/big/24288_421802.png",
         "Зеленый": "https://berhouse.ru/files/eshop/big/24288_421800.png",
         "Коричневый": "https://berhouse.ru/files/eshop/big/24288_421807.png",
@@ -48262,7 +48601,8 @@
         "Светло коричневый",
         "Серый",
         "Серо коричневый",
-        "Коричневый"
+        "Коричневый",
+        "Бежево коричневый"
       ],
       "sizes": [],
       "hit": false,
@@ -48270,7 +48610,7 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24260/",
       "brand": "Berhouse",
       "colorImages": {
-        "Серо коричневый": "https://berhouse.ru/files/eshop/big/24260_421591.png",
+        "Бежево коричневый": "https://berhouse.ru/files/eshop/big/24260_421591.png",
         "Голубой": "https://berhouse.ru/files/eshop/big/24260_421587.png",
         "Зеленый": "https://berhouse.ru/files/eshop/big/24260_421585.png",
         "Коричневый": "https://berhouse.ru/files/eshop/big/24260_421592.png",
@@ -48414,7 +48754,8 @@
         "Светло коричневый",
         "Серый",
         "Серо коричневый",
-        "Коричневый"
+        "Коричневый",
+        "Бежево коричневый"
       ],
       "sizes": [],
       "hit": false,
@@ -48422,7 +48763,7 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24261/",
       "brand": "Berhouse",
       "colorImages": {
-        "Серо коричневый": "https://berhouse.ru/files/eshop/big/24261_421599.png",
+        "Бежево коричневый": "https://berhouse.ru/files/eshop/big/24261_421599.png",
         "Голубой": "https://berhouse.ru/files/eshop/big/24261_421595.png",
         "Зеленый": "https://berhouse.ru/files/eshop/big/24261_421593.png",
         "Коричневый": "https://berhouse.ru/files/eshop/big/24261_421600.png",
@@ -48566,7 +48907,8 @@
         "Серый",
         "Серо коричневый",
         "Коричневый",
-        "Светло коричневый"
+        "Светло коричневый",
+        "Бежево коричневый"
       ],
       "sizes": [],
       "hit": false,
@@ -48574,7 +48916,7 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24262/",
       "brand": "Berhouse",
       "colorImages": {
-        "Серо коричневый": "https://berhouse.ru/files/eshop/big/24262_421606.png",
+        "Бежево коричневый": "https://berhouse.ru/files/eshop/big/24262_421606.png",
         "Голубой": "https://berhouse.ru/files/eshop/big/24262_421603.png",
         "Зеленый": "https://berhouse.ru/files/eshop/big/24262_421601.png",
         "Коричневый": "https://berhouse.ru/files/eshop/big/24262_421607.png",
@@ -48718,7 +49060,8 @@
         "Светло коричневый",
         "Серый",
         "Серо коричневый",
-        "Коричневый"
+        "Коричневый",
+        "Бежево коричневый"
       ],
       "sizes": [],
       "hit": false,
@@ -48726,7 +49069,7 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24274/",
       "brand": "Berhouse",
       "colorImages": {
-        "Серо коричневый": "https://berhouse.ru/files/eshop/big/24274_421703.png",
+        "Бежево коричневый": "https://berhouse.ru/files/eshop/big/24274_421703.png",
         "Голубой": "https://berhouse.ru/files/eshop/big/24274_421699.png",
         "Зеленый": "https://berhouse.ru/files/eshop/big/24274_421697.png",
         "Коричневый": "https://berhouse.ru/files/eshop/big/24274_421704.png",
@@ -48870,7 +49213,8 @@
         "Светло коричневый",
         "Серый",
         "Серо коричневый",
-        "Коричневый"
+        "Коричневый",
+        "Бежево коричневый"
       ],
       "sizes": [],
       "hit": false,
@@ -48878,7 +49222,7 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24275/",
       "brand": "Berhouse",
       "colorImages": {
-        "Серо коричневый": "https://berhouse.ru/files/eshop/big/24275_421711.png",
+        "Бежево коричневый": "https://berhouse.ru/files/eshop/big/24275_421711.png",
         "Голубой": "https://berhouse.ru/files/eshop/big/24275_421707.png",
         "Зеленый": "https://berhouse.ru/files/eshop/big/24275_421705.png",
         "Коричневый": "https://berhouse.ru/files/eshop/big/24275_421712.png",
@@ -49022,7 +49366,8 @@
         "Светло коричневый",
         "Серо коричневый",
         "Коричневый",
-        "Серый"
+        "Серый",
+        "Бежево коричневый"
       ],
       "sizes": [],
       "hit": false,
@@ -49030,7 +49375,7 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24219/",
       "brand": "Berhouse",
       "colorImages": {
-        "Серо коричневый": "https://berhouse.ru/files/eshop/big/24219_421144.png",
+        "Бежево коричневый": "https://berhouse.ru/files/eshop/big/24219_421144.png",
         "Голубой": "https://berhouse.ru/files/eshop/big/24219_421141.png",
         "Зеленый": "https://berhouse.ru/files/eshop/big/24219_421139.png",
         "Коричневый": "https://berhouse.ru/files/eshop/big/24219_421145.png",
@@ -49174,7 +49519,8 @@
         "Светло коричневый",
         "Серый",
         "Серо коричневый",
-        "Коричневый"
+        "Коричневый",
+        "Бежево коричневый"
       ],
       "sizes": [],
       "hit": false,
@@ -49182,7 +49528,7 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24197/",
       "brand": "Berhouse",
       "colorImages": {
-        "Серо коричневый": "https://berhouse.ru/files/eshop/big/24197_420966.png",
+        "Бежево коричневый": "https://berhouse.ru/files/eshop/big/24197_420966.png",
         "Голубой": "https://berhouse.ru/files/eshop/big/24197_420962.png",
         "Зеленый": "https://berhouse.ru/files/eshop/big/24197_420960.png",
         "Коричневый": "https://berhouse.ru/files/eshop/big/24197_420967.png",
@@ -49326,7 +49672,8 @@
         "Светло коричневый",
         "Серый",
         "Серо коричневый",
-        "Коричневый"
+        "Коричневый",
+        "Бежево коричневый"
       ],
       "sizes": [],
       "hit": false,
@@ -49334,7 +49681,7 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24199/",
       "brand": "Berhouse",
       "colorImages": {
-        "Серо коричневый": "https://berhouse.ru/files/eshop/big/24199_420974.png",
+        "Бежево коричневый": "https://berhouse.ru/files/eshop/big/24199_420974.png",
         "Голубой": "https://berhouse.ru/files/eshop/big/24199_420970.png",
         "Зеленый": "https://berhouse.ru/files/eshop/big/24199_420968.png",
         "Коричневый": "https://berhouse.ru/files/eshop/big/24199_420975.png",
@@ -49478,7 +49825,8 @@
         "Светло коричневый",
         "Серый",
         "Серо коричневый",
-        "Коричневый"
+        "Коричневый",
+        "Бежево коричневый"
       ],
       "sizes": [],
       "hit": false,
@@ -49486,7 +49834,7 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24250/",
       "brand": "Berhouse",
       "colorImages": {
-        "Серо коричневый": "https://berhouse.ru/files/eshop/big/24250_421393.png",
+        "Бежево коричневый": "https://berhouse.ru/files/eshop/big/24250_421393.png",
         "Голубой": "https://berhouse.ru/files/eshop/big/24250_421389.png",
         "Зеленый": "https://berhouse.ru/files/eshop/big/24250_421387.png",
         "Коричневый": "https://berhouse.ru/files/eshop/big/24250_421394.png",
@@ -49630,7 +49978,8 @@
         "Светло коричневый",
         "Серый",
         "Серо коричневый",
-        "Коричневый"
+        "Коричневый",
+        "Бежево коричневый"
       ],
       "sizes": [],
       "hit": false,
@@ -49638,7 +49987,7 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24291/",
       "brand": "Berhouse",
       "colorImages": {
-        "Серо коричневый": "https://berhouse.ru/files/eshop/big/24291_421830.png",
+        "Бежево коричневый": "https://berhouse.ru/files/eshop/big/24291_421830.png",
         "Голубой": "https://berhouse.ru/files/eshop/big/24291_421826.png",
         "Зеленый": "https://berhouse.ru/files/eshop/big/24291_421824.png",
         "Коричневый": "https://berhouse.ru/files/eshop/big/24291_421831.png",
@@ -49782,7 +50131,8 @@
         "Светло коричневый",
         "Серый",
         "Серо коричневый",
-        "Коричневый"
+        "Коричневый",
+        "Бежево коричневый"
       ],
       "sizes": [],
       "hit": false,
@@ -49790,7 +50140,7 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24292/",
       "brand": "Berhouse",
       "colorImages": {
-        "Серо коричневый": "https://berhouse.ru/files/eshop/big/24292_421838.png",
+        "Бежево коричневый": "https://berhouse.ru/files/eshop/big/24292_421838.png",
         "Голубой": "https://berhouse.ru/files/eshop/big/24292_421834.png",
         "Зеленый": "https://berhouse.ru/files/eshop/big/24292_421832.png",
         "Коричневый": "https://berhouse.ru/files/eshop/big/24292_421839.png",
@@ -49962,7 +50312,9 @@
         "Серо коричневый",
         "Коричневый",
         "Бирюзовый",
-        "Желтый"
+        "Желтый",
+        "Бежево коричневый",
+        "желтый,Желтая охра"
       ],
       "sizes": [],
       "hit": false,
@@ -49970,7 +50322,7 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24194/",
       "brand": "Berhouse",
       "colorImages": {
-        "Серо коричневый": "https://berhouse.ru/files/eshop/big/24194_420934.png",
+        "Бежево коричневый": "https://berhouse.ru/files/eshop/big/24194_420934.png",
         "Бирюзовый": "https://berhouse.ru/files/eshop/big/24194_420942.png",
         "Голубой": "https://berhouse.ru/files/eshop/big/24194_420930.png",
         "Зеленый": "https://berhouse.ru/files/eshop/big/24194_420928.png",
@@ -49979,7 +50331,7 @@
         "Светло серый": "https://berhouse.ru/files/eshop/big/24194_420929.png",
         "Серый": "https://berhouse.ru/files/eshop/big/24194_420933.png",
         "Синий": "https://berhouse.ru/files/eshop/big/24194_420931.png",
-        "Желтый": "https://berhouse.ru/files/eshop/big/24194_420943.png"
+        "желтый,Желтая охра": "https://berhouse.ru/files/eshop/big/24194_420943.png"
       }
     },
     {
@@ -50116,7 +50468,8 @@
         "Светло коричневый",
         "Серый",
         "Серо коричневый",
-        "Коричневый"
+        "Коричневый",
+        "Бежево коричневый"
       ],
       "sizes": [],
       "hit": false,
@@ -50124,7 +50477,7 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24233/",
       "brand": "Berhouse",
       "colorImages": {
-        "Серо коричневый": "https://berhouse.ru/files/eshop/big/24233_421257.png",
+        "Бежево коричневый": "https://berhouse.ru/files/eshop/big/24233_421257.png",
         "Голубой": "https://berhouse.ru/files/eshop/big/24233_421253.png",
         "Зеленый": "https://berhouse.ru/files/eshop/big/24233_421251.png",
         "Коричневый": "https://berhouse.ru/files/eshop/big/24233_421258.png",
@@ -50268,7 +50621,8 @@
         "Светло коричневый",
         "Серый",
         "Серо коричневый",
-        "Коричневый"
+        "Коричневый",
+        "Бежево коричневый"
       ],
       "sizes": [],
       "hit": false,
@@ -50276,7 +50630,7 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24279/",
       "brand": "Berhouse",
       "colorImages": {
-        "Серо коричневый": "https://berhouse.ru/files/eshop/big/24279_421743.png",
+        "Бежево коричневый": "https://berhouse.ru/files/eshop/big/24279_421743.png",
         "Голубой": "https://berhouse.ru/files/eshop/big/24279_421739.png",
         "Зеленый": "https://berhouse.ru/files/eshop/big/24279_421737.png",
         "Коричневый": "https://berhouse.ru/files/eshop/big/24279_421744.png",
@@ -50420,7 +50774,8 @@
         "Светло коричневый",
         "Серый",
         "Серо коричневый",
-        "Коричневый"
+        "Коричневый",
+        "Бежево коричневый"
       ],
       "sizes": [],
       "hit": false,
@@ -50428,7 +50783,7 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24246/",
       "brand": "Berhouse",
       "colorImages": {
-        "Серо коричневый": "https://berhouse.ru/files/eshop/big/24246_421361.png",
+        "Бежево коричневый": "https://berhouse.ru/files/eshop/big/24246_421361.png",
         "Голубой": "https://berhouse.ru/files/eshop/big/24246_421357.png",
         "Зеленый": "https://berhouse.ru/files/eshop/big/24246_421355.png",
         "Коричневый": "https://berhouse.ru/files/eshop/big/24246_421362.png",
@@ -50572,7 +50927,8 @@
         "Светло коричневый",
         "Серый",
         "Серо коричневый",
-        "Коричневый"
+        "Коричневый",
+        "Бежево коричневый"
       ],
       "sizes": [],
       "hit": false,
@@ -50580,7 +50936,7 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24232/",
       "brand": "Berhouse",
       "colorImages": {
-        "Серо коричневый": "https://berhouse.ru/files/eshop/big/24232_421249.png",
+        "Бежево коричневый": "https://berhouse.ru/files/eshop/big/24232_421249.png",
         "Голубой": "https://berhouse.ru/files/eshop/big/24232_421245.png",
         "Зеленый": "https://berhouse.ru/files/eshop/big/24232_421243.png",
         "Коричневый": "https://berhouse.ru/files/eshop/big/24232_421250.png",
@@ -50861,7 +51217,8 @@
         "Светло коричневый",
         "Серый",
         "Серо коричневый",
-        "Коричневый"
+        "Коричневый",
+        "Бежево коричневый"
       ],
       "sizes": [],
       "hit": false,
@@ -50869,7 +51226,7 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24259/",
       "brand": "Berhouse",
       "colorImages": {
-        "Серо коричневый": "https://berhouse.ru/files/eshop/big/24259_421583.png",
+        "Бежево коричневый": "https://berhouse.ru/files/eshop/big/24259_421583.png",
         "Голубой": "https://berhouse.ru/files/eshop/big/24259_421579.png",
         "Зеленый": "https://berhouse.ru/files/eshop/big/24259_421577.png",
         "Коричневый": "https://berhouse.ru/files/eshop/big/24259_421584.png",
@@ -51013,7 +51370,8 @@
         "Светло коричневый",
         "Серый",
         "Серо коричневый",
-        "Коричневый"
+        "Коричневый",
+        "Бежево коричневый"
       ],
       "sizes": [],
       "hit": false,
@@ -51021,7 +51379,7 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24213/",
       "brand": "Berhouse",
       "colorImages": {
-        "Серо коричневый": "https://berhouse.ru/files/eshop/big/24213_421096.png",
+        "Бежево коричневый": "https://berhouse.ru/files/eshop/big/24213_421096.png",
         "Голубой": "https://berhouse.ru/files/eshop/big/24213_421092.png",
         "Зеленый": "https://berhouse.ru/files/eshop/big/24213_421090.png",
         "Коричневый": "https://berhouse.ru/files/eshop/big/24213_421097.png",
@@ -51165,7 +51523,8 @@
         "Светло коричневый",
         "Серый",
         "Серо коричневый",
-        "Коричневый"
+        "Коричневый",
+        "Бежево коричневый"
       ],
       "sizes": [],
       "hit": false,
@@ -51173,7 +51532,7 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24234/",
       "brand": "Berhouse",
       "colorImages": {
-        "Серо коричневый": "https://berhouse.ru/files/eshop/big/24234_421265.png",
+        "Бежево коричневый": "https://berhouse.ru/files/eshop/big/24234_421265.png",
         "Голубой": "https://berhouse.ru/files/eshop/big/24234_421261.png",
         "Зеленый": "https://berhouse.ru/files/eshop/big/24234_421259.png",
         "Коричневый": "https://berhouse.ru/files/eshop/big/24234_421266.png",
@@ -51318,7 +51677,8 @@
         "Светло коричневый",
         "Серый",
         "Серо коричневый",
-        "Коричневый"
+        "Коричневый",
+        "Бежево коричневый"
       ],
       "sizes": [],
       "hit": false,
@@ -51326,7 +51686,7 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24212/",
       "brand": "Berhouse",
       "colorImages": {
-        "Серо коричневый": "https://berhouse.ru/files/eshop/big/24212_421087.png",
+        "Бежево коричневый": "https://berhouse.ru/files/eshop/big/24212_421087.png",
         "Голубой": "https://berhouse.ru/files/eshop/big/24212_421082.png",
         "Зеленый": "https://berhouse.ru/files/eshop/big/24212_421080.png",
         "Коричневый": "https://berhouse.ru/files/eshop/big/24212_421088.png",
@@ -51470,7 +51830,8 @@
         "Светло коричневый",
         "Серо коричневый",
         "Коричневый",
-        "Серый"
+        "Серый",
+        "Бежево коричневый"
       ],
       "sizes": [],
       "hit": false,
@@ -51478,7 +51839,7 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24220/",
       "brand": "Berhouse",
       "colorImages": {
-        "Серо коричневый": "https://berhouse.ru/files/eshop/big/24220_421152.png",
+        "Бежево коричневый": "https://berhouse.ru/files/eshop/big/24220_421152.png",
         "Голубой": "https://berhouse.ru/files/eshop/big/24220_421149.png",
         "Зеленый": "https://berhouse.ru/files/eshop/big/24220_421147.png",
         "Коричневый": "https://berhouse.ru/files/eshop/big/24220_421153.png",
@@ -51622,7 +51983,8 @@
         "Светло коричневый",
         "Серый",
         "Серо коричневый",
-        "Коричневый"
+        "Коричневый",
+        "Бежево коричневый"
       ],
       "sizes": [],
       "hit": false,
@@ -51630,7 +51992,7 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24269/",
       "brand": "Berhouse",
       "colorImages": {
-        "Серо коричневый": "https://berhouse.ru/files/eshop/big/24269_421663.png",
+        "Бежево коричневый": "https://berhouse.ru/files/eshop/big/24269_421663.png",
         "Голубой": "https://berhouse.ru/files/eshop/big/24269_421659.png",
         "Зеленый": "https://berhouse.ru/files/eshop/big/24269_421657.png",
         "Коричневый": "https://berhouse.ru/files/eshop/big/24269_421664.png",
@@ -51774,7 +52136,8 @@
         "Светло коричневый",
         "Серый",
         "Серо коричневый",
-        "Коричневый"
+        "Коричневый",
+        "Бежево коричневый"
       ],
       "sizes": [],
       "hit": false,
@@ -51782,7 +52145,7 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24271/",
       "brand": "Berhouse",
       "colorImages": {
-        "Серо коричневый": "https://berhouse.ru/files/eshop/big/24271_421679.png",
+        "Бежево коричневый": "https://berhouse.ru/files/eshop/big/24271_421679.png",
         "Голубой": "https://berhouse.ru/files/eshop/big/24271_421675.png",
         "Зеленый": "https://berhouse.ru/files/eshop/big/24271_421673.png",
         "Коричневый": "https://berhouse.ru/files/eshop/big/24271_421680.png",
@@ -51926,7 +52289,8 @@
         "Светло коричневый",
         "Серый",
         "Серо коричневый",
-        "Коричневый"
+        "Коричневый",
+        "Бежево коричневый"
       ],
       "sizes": [],
       "hit": false,
@@ -51934,7 +52298,7 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24289/",
       "brand": "Berhouse",
       "colorImages": {
-        "Серо коричневый": "https://berhouse.ru/files/eshop/big/24289_421814.png",
+        "Бежево коричневый": "https://berhouse.ru/files/eshop/big/24289_421814.png",
         "Голубой": "https://berhouse.ru/files/eshop/big/24289_421810.png",
         "Зеленый": "https://berhouse.ru/files/eshop/big/24289_421808.png",
         "Коричневый": "https://berhouse.ru/files/eshop/big/24289_421815.png",
@@ -52078,7 +52442,8 @@
         "Светло коричневый",
         "Серый",
         "Серо коричневый",
-        "Коричневый"
+        "Коричневый",
+        "Бежево коричневый"
       ],
       "sizes": [],
       "hit": false,
@@ -52086,7 +52451,7 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24222/",
       "brand": "Berhouse",
       "colorImages": {
-        "Серо коричневый": "https://berhouse.ru/files/eshop/big/24222_421169.png",
+        "Бежево коричневый": "https://berhouse.ru/files/eshop/big/24222_421169.png",
         "Голубой": "https://berhouse.ru/files/eshop/big/24222_421165.png",
         "Зеленый": "https://berhouse.ru/files/eshop/big/24222_421163.png",
         "Коричневый": "https://berhouse.ru/files/eshop/big/24222_421170.png",
@@ -52230,7 +52595,8 @@
         "Светло коричневый",
         "Серый",
         "Серо коричневый",
-        "Коричневый"
+        "Коричневый",
+        "Бежево коричневый"
       ],
       "sizes": [],
       "hit": false,
@@ -52238,7 +52604,7 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24223/",
       "brand": "Berhouse",
       "colorImages": {
-        "Серо коричневый": "https://berhouse.ru/files/eshop/big/24223_421177.png",
+        "Бежево коричневый": "https://berhouse.ru/files/eshop/big/24223_421177.png",
         "Голубой": "https://berhouse.ru/files/eshop/big/24223_421173.png",
         "Зеленый": "https://berhouse.ru/files/eshop/big/24223_421171.png",
         "Коричневый": "https://berhouse.ru/files/eshop/big/24223_421178.png",
@@ -52382,7 +52748,8 @@
         "Светло коричневый",
         "Серый",
         "Серо коричневый",
-        "Коричневый"
+        "Коричневый",
+        "Бежево коричневый"
       ],
       "sizes": [],
       "hit": false,
@@ -52390,7 +52757,7 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24280/",
       "brand": "Berhouse",
       "colorImages": {
-        "Серо коричневый": "https://berhouse.ru/files/eshop/big/24280_421751.png",
+        "Бежево коричневый": "https://berhouse.ru/files/eshop/big/24280_421751.png",
         "Голубой": "https://berhouse.ru/files/eshop/big/24280_421747.png",
         "Зеленый": "https://berhouse.ru/files/eshop/big/24280_421745.png",
         "Коричневый": "https://berhouse.ru/files/eshop/big/24280_421752.png",
@@ -52534,7 +52901,8 @@
         "Светло коричневый",
         "Серый",
         "Серо коричневый",
-        "Коричневый"
+        "Коричневый",
+        "Бежево коричневый"
       ],
       "sizes": [],
       "hit": false,
@@ -52542,7 +52910,7 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24255/",
       "brand": "Berhouse",
       "colorImages": {
-        "Серо коричневый": "https://berhouse.ru/files/eshop/big/24255_421551.png",
+        "Бежево коричневый": "https://berhouse.ru/files/eshop/big/24255_421551.png",
         "Голубой": "https://berhouse.ru/files/eshop/big/24255_421547.png",
         "Зеленый": "https://berhouse.ru/files/eshop/big/24255_421545.png",
         "Коричневый": "https://berhouse.ru/files/eshop/big/24255_421552.png",
@@ -52686,7 +53054,8 @@
         "Светло коричневый",
         "Серый",
         "Серо коричневый",
-        "Коричневый"
+        "Коричневый",
+        "Бежево коричневый"
       ],
       "sizes": [],
       "hit": false,
@@ -52694,7 +53063,7 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24235/",
       "brand": "Berhouse",
       "colorImages": {
-        "Серо коричневый": "https://berhouse.ru/files/eshop/big/24235_421273.png",
+        "Бежево коричневый": "https://berhouse.ru/files/eshop/big/24235_421273.png",
         "Голубой": "https://berhouse.ru/files/eshop/big/24235_421269.png",
         "Зеленый": "https://berhouse.ru/files/eshop/big/24235_421267.png",
         "Коричневый": "https://berhouse.ru/files/eshop/big/24235_421274.png",
@@ -52838,7 +53207,8 @@
         "Светло коричневый",
         "Серо коричневый",
         "Коричневый",
-        "Серый"
+        "Серый",
+        "Бежево коричневый"
       ],
       "sizes": [],
       "hit": false,
@@ -52846,7 +53216,7 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24221/",
       "brand": "Berhouse",
       "colorImages": {
-        "Серо коричневый": "https://berhouse.ru/files/eshop/big/24221_421160.png",
+        "Бежево коричневый": "https://berhouse.ru/files/eshop/big/24221_421160.png",
         "Голубой": "https://berhouse.ru/files/eshop/big/24221_421157.png",
         "Зеленый": "https://berhouse.ru/files/eshop/big/24221_421155.png",
         "Коричневый": "https://berhouse.ru/files/eshop/big/24221_421161.png",
@@ -52990,7 +53360,8 @@
         "Светло коричневый",
         "Серый",
         "Серо коричневый",
-        "Коричневый"
+        "Коричневый",
+        "Бежево коричневый"
       ],
       "sizes": [],
       "hit": false,
@@ -52998,7 +53369,7 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24248/",
       "brand": "Berhouse",
       "colorImages": {
-        "Серо коричневый": "https://berhouse.ru/files/eshop/big/24248_421377.png",
+        "Бежево коричневый": "https://berhouse.ru/files/eshop/big/24248_421377.png",
         "Голубой": "https://berhouse.ru/files/eshop/big/24248_421373.png",
         "Зеленый": "https://berhouse.ru/files/eshop/big/24248_421371.png",
         "Коричневый": "https://berhouse.ru/files/eshop/big/24248_421378.png",
@@ -53142,7 +53513,8 @@
         "Светло коричневый",
         "Серый",
         "Серо коричневый",
-        "Коричневый"
+        "Коричневый",
+        "Бежево коричневый"
       ],
       "sizes": [],
       "hit": false,
@@ -53150,7 +53522,7 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24256/",
       "brand": "Berhouse",
       "colorImages": {
-        "Серо коричневый": "https://berhouse.ru/files/eshop/big/24256_421559.png",
+        "Бежево коричневый": "https://berhouse.ru/files/eshop/big/24256_421559.png",
         "Голубой": "https://berhouse.ru/files/eshop/big/24256_421555.png",
         "Зеленый": "https://berhouse.ru/files/eshop/big/24256_421553.png",
         "Коричневый": "https://berhouse.ru/files/eshop/big/24256_421560.png",
@@ -53294,7 +53666,8 @@
         "Светло коричневый",
         "Серый",
         "Серо коричневый",
-        "Коричневый"
+        "Коричневый",
+        "Бежево коричневый"
       ],
       "sizes": [],
       "hit": false,
@@ -53302,7 +53675,7 @@
       "sourceUrl": "https://m.berhouse.ru/eshop/item/24257/",
       "brand": "Berhouse",
       "colorImages": {
-        "Серо коричневый": "https://berhouse.ru/files/eshop/big/24257_421567.png",
+        "Бежево коричневый": "https://berhouse.ru/files/eshop/big/24257_421567.png",
         "Голубой": "https://berhouse.ru/files/eshop/big/24257_421563.png",
         "Зеленый": "https://berhouse.ru/files/eshop/big/24257_421561.png",
         "Коричневый": "https://berhouse.ru/files/eshop/big/24257_421568.png",
