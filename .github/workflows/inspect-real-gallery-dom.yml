@@ -1,0 +1,61 @@
+name: Inspect real Berhouse gallery DOM
+
+on:
+  push:
+    paths:
+      - '.github/workflows/inspect-real-gallery-dom.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install deps
+        run: pip install requests beautifulsoup4
+      - name: Inspect representative products
+        run: |
+          python - <<'PY'
+          import json,re,requests
+          from bs4 import BeautifulSoup
+          from urllib.parse import urljoin
+          data=json.load(open('data/furniture.json',encoding='utf-8'))
+          products=list(data.get('beds',[]))+list(data.get('sofas',[]))
+          targets=[]
+          needles=['Венеция','Подиум','Мадрид']
+          for needle in needles:
+              p=next((x for x in products if needle.lower() in str(x.get('title','')).lower()),None)
+              if p: targets.append(p)
+          s=requests.Session(); s.headers['User-Agent']='Mozilla/5.0'
+          for p in targets:
+              print('\n===',p.get('title'),'sourceId=',p.get('sourceId'),'url=',p.get('sourceUrl'),'===')
+              r=s.get(p['sourceUrl'],timeout=40); r.raise_for_status(); r.encoding=r.apparent_encoding or r.encoding
+              soup=BeautifulSoup(r.text,'html.parser')
+              pid=str(p.get('sourceId'))
+              # print candidate gallery-ish containers and matching links/images
+              for el in soup.find_all(['a','img']):
+                  vals=[]
+                  if el.name=='a': vals=[el.get('href')]
+                  else: vals=[el.get(k) for k in ('src','data-src','data-original','data-lazy','data-image','data-zoom','data-large')]
+                  vals=[v for v in vals if v and pid in str(v)]
+                  if not vals: continue
+                  parent=el.parent
+                  gp=parent.parent if parent else None
+                  print('TAG',el.name,'id=',el.get('id'),'class=',el.get('class'),'parent=',getattr(parent,'name',None),getattr(parent,'attrs',{}).get('class') if parent else None,'grand=',getattr(gp,'name',None),getattr(gp,'attrs',{}).get('class') if gp else None)
+                  for v in vals: print('  ',urljoin(r.url,v))
+              print('SELECTORS')
+              for sel in ['.thumbs','.gallery','.images','.image','.photos','.photo','.slider','.fotorama','.itemPhoto','.productPhoto','.itemImages','.variantsList']:
+                  nodes=soup.select(sel)
+                  if nodes:
+                      print(sel,'COUNT',len(nodes))
+                      for n in nodes[:3]:
+                          links=[]
+                          for a in n.find_all('a',href=True):
+                              if pid in a['href']: links.append(('a',a.get('id'),a.get('class'),urljoin(r.url,a['href'])))
+                          for im in n.find_all('img'):
+                              src=im.get('src') or im.get('data-src') or im.get('data-original')
+                              if src and pid in src: links.append(('img',im.get('id'),im.get('class'),urljoin(r.url,src)))
+                          print(' ',links[:30])
+          PY
