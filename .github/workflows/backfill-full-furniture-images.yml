@@ -32,3 +32,4 @@ jobs:
           git commit -m 'Add complete Berhouse bed and sofa galleries'
           git pull --rebase origin main
           git push origin main
+# second revision triggers the workflow after it exists on the default branch
