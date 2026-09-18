@@ -6,6 +6,10 @@ from pathlib import Path
 FURNITURE = Path("data/furniture.json")
 MATTRESS_FILES = [Path(f"data/data{i}.json") for i in range(1, 7)]
 MIN_FURNITURE_PRICE = 5000
+REMOVED_FURNITURE_TITLES = {"диван лоджия велюр"}
+LODZHIA_TRANSFORMER_TITLE = 'диван трансформер "лоджия"'
+LODZHIA_SLEEPING_PLACE = "1800×1200 мм"
+LODZHIA_DIMENSIONS = "1340×1100×750 мм"
 
 
 def clean(value):
@@ -43,6 +47,49 @@ def numeric_price(value):
     except (TypeError, ValueError):
         return None
     return value if value >= MIN_FURNITURE_PRICE else None
+
+
+def is_removed_furniture(product):
+    return normalized_text(product.get("title")) in REMOVED_FURNITURE_TITLES
+
+
+def strip_lodzhia_width_paragraph(value):
+    text = clean(value)
+    match = re.search(
+        r"допустимая\s+ширина\s+дивана\s+от\s+1200\s+до\s+1410\s*мм\s*\.",
+        text,
+        flags=re.I,
+    )
+    if match:
+        text = text[:match.start()].rstrip(" ,.;:–—-")
+    return clean(text)
+
+
+def apply_manual_furniture_overrides(product):
+    if normalized_text(product.get("title")) != LODZHIA_TRANSFORMER_TITLE:
+        return
+
+    for field in ("summary", "description"):
+        product[field] = strip_lodzhia_width_paragraph(product.get(field))
+
+    specs = dict(product.get("specs") or {})
+    sleeping_key = next((k for k in specs if normalized_text(k) == "спальное место"), "Спальное место")
+    dimensions_key = next((k for k in specs if normalized_text(k) in {"размеры", "размер"}), "Размеры")
+    specs[sleeping_key] = LODZHIA_SLEEPING_PLACE
+    specs[dimensions_key] = LODZHIA_DIMENSIONS
+    product["specs"] = specs
+
+    for variant in product.get("variants") or []:
+        attrs = dict(variant.get("attributes") or {})
+        for key in list(attrs):
+            key_norm = normalized_text(key)
+            if key_norm == "спальное место":
+                attrs[key] = LODZHIA_SLEEPING_PLACE
+            elif key_norm in {"размеры", "размер"}:
+                attrs[key] = LODZHIA_DIMENSIONS
+            elif isinstance(attrs[key], str):
+                attrs[key] = strip_lodzhia_width_paragraph(attrs[key])
+        variant["attributes"] = attrs
 
 
 def base_value_is_negative(value):
@@ -166,6 +213,7 @@ def sanitize_furniture_product(product):
             attrs[clean(attr)] = clean_public_text(value, is_bed=is_bed)
         variant["attributes"] = attrs
 
+    apply_manual_furniture_overrides(product)
     repaired = repair_prices(product)
 
     # When Berhouse provides a dedicated photograph for a color, expose exactly
@@ -197,13 +245,17 @@ def sanitize_furniture():
     removed_beds = [product for product in original_beds if bed_without_base(product)]
     data["beds"] = [product for product in original_beds if not bed_without_base(product)]
 
+    original_sofas = list(data.get("sofas", []))
+    removed_sofas = [product for product in original_sofas if is_removed_furniture(product)]
+    data["sofas"] = [product for product in original_sofas if not is_removed_furniture(product)]
+
     repaired = 0
     for group in ("beds", "sofas"):
         for product in data.get(group, []):
             repaired += sanitize_furniture_product(product)
 
     FURNITURE.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    return data, repaired, removed_beds
+    return data, repaired, removed_beds, removed_sofas
 
 
 def sanitize_mattresses():
@@ -225,6 +277,24 @@ def validate(data):
     for phrase in forbidden:
         if phrase in serialized:
             raise SystemExit(f"Forbidden public catalog text remains: {phrase}")
+
+    if any(is_removed_furniture(p) for p in data.get("sofas", [])):
+        raise SystemExit("Removed sofa remains in catalog: Диван Лоджия Велюр")
+
+    lodzhia = next(
+        (p for p in data.get("sofas", []) if normalized_text(p.get("title")) == LODZHIA_TRANSFORMER_TITLE),
+        None,
+    )
+    if not lodzhia:
+        raise SystemExit('Target sofa not found: Диван трансформер "Лоджия"')
+    lodzhia_specs = {normalized_text(k): clean(v) for k, v in (lodzhia.get("specs") or {}).items()}
+    if lodzhia_specs.get("спальное место") != LODZHIA_SLEEPING_PLACE:
+        raise SystemExit(f"Wrong Lodzhia sleeping place: {lodzhia_specs.get('спальное место')}")
+    dimension_value = lodzhia_specs.get("размеры") or lodzhia_specs.get("размер")
+    if dimension_value != LODZHIA_DIMENSIONS:
+        raise SystemExit(f"Wrong Lodzhia dimensions: {dimension_value}")
+    if "допустимая ширина дивана" in normalized_text(json.dumps(lodzhia, ensure_ascii=False)):
+        raise SystemExit("Obsolete Lodzhia width paragraph remains")
 
     bad_prices = []
     products = list(data.get("beds", [])) + list(data.get("sofas", []))
@@ -274,18 +344,21 @@ def validate(data):
 
 
 def main():
-    data, repaired, removed_beds = sanitize_furniture()
+    data, repaired, removed_beds, removed_sofas = sanitize_furniture()
     removed = sanitize_mattresses()
     validate(data)
     mapped = sum(bool(p.get("colorImages")) for p in data.get("beds", []) + data.get("sofas", []))
     removed_names = ", ".join(clean(p.get("title")) for p in removed_beds[:12])
+    removed_sofa_names = ", ".join(clean(p.get("title")) for p in removed_sofas[:12])
     print(
         f"Sanitized NOKTENA catalog: removed beds without base={len(removed_beds)}, "
-        f"repaired prices={repaired}, removed mattress article fields={removed}, "
-        f"color-mapped products={mapped}"
+        f"removed requested sofas={len(removed_sofas)}, repaired prices={repaired}, "
+        f"removed mattress article fields={removed}, color-mapped products={mapped}"
     )
     if removed_names:
         print(f"Removed beds: {removed_names}")
+    if removed_sofa_names:
+        print(f"Removed sofas: {removed_sofa_names}")
 
 
 if __name__ == "__main__":
