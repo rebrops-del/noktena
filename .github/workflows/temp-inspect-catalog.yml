@@ -19,7 +19,6 @@ jobs:
           from pathlib import Path
           import re
 
-          # 1) Permanently keep the six intentionally removed bed models out of future imports.
           p=Path('scripts/import_berhouse_furniture.py')
           s=p.read_text(encoding='utf-8')
           old='''                target = "beds" if p["category"] == "beds" else "sofas"\n                result[target].append(p)'''
@@ -30,7 +29,6 @@ jobs:
               raise SystemExit('Importer insertion marker not found')
           p.write_text(s,encoding='utf-8')
 
-          # 2) Ensure color-specific photos are also available inside the detail-page gallery.
           p=Path('scripts/enrich_furniture_color_images.py')
           s=p.read_text(encoding='utf-8')
           old='''            product["colorImages"] = mapping\n            product["colors"] = unique(existing_colors + list(mapping.keys()))\n            mapped_products += 1'''
@@ -41,10 +39,9 @@ jobs:
               raise SystemExit('Enricher image insertion marker not found')
           p.write_text(s,encoding='utf-8')
 
-          # 3) Catalog cards: switching a color changes the actual product photo.
           p=Path('assets/catalog-v2.js')
           s=p.read_text(encoding='utf-8')
-          marker='''  function cardDetailsMarkup(product){'''
+          marker='  function cardDetailsMarkup(product){'
           helper='''  function colorImageFor(product,color){\n    if(!color)return '';const map=product?.colorImages||{};if(map[color])return map[color];const wanted=String(color).toLowerCase().replace(/ё/g,'е').replace(/[^a-zа-я0-9]+/g,'');const key=Object.keys(map).find(k=>String(k).toLowerCase().replace(/ё/g,'е').replace(/[^a-zа-я0-9]+/g,'')===wanted);return key?map[key]:'';\n  }\n  function updateCardImage(card,product,color){\n    const src=colorImageFor(product,color);if(!src)return;const img=$('.f-gallery img',card);if(!img||img.getAttribute('src')===src)return;const preload=new Image();preload.onload=()=>{img.classList.add('is-changing');setTimeout(()=>{img.src=src;img.classList.remove('is-changing')},90);};preload.onerror=()=>{};preload.src=src;\n  }\n'''
           if 'function updateCardImage(' not in s:
               if marker not in s: raise SystemExit('Catalog helper marker not found')
@@ -63,31 +60,29 @@ jobs:
               raise SystemExit('Catalog update marker not found')
           p.write_text(s,encoding='utf-8')
 
-          # 4) Product page: color selection jumps the gallery to the matching source photo.
           p=Path('assets/product-detail.js')
           s=p.read_text(encoding='utf-8')
-          marker='''  function renderFurniture(product){'''
+          marker='  function renderFurniture(product){'
           helper='''  function colorImageFor(product,color){\n    if(!color)return '';const map=product?.colorImages||{};if(map[color])return map[color];const wanted=String(color).toLowerCase().replace(/ё/g,'е').replace(/[^a-zа-я0-9]+/g,'');const key=Object.keys(map).find(k=>String(k).toLowerCase().replace(/ё/g,'е').replace(/[^a-zа-я0-9]+/g,'')===wanted);return key?map[key]:'';\n  }\n  function updateFurnitureImage(){\n    if(!furnitureProduct||!selectedColor)return;const src=colorImageFor(furnitureProduct,selectedColor);if(!src)return;const index=galleryImages.indexOf(src);if(index>=0){if(index!==galleryIndex)showGallery(index);return;}const img=$('#pdMainImage');const media=$('#pdMainMedia');if(img&&img.getAttribute('src')!==src){const preload=new Image();preload.onload=()=>{img.classList.add('is-changing');setTimeout(()=>{img.src=src;img.classList.remove('is-changing')},90);};preload.onerror=()=>img.classList.remove('is-changing');preload.src=src;}if(media)media.style.setProperty('--pd-bg',`url("${src.replace(/"/g,'\\\\"')}")`);$$('[data-pd-index]').forEach(el=>el.classList.remove('is-active'));\n  }\n'''
           if 'function updateFurnitureImage(' not in s:
               if marker not in s: raise SystemExit('Detail helper marker not found')
               s=s.replace(marker,helper+marker,1)
-          old='''    if(!furnitureProduct)return;const variant=variantFor(furnitureProduct,selectedColor,selectedSize);'''
-          new='''    if(!furnitureProduct)return;updateFurnitureImage();const variant=variantFor(furnitureProduct,selectedColor,selectedSize);'''
+          old='    if(!furnitureProduct)return;const variant=variantFor(furnitureProduct,selectedColor,selectedSize);'
+          new='    if(!furnitureProduct)return;updateFurnitureImage();const variant=variantFor(furnitureProduct,selectedColor,selectedSize);'
           if old in s:
               s=s.replace(old,new,1)
           elif 'return;updateFurnitureImage();const variant=' not in s:
               raise SystemExit('Detail update marker not found')
           p.write_text(s,encoding='utf-8')
 
-          # 5) Cache-bust the changed JavaScript files.
           p=Path('index.html');s=p.read_text(encoding='utf-8')
-          s=re.sub(r'assets/catalog-v2\\.js\\?v=[^"\\']+', 'assets/catalog-v2.js?v=20260918-color1', s)
+          s=re.sub(r"assets/catalog-v2\.js\?v=[^\"']+", 'assets/catalog-v2.js?v=20260918-color1', s)
           p.write_text(s,encoding='utf-8')
           p=Path('product.html');s=p.read_text(encoding='utf-8')
-          s=re.sub(r'assets/product-detail\\.js\\?v=[^"\\']+', 'assets/product-detail.js?v=20260918-color1', s)
+          s=re.sub(r"assets/product-detail\.js\?v=[^\"']+", 'assets/product-detail.js?v=20260918-color1', s)
           p.write_text(s,encoding='utf-8')
           PY
-      - name: Validate JavaScript
+      - name: Validate code
         run: |
           node --check assets/catalog-v2.js
           node --check assets/product-detail.js
