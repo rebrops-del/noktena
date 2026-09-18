@@ -1,0 +1,40 @@
+name: Temporary premium card details integration
+
+on:
+  push:
+    paths:
+      - '.github/workflows/temp-card-details.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Add full information accordion to catalog cards
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('assets/catalog-v2.js')
+          s=p.read_text(encoding='utf-8')
+          marker="  function cardMarkup(product){\n"
+          helper='''  function cardDetailsMarkup(product){\n    const entries=Object.entries(product.specs||{}).filter(([k,v])=>k&&v);\n    const description=String(product.description||'').trim();\n    if(!entries.length&&!description)return '';\n    return `<details class="f-card-details"><summary><span>Описание и характеристики</span><span class="f-card-details-plus">+</span></summary><div class="f-card-details-body">${description?`<p>${esc(description)}</p>`:''}${entries.length?`<dl>${entries.map(([k,v])=>`<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>`:''}<a href="${esc(detailUrl(product))}" class="f-card-details-link">Все данные о модели →</a></div></details>`;\n  }\n\n'''
+          if helper.strip() not in s:
+              if marker not in s: raise SystemExit('card marker not found')
+              s=s.replace(marker,helper+marker,1)
+          old="        ${quick.length?`<div class=\"f-premium-specs\">${quick.map(([k,v])=>`<div><span>${esc(k)}</span><b>${esc(v)}</b></div>`).join('')}</div>`:''}\n        ${colors.length?"
+          new="        ${quick.length?`<div class=\"f-premium-specs\">${quick.map(([k,v])=>`<div><span>${esc(k)}</span><b>${esc(v)}</b></div>`).join('')}</div>`:''}\n        ${cardDetailsMarkup(product)}\n        ${colors.length?"
+          if old not in s: raise SystemExit('card insertion marker not found')
+          s=s.replace(old,new,1)
+          p.write_text(s,encoding='utf-8')
+          PY
+      - name: Commit catalog card details
+        run: |
+          git config user.name 'rebrops-del'
+          git config user.email 'rebrops@gmail.com'
+          git add assets/catalog-v2.js
+          git commit -m 'Add complete product information inside furniture cards'
+          git pull --rebase origin main
+          git push origin main
