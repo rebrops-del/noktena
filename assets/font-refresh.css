@@ -1,0 +1,11 @@
+/* NOKTENA typography refresh — clean premium Cyrillic */
+:root{--noktena-font:"Onest","Segoe UI",Arial,sans-serif}
+html,body,button,input,select,textarea{font-family:var(--noktena-font)!important}
+body{font-feature-settings:"kern" 1,"liga" 1;text-rendering:optimizeLegibility}
+.hero h1,.deliverybox h2,.networkbox h2,.guidehead h2,.head h2,.home-hits-head h2,.f-head h2,.cta h2,.step b,.d b,.body h3,.f-card h3,.price,.f-price,.pd-info-card h1,.pd-section-title h2,.pd-help-box h2,.pd-price,.pd-error h1{font-family:var(--noktena-font)!important}
+.hero h1{font-weight:700!important;letter-spacing:-.048em!important;line-height:.98!important}
+.deliverybox h2,.networkbox h2,.guidehead h2,.head h2,.home-hits-head h2,.f-head h2,.cta h2,.pd-section-title h2,.pd-help-box h2{font-weight:700!important;letter-spacing:-.035em!important;line-height:1.02!important}
+.body h3,.f-card h3,.pd-info-card h1{font-weight:700!important;letter-spacing:-.035em!important}
+.price,.f-price,.pd-price{font-weight:800!important;letter-spacing:-.04em!important}
+.shop-tab,.btn,.top,.nav,.controls,.f-controls,.f-card,.card,.pd-top,.pd-nav,.pd-info-card,.pd-section-card,.pd-primary-btn,.pd-max-btn{font-family:var(--noktena-font)!important}
+.hero-note{font-family:var(--noktena-font)!important;font-style:italic!important;font-weight:600!important;letter-spacing:-.025em!important}
