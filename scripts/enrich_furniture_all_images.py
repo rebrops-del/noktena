@@ -13,7 +13,7 @@ IMAGE_EXT_RE = re.compile(r'\.(?:jpe?g|png|webp)(?:$|\?)', re.I)
 
 session = requests.Session()
 session.headers.update({
-    'User-Agent': 'Mozilla/5.0 (compatible; NoktenaCatalogSync/4.0; +https://noktena.ru/)',
+    'User-Agent': 'Mozilla/5.0 (compatible; NoktenaCatalogSync/4.1; +https://noktena.ru/)',
     'Accept-Language': 'ru-RU,ru;q=0.9,en;q=0.6',
 })
 
@@ -27,6 +27,12 @@ def canonical(url):
     return urlunparse((p.scheme, p.netloc, p.path, '', '', ''))
 
 
+def image_key(url):
+    """Treat the same Berhouse file in /big/, /small/, etc. as one photo."""
+    path = urlparse(canonical(url)).path
+    return path.rsplit('/', 1)[-1].lower()
+
+
 def is_product_image(url, product_id):
     if not url or not IMAGE_EXT_RE.search(url):
         return False
@@ -34,11 +40,16 @@ def is_product_image(url, product_id):
     if '/files/eshop/' not in path:
         return False
     name = path.rsplit('/', 1)[-1]
-    # Berhouse product/variant images use the product id as the filename prefix.
     return bool(re.match(rf'^{re.escape(str(product_id))}(?:[_\-.]|$)', name, re.I))
 
 
-def collect_product_images(product):
+def collect_gallery_images(product):
+    """Collect only customer-visible Berhouse gallery photos.
+
+    Do not crawl every <img>/<a> on the page: variant/specification blocks can
+    contain dozens of technical duplicates that are not part of the product
+    gallery shown to a customer.
+    """
     source_url = product.get('sourceUrl')
     product_id = clean(product.get('sourceId'))
     if not source_url or not product_id:
@@ -56,79 +67,72 @@ def collect_product_images(product):
         raw = clean(raw)
         if not raw or raw.startswith('data:'):
             return
-        # srcset/data-srcset may contain multiple candidates.
-        candidates = [part.strip().split(' ')[0] for part in raw.split(',') if part.strip()]
-        for candidate in candidates:
-            url = canonical(urljoin(r.url, candidate))
-            if not is_product_image(url, product_id):
-                continue
-            if url in seen:
-                continue
-            seen.add(url)
-            found.append(url)
+        candidate = raw.split(',')[0].strip().split(' ')[0]
+        url = canonical(urljoin(r.url, candidate))
+        if not is_product_image(url, product_id):
+            return
+        key = image_key(url)
+        if not key or key in seen:
+            return
+        seen.add(key)
+        found.append(url)
 
-    # 1. Product gallery links: usually the highest-quality originals.
-    for a in soup.select('.thumbs a[href], .gallery a[href], a[id^="color"][href]'):
+    # Actual product gallery / thumbnails on Berhouse.
+    for a in soup.select('.thumbs a[href], .gallery a[href], .product-gallery a[href], .photos a[href]'):
         add(a.get('href'))
 
-    # 2. Every image explicitly belonging to this product, including variant blocks.
-    for img in soup.find_all('img'):
-        for attr in ('src', 'data-src', 'data-original', 'data-lazy', 'data-image', 'data-zoom', 'data-large', 'srcset', 'data-srcset'):
-            add(img.get(attr))
-        parent = img.parent
-        if parent and getattr(parent, 'name', None) == 'a':
-            add(parent.get('href'))
+    # Exact color photos already verified from Berhouse variant/color mapping.
+    for url in (product.get('colorImages') or {}).values():
+        add(url)
 
-    # 3. Product image links outside the gallery markup.
-    for a in soup.find_all('a', href=True):
-        add(a.get('href'))
+    # If the page markup changed and no gallery was detected, keep one genuine
+    # product photo instead of replacing the gallery with an empty list.
+    if not found:
+        for url in product.get('images') or []:
+            url = canonical(url)
+            if is_product_image(url, product_id):
+                add(url)
+                if found:
+                    break
 
-    # Prefer /big/ copies first, preserving source order inside each group.
-    big = [u for u in found if '/files/eshop/big/' in u.lower()]
-    other = [u for u in found if u not in set(big)]
-    return big + other
+    return found
 
 
 def main():
     data = json.loads(DATA.read_text(encoding='utf-8'))
     products = list(data.get('beds') or []) + list(data.get('sofas') or [])
     changed = 0
-    total_added = 0
+    removed = 0
     failures = []
 
     for idx, product in enumerate(products, 1):
+        existing = [u for u in (product.get('images') or []) if u]
         try:
-            source_images = collect_product_images(product)
+            trusted = collect_gallery_images(product)
         except Exception as exc:
             failures.append((product.get('id'), str(exc)))
             print(f'WARN {idx}/{len(products)} {product.get("title")}: {exc}')
             continue
 
-        existing = [u for u in (product.get('images') or []) if u]
-        combined = []
-        seen = set()
-        for url in source_images + existing:
-            key = canonical(url)
-            if not key or key in seen:
-                continue
-            seen.add(key)
-            combined.append(url)
-
-        before = len(existing)
-        after = len(combined)
-        added = max(0, after - before)
-        if combined != existing:
-            product['images'] = combined
+        # Rebuild, do not merge with old data. Merging is what previously kept
+        # technical duplicates in the customer gallery.
+        if trusted and trusted != existing:
+            product['images'] = trusted
             changed += 1
-            total_added += added
-        print(f'[{idx}/{len(products)}] {product.get("title")}: source={len(source_images)}, before={before}, after={after}, added={added}')
+            removed += max(0, len(existing) - len(trusted))
+
+        print(
+            f'[{idx}/{len(products)}] {product.get("title")}: '
+            f'before={len(existing)}, trusted={len(trusted)}, '
+            f'removed={max(0, len(existing)-len(trusted))}'
+        )
         time.sleep(0.02)
 
     if failures:
         print(f'WARN: {len(failures)} products could not be refreshed: {failures[:10]}')
 
     DATA.write_text(json.dumps(data, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
-    print(f'Products={len(products)}; changed={changed}; total new images={total_added}; failures={len(failures)}')
+    print(f'Products={len(products)}; changed={changed}; removed technical/duplicate images={removed}; failures={len(failures)}')
 
 
 if __name__ == '__main__':
