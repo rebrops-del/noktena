@@ -4,6 +4,7 @@ on:
   push:
     branches: [main]
     paths:
+      - 'scripts/refresh_sofa_colors.py'
       - '.github/workflows/refresh-sofa-colors.yml'
 
 permissions:
@@ -16,9 +17,9 @@ jobs:
       - uses: actions/checkout@v4
       - name: Install parser dependencies
         run: pip install requests beautifulsoup4
-      - name: Refresh exact sofa color labels
+      - name: Refresh exact sofa color labels and photos
         run: python scripts/refresh_sofa_colors.py
-      - name: Verify critical sofas
+      - name: Verify exact color-photo links
         run: |
           python - <<'PY'
           import json
@@ -26,24 +27,41 @@ jobs:
           data=json.loads(Path('data/furniture.json').read_text(encoding='utf-8'))
           byid={p['id']:p for p in data.get('sofas',[])}
           checks={
-            'berhouse-24182':['Беж Велюто 05','Серый Велюто 12','Коричневый Велюто 23','Бордо Велюто 25','Оранж Велюто 27','Темно серый Велюто 32','Азур Велюто 44','Синий Велюто 54'],
-            'berhouse-24285':['Зеленый','Светло серый','Голубой','Синий','Светло коричневый','Серый','Серо коричневый','Коричневый'],
+            'berhouse-24182':{
+              'Беж Велюто 05':'24182_420756.png',
+              'Серый Велюто 12':'24182_420757.png',
+              'Коричневый Велюто 23':'24182_420758.png',
+              'Бордо Велюто 25':'24182_420759.png',
+              'Оранж Велюто 27':'24182_420760.png',
+              'Темно серый Велюто 32':'24182_420761.png',
+              'Азур Велюто 44':'24182_420762.png',
+              'Синий Велюто 54':'24182_420763.png',
+            },
+            'berhouse-24148':{
+              'Азур':'24148_419575.jpg',
+              'Кемел':'24148_419576.jpg',
+              'Биттер':'24148_419578.jpg',
+              'Грей':'24148_419579.jpg',
+              'Кофе':'24148_419580.jpg',
+            },
           }
           for pid, expected in checks.items():
-              actual=byid[pid].get('colors',[])
+              actual=byid[pid].get('colorImages',{})
               print(pid, actual)
-              if actual != expected:
-                  raise SystemExit(f'{pid}: expected {expected}, got {actual}')
-          print('Critical sofa color verification passed')
+              for color, filename in expected.items():
+                  url=actual.get(color,'')
+                  if not url.endswith('/'+filename):
+                      raise SystemExit(f'{pid} {color}: expected {filename}, got {url}')
+          print('Exact sofa color-photo verification passed')
           PY
       - name: Commit refreshed catalog
         run: |
           if git diff --quiet -- data/furniture.json; then
-            echo 'No sofa color changes'
+            echo 'No sofa color/photo changes'
             exit 0
           fi
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add data/furniture.json
-          git commit -m 'Replace sofa color names with exact Berhouse variants'
+          git commit -m 'Bind sofa colors to exact Berhouse photos'
           git push
