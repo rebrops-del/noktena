@@ -5,6 +5,7 @@ on:
   push:
     paths:
       - 'scripts/import_berhouse_furniture.py'
+      - 'scripts/enrich_furniture_color_images.py'
       - '.github/workflows/import-berhouse-furniture.yml'
 
 permissions:
@@ -22,6 +23,8 @@ jobs:
         run: pip install requests beautifulsoup4
       - name: Import beds and sofas
         run: python scripts/import_berhouse_furniture.py
+      - name: Add color-specific product photos
+        run: python scripts/enrich_furniture_color_images.py
       - name: Commit imported catalog
         run: |
           git config user.name 'rebrops-del'
