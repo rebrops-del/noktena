@@ -1,4 +1,4 @@
-name: Temporary Berhouse sequential combo test
+name: Temporary Berhouse dynamic color label inspect
 
 on:
   push:
@@ -11,34 +11,15 @@ jobs:
     steps:
       - uses: actions/setup-python@v5
         with: {python-version: '3.12'}
-      - run: pip install requests beautifulsoup4
-      - name: Test sequential combos
+      - run: pip install requests
+      - name: Inspect dynamic color markup
         run: |
           python - <<'PY'
           import requests
-          from bs4 import BeautifulSoup
-          from urllib.parse import urljoin
           S=requests.Session();S.headers.update({'User-Agent':'Mozilla/5.0','X-Requested-With':'XMLHttpRequest'})
-          pid='23284'; url=f'https://m.berhouse.ru/eshop/item/{pid}/'; html=S.get(url,timeout=30).text
-          soup=BeautifulSoup(html,'html.parser'); photos={a.get('id','')[5:]:urljoin(url,a.get('href')) for a in soup.select('.thumbs a[id^="color"]') if a.get('href')}
-          def post(fields):
-            files={k:(None,str(v)) for k,v in fields.items()}
-            d=S.post(f'https://m.berhouse.ru/eshop/getcombo/{pid}',files=files,timeout=30).json()
-            print('POST',fields,'CID',d.get('combinationId'),'PRICE',d.get('price'),'AVAIL',d.get('avail'))
-            b=BeautifulSoup(d.get('cominationsBlock') or '', 'html.parser')
-            for sel in b.select('select'):
-              print(' SELECT',sel.get('name'),[(o.get('value'),o.get_text(' ',strip=True)) for o in sel.find_all('option')][:12])
-            for li in b.select('.list'):
-              h=li.find('input',{'type':'hidden'});print(' LIST',h.get('name') if h else None,[(a.get('data-value'),a.get('title')) for a in li.find_all('a')][:12])
-            return d,b
-          d,b=post({'attr11':'5759'})
-          d,b=post({'attr11':'5759','attr7':'3020'})
-          # get colors from returned block after material
-          li=b.select_one('.list');
-          if li:
-            h=li.find('input',{'type':'hidden'}); name=h.get('name')
-            for a in li.find_all('a')[:10]:
-              val=a.get('data-value');lab=a.get('title');
-              if val:
-                d2,_=post({'attr11':'5759','attr7':'3020',name:val});cid=str(d2.get('combinationId',''));print('MAP',lab,cid,photos.get(cid))
+          S.get('https://m.berhouse.ru/eshop/item/23284/',timeout=30)
+          for fields in ({'attr11':'5759'},{'attr11':'5759','attr7':'3020'},{'attr11':'5759','attr7':'6816'}):
+            d=S.post('https://m.berhouse.ru/eshop/getcombo/23284',files={k:(None,v) for k,v in fields.items()},timeout=30).json()
+            print('\nFIELDS',fields,'CID',d.get('combinationId'))
+            print(d.get('cominationsBlock','')[:16000])
           PY
