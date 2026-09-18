@@ -1,0 +1,41 @@
+name: Temporary premium storefront integration
+
+on:
+  push:
+    paths:
+      - '.github/workflows/temp-premium-index.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Integrate premium visual system
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('index.html')
+          s=p.read_text(encoding='utf-8')
+          s=s.replace('<meta name="theme-color" content="#0A8D55">','<meta name="theme-color" content="#173E32">',1)
+          font='''<link rel="preconnect" href="https://fonts.googleapis.com">\n<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>\n<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">'''
+          marker='<link rel="canonical" href="https://noktena.ru/">'
+          if 'fonts.googleapis.com/css2?family=Cormorant+Garamond' not in s:
+              s=s.replace(marker,font+'\n'+marker,1)
+          s=s.replace('assets/catalog-v2.css?v=20260918-2','assets/catalog-v2.css?v=20260918-premium3')
+          css='\n<link rel="stylesheet" href="assets/premium-ui.css?v=20260918-premium3">'
+          if 'assets/premium-ui.css' not in s:
+              s=s.replace('<link rel="stylesheet" href="assets/catalog-card-enhancements.css?v=20260918-1">','<link rel="stylesheet" href="assets/catalog-card-enhancements.css?v=20260918-1">'+css,1)
+          s=s.replace('assets/catalog-v2.js?v=20260918-2','assets/catalog-v2.js?v=20260918-premium3')
+          p.write_text(s,encoding='utf-8')
+          PY
+      - name: Commit integration
+        run: |
+          git config user.name 'rebrops-del'
+          git config user.email 'rebrops@gmail.com'
+          git add index.html
+          git commit -m 'Apply premium NOKTENA storefront design'
+          git pull --rebase origin main
+          git push origin main
