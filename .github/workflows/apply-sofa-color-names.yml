@@ -1,4 +1,4 @@
-name: Apply corrected sofa color names
+name: Inspect sofa color labels
 
 on:
   push:
@@ -6,50 +6,28 @@ on:
     paths:
       - '.github/workflows/apply-sofa-color-names.yml'
 
-permissions:
-  contents: write
-
 jobs:
-  fix:
+  inspect:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           ref: main
-          fetch-depth: 0
-      - name: Normalize sofa color names and photo aliases
-        run: python scripts/fix_furniture_colors.py
-      - name: Verify concise sofa names
+      - name: Print sofa color labels
         run: |
           python - <<'PY'
           import json
           from pathlib import Path
-
           data = json.loads(Path('data/furniture.json').read_text(encoding='utf-8'))
-          by_id = {str(p.get('sourceId')): p for p in data.get('sofas', [])}
-          expected = {'Серый', 'Бежевый', 'Голубой', 'Розовый'}
-          for pid in ('24139', '24140'):
-              p = by_id.get(pid)
-              if not p:
-                  raise SystemExit(f'Missing sofa {pid}')
-              colors = {str(v.get('color') or '').strip() for v in p.get('variants', [])}
-              if not expected.issubset(colors):
-                  raise SystemExit(f'{pid}: wrong sofa colors: {sorted(colors)}')
-              bad = [c for c in colors if 'Велюто' in c or c in {'Серо бежевый', 'Серо синий', 'Ярко розовый'}]
-              if bad:
-                  raise SystemExit(f'{pid}: technical color labels remain: {bad}')
-              print(pid, p.get('title'), sorted(colors))
-          print('OK: sofa color names are concise and customer-facing')
+          print('SOFAS', len(data.get('sofas', [])))
+          all_colors = set()
+          for p in data.get('sofas', []):
+              colors = []
+              seen = set()
+              for v in p.get('variants') or []:
+                  c = str(v.get('color') or '').strip()
+                  if c and c not in seen:
+                      seen.add(c); colors.append(c); all_colors.add(c)
+              print('SOFA', p.get('sourceId'), '|', p.get('title'), '|', ' ; '.join(colors))
+          print('UNIQUE COLORS:', ' ; '.join(sorted(all_colors)))
           PY
-      - name: Commit corrected catalog
-        run: |
-          if git diff --quiet -- data/furniture.json; then
-            echo 'Catalog already correct'
-            exit 0
-          fi
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add data/furniture.json
-          git commit -m 'Correct sofa color names in catalog'
-          git pull --rebase origin main
-          git push origin main
