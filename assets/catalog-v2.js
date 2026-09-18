@@ -81,7 +81,7 @@
     const quick=chooseSpecs(product);
     const category=product.category==='beds'?'Кровать':'Диван';
     const subtype=product.subtype?`<span class="f-card-tag">${esc(product.subtype)}</span>`:'';
-    const hit=product.hit?'<span class="f-card-tag hit">Хит продаж</span>':'';
+    const hit='';
     state.gallery.set(product.id,0);
     return `<article class="f-card" data-product-id="${esc(product.id)}">
       <div class="f-gallery" data-gallery-id="${esc(product.id)}">
@@ -170,7 +170,7 @@
     const mount=$('#homeHitsGrid'); if(!mount)return;
     if(!state.loaded){mount.innerHTML='<div class="f-loading">Загружаем хиты продаж…</div>';return}
     const all=[...state.data.beds,...state.data.sofas];
-    const hits=[...all.filter(p=>p.hit),...all.filter(p=>!p.hit)].slice(0,6);
+    const hits=[...state.data.beds.slice(0,3),...state.data.sofas.slice(0,3)];
     mount.innerHTML=hits.length?hits.map(cardMarkup).join(''):'<div class="f-empty">Подборка скоро появится.</div>';
   }
 

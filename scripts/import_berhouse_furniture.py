@@ -253,7 +253,7 @@ def parse_product(url, group):
         "images": imgs,
         "specs": specs,
         "description": description,
-        "hit": "хит продаж" in full_text.lower(),
+        "hit": False,
         "available": "в наличии" in full_text.lower(),
         "sourceUrl": r.url,
         "brand": "Berhouse"
