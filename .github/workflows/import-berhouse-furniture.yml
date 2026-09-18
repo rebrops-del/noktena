@@ -1,0 +1,35 @@
+name: Import Berhouse furniture
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'scripts/import_berhouse_furniture.py'
+      - '.github/workflows/import-berhouse-furniture.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: pip install requests beautifulsoup4
+      - name: Import beds and sofas
+        run: python scripts/import_berhouse_furniture.py
+      - name: Commit imported catalog
+        run: |
+          if git diff --quiet -- data/furniture.json; then
+            echo 'No catalog changes'
+            exit 0
+          fi
+          git config user.name 'rebrops-del'
+          git config user.email 'rebrops@gmail.com'
+          git add data/furniture.json
+          git commit -m 'Sync Berhouse beds and sofas'
+          git push
