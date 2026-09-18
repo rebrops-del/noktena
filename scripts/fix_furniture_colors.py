@@ -59,6 +59,47 @@ def color_family(value):
     return norm(s)
 
 
+SOFA_FAMILY_LABELS = {
+    "beige": "Бежевый",
+    "burgundy": "Бордовый",
+    "brown": "Коричневый",
+    "azure": "Лазурный",
+    "turquoise": "Бирюзовый",
+    "orange": "Оранжевый",
+    "light_blue": "Голубой",
+    "blue": "Синий",
+    "pink": "Розовый",
+    "gray": "Серый",
+    "dark_gray": "Темно-серый",
+    "light_gray": "Светло-серый",
+    "green": "Зеленый",
+    "mint": "Мятный",
+    "olive": "Оливковый",
+    "red": "Красный",
+    "yellow": "Желтый",
+    "purple": "Фиолетовый",
+    "white": "Белый",
+    "black": "Черный",
+    "taupe": "Тауп",
+}
+
+
+def sofa_display_label(value):
+    """Turn technical fabric/gallery labels into concise storefront colors."""
+    text = clean(value)
+    low = text.lower().replace("ё", "е")
+    compact = re.sub(r"[-_]+", " ", low)
+    compact = re.sub(r"\s+", " ", compact).strip()
+    technical = (
+        "велюто" in low
+        or "veluto" in low
+        or compact in {"серо бежевый", "серо синий", "ярко розовый"}
+    )
+    if not technical:
+        return text
+    return SOFA_FAMILY_LABELS.get(color_family(text), text)
+
+
 def unique(values):
     out = []
     seen = set()
@@ -156,16 +197,26 @@ def normalize_bed(product):
 
 
 def normalize_sofa(product):
-    """Keep the clean Berhouse sofa variant names and attach photos to them.
+    """Use concise sofa color names and keep exact Berhouse color photos."""
+    variants = []
+    for variant in list(product.get("variants") or []):
+        copy = dict(variant)
+        original = clean(copy.get("color"))
+        display = sofa_display_label(original)
+        if display:
+            copy["color"] = display
+            attrs = dict(copy.get("attributes") or {})
+            for key in ("Цвет фасада", "Цвет", "Цвет корпуса"):
+                if key in attrs and clean(attrs.get(key)):
+                    attrs[key] = display
+            if attrs:
+                copy["attributes"] = attrs
+        variants.append(copy)
+    product["variants"] = variants
 
-    The colorImages keys are gallery/selector captions and can be different
-    phrases (for example, «Серо бежевый») for the same fabric color. They must
-    not replace the concise color names used in the sofa variants.
-    """
-    variants = list(product.get("variants") or [])
     variant_colors = unique(v.get("color") for v in variants)
     if not variant_colors:
-        variant_colors = unique(product.get("colors") or [])
+        variant_colors = unique(sofa_display_label(x) for x in (product.get("colors") or []))
     product["colors"] = variant_colors
 
     raw_map = {
@@ -234,8 +285,6 @@ def main():
 
     by_id = {str(p.get("sourceId")): p for p in beds + sofas}
 
-    # These two sofas are a regression guard: concise names must stay in the
-    # selector, while each name still points to the exact Berhouse color photo.
     require_mapping(by_id.get("24139"), {
         "Серый": "24139_419529.jpg",
         "Бежевый": "24139_419530.jpg",
@@ -249,7 +298,6 @@ def main():
         "Розовый": "24140_419536.jpg",
     })
 
-    # Beds keep the public Berhouse selector naming that was already corrected.
     require_mapping(by_id.get("24182"), {
         "Бежевый": "24182_420756.png",
         "Серый": "24182_420757.png",
@@ -262,7 +310,7 @@ def main():
     })
 
     DATA_PATH.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    print(f"Beds normalized: {len(beds)}; sofas preserved: {len(sofas)}")
+    print(f"Beds normalized: {len(beds)}; sofas normalized: {len(sofas)}")
     print(f"Products with unresolved color-photo aliases: {len(unresolved_total)}")
     for item in unresolved_total[:30]:
         print("UNRESOLVED", item)
