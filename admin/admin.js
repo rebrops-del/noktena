@@ -566,85 +566,54 @@
     if (!isImageFile(file)) throw new Error('Выберите файл изображения: JPG, PNG, WEBP, GIF, AVIF, HEIC или HEIF.');
     if (Number(file.size || 0) > 25 * 1024 * 1024) throw new Error('Файл слишком большой. Максимальный размер — 25 МБ.');
 
+    const bucket = cfg.storageBucket || 'product-images';
     const productKey = $('#editKey').value || $('#editName').value.trim() || `new-${Date.now()}`;
-    const signController = new AbortController();
-    const signTimeout = setTimeout(() => signController.abort(), 12000);
-    let signResponse;
+    const productFolder = asciiProductFolder(productKey);
+    const colorFolder = color ? `/colors/${asciiProductFolder(String(color))}` : '';
+    const ext = uploadExtension(file);
+    const randomPart = (globalThis.crypto?.randomUUID?.() || Math.random().toString(36).slice(2)).replace(/[^a-z0-9-]/gi, '');
+    const path = `products/${productFolder}${colorFolder}/${Date.now()}-${randomPart}.${ext}`;
+    const encodedPath = path.split('/').map(encodeURIComponent).join('/');
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 60000);
+    let r;
     try {
-      signResponse = await fetch(`${baseUrl()}/functions/v1/admin-upload-image`, {
+      r = await fetch(`${baseUrl()}/storage/v1/object/${encodeURIComponent(bucket)}/${encodedPath}`, {
         method:'POST',
         headers:{
           apikey:cfg.supabaseAnonKey,
           Authorization:`Bearer ${state.session.access_token}`,
-          'Content-Type':'application/json'
+          'Content-Type':file.type || 'application/octet-stream',
+          'x-upsert':'false'
         },
-        body:JSON.stringify({
-          productKey,
-          filename:file.name || 'image.jpg',
-          color:String(color || ''),
-          size:Number(file.size || 0)
-        }),
-        signal:signController.signal
+        body:file,
+        signal:controller.signal
       });
     } catch (err) {
-      clearTimeout(signTimeout);
-      if (err?.name === 'AbortError') throw new Error('Сервер не выдал ссылку для загрузки за 12 секунд. Попробуйте войти в админку заново.');
-      throw new Error(`Не удалось получить ссылку для загрузки: ${err?.message || err}`);
+      clearTimeout(timeout);
+      if (err?.name === 'AbortError') throw new Error('Прямая загрузка фото в хранилище заняла больше 60 секунд и была остановлена.');
+      throw new Error(`Не удалось связаться с хранилищем: ${err?.message || err}`);
     }
-    clearTimeout(signTimeout);
+    clearTimeout(timeout);
 
-    if (signResponse.status === 401 && !retried && state.session?.refresh_token) {
+    if (r.status === 401 && !retried && state.session?.refresh_token) {
       await refreshSession();
       return uploadSingleImage(file, color, true);
     }
 
-    const signRaw = await signResponse.text().catch(() => '');
-    let signData = {};
-    try { signData = signRaw ? JSON.parse(signRaw) : {}; } catch (_) {}
-    if (!signResponse.ok || !signData?.signedUrl || !signData?.url) {
-      const detail = signData?.detail || signData?.message || signData?.error || signRaw || `HTTP ${signResponse.status}`;
-      const labels = {
-        unauthorized:'Сервер не получил авторизацию. Выйдите из админки и войдите снова.',
-        invalid_session:'Сессия истекла. Выйдите из админки и войдите снова.',
-        forbidden:'У этой учётной записи нет прав администратора.',
-        server_not_configured:'Сервер загрузки не настроен.',
-        sign_failed:`Не удалось создать одноразовую ссылку: ${signData?.detail || 'неизвестная ошибка'}`,
-        file_too_large:'Файл слишком большой. Максимальный размер — 25 МБ.'
-      };
-      throw new Error(labels[signData?.error] || `Не удалось подготовить загрузку «${file.name}»: ${detail}`);
-    }
-
-    const uploadBody = new FormData();
-    uploadBody.append('cacheControl', '3600');
-    uploadBody.append('', file, file.name || 'image');
-
-    const uploadController = new AbortController();
-    const uploadTimeout = setTimeout(() => uploadController.abort(), 60000);
-    let uploadResponse;
-    try {
-      uploadResponse = await fetch(signData.signedUrl, {
-        method:'PUT',
-        body:uploadBody,
-        signal:uploadController.signal
-      });
-    } catch (err) {
-      clearTimeout(uploadTimeout);
-      if (err?.name === 'AbortError') throw new Error('Прямая загрузка в хранилище заняла больше 60 секунд и была остановлена.');
-      throw new Error(`Не удалось передать файл в хранилище: ${err?.message || err}`);
-    }
-    clearTimeout(uploadTimeout);
-
-    if (!uploadResponse.ok) {
-      const raw = await uploadResponse.text().catch(() => '');
+    if (!r.ok) {
+      const raw = await r.text().catch(() => '');
       let detail = raw;
       try {
         const parsed = JSON.parse(raw);
         detail = parsed.message || parsed.error || parsed.statusCode || raw;
       } catch (_) {}
-      throw new Error(`Storage отклонил «${file.name}»${detail ? `: ${detail}` : ` (HTTP ${uploadResponse.status})`}`);
+      if (r.status === 403) throw new Error('Supabase отклонил загрузку: у текущей учётной записи нет права записи в хранилище.');
+      throw new Error(`Storage отклонил «${file.name}»${detail ? `: ${detail}` : ` (HTTP ${r.status})`}`);
     }
 
-    return signData.url;
+    return `${baseUrl()}/storage/v1/object/public/${encodeURIComponent(bucket)}/${encodedPath}`;
   }
 
   async function uploadImages(files) {
