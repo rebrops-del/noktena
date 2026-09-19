@@ -561,32 +561,40 @@
     return `${baseUrl()}/storage/v1/object/public/${encodeURIComponent(bucket)}/${encodedPath}`;
   }
 
-  function uploadResultError(data, fileName = 'фото') {
-    const labels = {
-      unauthorized:'Сервер не получил сессию администратора. Выйдите из админки и войдите снова.',
-      invalid_session:'Сессия истекла. Выйдите из админки и войдите снова.',
-      forbidden:'У этой учётной записи нет прав администратора.',
-      file_missing:'Сервер не получил выбранный файл.',
-      invalid_file_type:'Этот формат изображения не поддерживается.',
-      file_too_large:'Фото слишком большое даже после подготовки. Используйте файл до 8 МБ.',
-      invalid_form:'Сервер не смог прочитать файл. Попробуйте другой JPG или PNG.',
-      upload_failed:`Storage отклонил файл: ${data?.detail || 'неизвестная ошибка'}`,
-      server_not_configured:'Сервер загрузки не настроен.',
-      admin_check_failed:`Не удалось проверить права администратора: ${data?.detail || 'неизвестная ошибка'}`,
-      unexpected_error:`Ошибка сервера загрузки: ${data?.detail || 'неизвестная ошибка'}`
-    };
-    return new Error(labels[data?.error] || `Не удалось загрузить «${fileName}»${data?.detail ? `: ${data.detail}` : ''}`);
+  function readBlobAsDataUrl(blob) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result || ''));
+      reader.onerror = () => reject(new Error('Не удалось прочитать выбранное фото.'));
+      reader.readAsDataURL(blob);
+    });
   }
 
-  async function prepareUploadFile(file) {
-    if (!file) return file;
-    const type = String(file.type || '').toLowerCase();
-    const compressible = ['image/jpeg','image/png','image/webp'].includes(type);
-    if (!compressible || Number(file.size || 0) <= 2.5 * 1024 * 1024) return file;
+  function canvasBlob(canvas, type, quality) {
+    return new Promise(resolve => canvas.toBlob(resolve, type, quality));
+  }
 
+  async function prepareInlineImage(file) {
+    if (!file) throw new Error('Файл не выбран.');
+    if (!isImageFile(file)) throw new Error('Выберите изображение JPG, PNG, WEBP, GIF, AVIF, HEIC или HEIF.');
+    if (Number(file.size || 0) > 25 * 1024 * 1024) throw new Error('Исходное фото слишком большое. Максимальный размер — 25 МБ.');
+
+    const type = String(file.type || '').toLowerCase();
+    const canDecode = ['image/jpeg','image/png','image/webp','image/avif'].includes(type);
+    if (!canDecode) {
+      if (Number(file.size || 0) > 650 * 1024) throw new Error('Для GIF/HEIC/HEIF используйте файл до 650 КБ либо предварительно сохраните его как JPG/PNG/WEBP.');
+      return readBlobAsDataUrl(file);
+    }
+
+    let bitmap;
     try {
-      const bitmap = await createImageBitmap(file);
-      const maxSide = 2000;
+      bitmap = await createImageBitmap(file);
+    } catch (_) {
+      if (Number(file.size || 0) <= 650 * 1024) return readBlobAsDataUrl(file);
+      throw new Error('Браузер не смог обработать это изображение. Сохраните его как обычный JPG или PNG и загрузите снова.');
+    }
+
+    const render = async (maxSide, quality) => {
       const scale = Math.min(1, maxSide / Math.max(bitmap.width, bitmap.height));
       const width = Math.max(1, Math.round(bitmap.width * scale));
       const height = Math.max(1, Math.round(bitmap.height * scale));
@@ -594,92 +602,26 @@
       canvas.width = width;
       canvas.height = height;
       const ctx = canvas.getContext('2d', {alpha:false});
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(0, 0, width, height);
       ctx.drawImage(bitmap, 0, 0, width, height);
-      if (typeof bitmap.close === 'function') bitmap.close();
-      const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.86));
-      if (!blob) return file;
-      const base = String(file.name || 'photo').replace(/\.[^.]+$/, '') || 'photo';
-      const prepared = new File([blob], `${base}.jpg`, {type:'image/jpeg', lastModified:Date.now()});
-      return prepared.size < file.size ? prepared : file;
-    } catch (_) {
-      return file;
-    }
-  }
-
-  function captureUploadDraft(color = '') {
-    syncVariantsFromDom();
-    syncColorImagesFromDom();
-    const ids = ['editKey','editIsCustom','editKind','editCategory','editName','editPrice','editSubtype','editSummary','editDescription','editSpecs'];
-    const fields = {};
-    for (const id of ids) fields[id] = $('#'+id)?.value ?? '';
-    return {
-      fields,
-      checks: {
-        editAvailable:Boolean($('#editAvailable')?.checked),
-        editHit:Boolean($('#editHit')?.checked),
-        editHidden:Boolean($('#editHidden')?.checked)
-      },
-      images:[...state.editImages],
-      variants:clone(state.editVariants),
-      colorImages:clone(state.editColorImages),
-      uploadColor:String(color || '')
+      return canvasBlob(canvas, 'image/jpeg', quality);
     };
-  }
 
-  function uploadDraftKey(nonce) {
-    return `noktena-admin-upload-draft-${nonce}`;
-  }
+    let blob = await render(1800, 0.82);
+    if (blob && blob.size > 620 * 1024) blob = await render(1500, 0.74);
+    if (blob && blob.size > 620 * 1024) blob = await render(1250, 0.68);
+    if (typeof bitmap.close === 'function') bitmap.close();
+    if (!blob) throw new Error('Не удалось подготовить изображение. Попробуйте другой JPG или PNG.');
+    if (blob.size > 700 * 1024) throw new Error('Фото после оптимизации всё ещё слишком большое. Используйте изображение меньшего разрешения.');
 
-  async function submitUploadWithFullPage(file, productKey, color = '') {
-    if (typeof DataTransfer === 'undefined') throw new Error('Браузер не поддерживает отправку выбранного файла. Обновите браузер.');
-
-    const prepared = await prepareUploadFile(file);
-    if (Number(prepared?.size || 0) > 8 * 1024 * 1024) {
-      throw new Error('Фото слишком большое. После автоматического уменьшения файл всё ещё больше 8 МБ.');
-    }
-
-    const nonce = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
-    const returnUrl = `${location.origin}/admin/?upload_return=1`;
-    sessionStorage.setItem(uploadDraftKey(nonce), JSON.stringify(captureUploadDraft(color)));
-
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = `${baseUrl()}/functions/v1/admin-upload-image?return_url=${encodeURIComponent(returnUrl)}&nonce=${encodeURIComponent(nonce)}`;
-    form.enctype = 'multipart/form-data';
-    form.style.display = 'none';
-
-    const addHidden = (name, value) => {
-      const input = document.createElement('input');
-      input.type = 'hidden';
-      input.name = name;
-      input.value = String(value ?? '');
-      form.appendChild(input);
-    };
-    addHidden('access_token', state.session.access_token);
-    addHidden('product_key', productKey);
-    addHidden('color', String(color || ''));
-    addHidden('return_url', returnUrl);
-    addHidden('nonce', nonce);
-
-    const fileInput = document.createElement('input');
-    fileInput.type = 'file';
-    fileInput.name = 'file';
-    const dt = new DataTransfer();
-    dt.items.add(prepared);
-    fileInput.files = dt.files;
-    form.appendChild(fileInput);
-    document.body.appendChild(form);
-
-    form.submit();
-    return await new Promise(() => {});
+    return readBlobAsDataUrl(blob);
   }
 
   async function uploadSingleImage(file, color = '') {
-    if (!state.session?.access_token) throw new Error('Сессия администратора не найдена. Войдите заново.');
-    if (!isImageFile(file)) throw new Error('Выберите файл изображения: JPG, PNG, WEBP, GIF, AVIF, HEIC или HEIF.');
-    if (Number(file.size || 0) > 25 * 1024 * 1024) throw new Error('Исходный файл слишком большой. Максимальный размер — 25 МБ.');
-    const productKey = $('#editKey').value || $('#editName').value.trim() || `new-${Date.now()}`;
-    return submitUploadWithFullPage(file, productKey, color);
+    const dataUrl = await prepareInlineImage(file);
+    if (!dataUrl.startsWith('data:image/')) throw new Error('Не удалось подготовить изображение.');
+    return dataUrl;
   }
 
   async function uploadImages(files) {
@@ -872,7 +814,6 @@
       try {
         await signIn($('#loginEmail').value.trim(), $('#loginPassword').value);
         await enterApp();
-        await restoreUploadReturn();
       } catch (err) {
         $('#loginError').textContent = err.message || 'Ошибка входа';
       } finally {
@@ -1026,7 +967,7 @@
         const file = uploadInput.files?.[0];
         if (!file) return;
         const trigger = $$('[data-color-image-upload-trigger]').find(el => String(el.dataset.colorImageUploadTrigger || '').trim() === color);
-        if (trigger) { trigger.disabled = true; trigger.textContent = 'Загружаем…'; }
+        if (trigger) { trigger.disabled = true; trigger.textContent = 'Обрабатываем…'; }
         try {
           await uploadColorImage(color, file);
         } catch (err) {
@@ -1056,8 +997,8 @@
       const status = $('#imageUploadStatus');
       const files = [...input.files];
       if (!files.length) return;
-      if (button) { button.disabled = true; button.textContent = 'Загружаем…'; }
-      if (status) { status.className = 'upload-status'; status.textContent = `Загрузка: ${files.length} файл(а)…`; }
+      if (button) { button.disabled = true; button.textContent = 'Обрабатываем…'; }
+      if (status) { status.className = 'upload-status'; status.textContent = 'Подготавливаем фото…'; }
       try {
         await uploadImages(files);
         if (status) { status.className = 'upload-status success'; status.textContent = 'Фото загружено. Не забудьте нажать «Сохранить» в карточке.'; }
@@ -1094,7 +1035,6 @@
     try {
       if (state.session.refresh_token) await refreshSession();
       await enterApp();
-      await restoreUploadReturn();
     } catch (err) {
       console.error(err);
       localStorage.removeItem(SESSION_KEY);

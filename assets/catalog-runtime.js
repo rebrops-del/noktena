@@ -8,10 +8,9 @@
   let rowsPromise = null;
 
   const headers = () => ({
-    apikey: cfg.supabaseAnonKey,
-    Authorization: `Bearer ${cfg.supabaseAnonKey}`,
-    Accept: 'application/json'
-  });
+  apikey: cfg.supabaseAnonKey,
+  Accept: 'application/json'
+});
 
   const productKey = (kind, product) => kind === 'furniture'
     ? `furniture:${product?.id || ''}`
