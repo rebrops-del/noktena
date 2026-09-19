@@ -1,0 +1,32 @@
+name: Apply admin photo upload color fix
+
+on:
+  push:
+    paths:
+      - 'scripts/fix_admin_photo_upload_color.py'
+      - '.github/workflows/apply-admin-photo-upload-color.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply patch
+        run: python scripts/fix_admin_photo_upload_color.py
+      - name: Validate JavaScript syntax
+        run: node --check admin/admin.js
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add admin/admin.js admin/index.html admin/admin.css
+          if git diff --cached --quiet; then
+            echo "No changes"
+          else
+            git commit -m "Fix admin photo upload and add direct color uploads"
+            git push
+          fi
