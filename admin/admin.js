@@ -564,56 +564,59 @@
   async function uploadSingleImage(file, color = '', retried = false) {
     if (!state.session?.access_token) throw new Error('Сессия администратора не найдена. Войдите заново.');
     if (!isImageFile(file)) throw new Error('Выберите файл изображения: JPG, PNG, WEBP, GIF, AVIF, HEIC или HEIF.');
-    if (Number(file.size || 0) > 25 * 1024 * 1024) throw new Error('Файл слишком большой. Максимальный размер — 25 МБ.');
+    if (Number(file.size || 0) > 15 * 1024 * 1024) throw new Error('Файл слишком большой. Максимальный размер — 15 МБ.');
 
-    const bucket = cfg.storageBucket || 'product-images';
     const productKey = $('#editKey').value || $('#editName').value.trim() || `new-${Date.now()}`;
-    const productFolder = asciiProductFolder(productKey);
-    const colorFolder = color ? `/colors/${asciiProductFolder(String(color))}` : '';
-    const ext = uploadExtension(file);
-    const randomPart = (globalThis.crypto?.randomUUID?.() || Math.random().toString(36).slice(2)).replace(/[^a-z0-9-]/gi, '');
-    const path = `products/${productFolder}${colorFolder}/${Date.now()}-${randomPart}.${ext}`;
-    const encodedPath = path.split('/').map(encodeURIComponent).join('/');
+    const form = new FormData();
+    form.append('access_token', state.session.access_token);
+    form.append('product_key', productKey);
+    form.append('color', String(color || ''));
+    form.append('file', file, file.name || `image.${uploadExtension(file)}`);
 
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 60000);
+    const timeout = setTimeout(() => controller.abort(), 90000);
     let r;
     try {
-      r = await fetch(`${baseUrl()}/storage/v1/object/${encodeURIComponent(bucket)}/${encodedPath}`, {
+      // Intentionally do not add Authorization/apikey/Content-Type headers here.
+      // A plain multipart request is CORS-safelisted and does not require a preflight request.
+      r = await fetch(`${baseUrl()}/functions/v1/admin-upload-image`, {
         method:'POST',
-        headers:{
-          apikey:cfg.supabaseAnonKey,
-          Authorization:`Bearer ${state.session.access_token}`,
-          'Content-Type':file.type || 'application/octet-stream',
-          'x-upsert':'false'
-        },
-        body:file,
-        signal:controller.signal
+        body:form,
+        signal:controller.signal,
+        cache:'no-store'
       });
     } catch (err) {
       clearTimeout(timeout);
-      if (err?.name === 'AbortError') throw new Error('Прямая загрузка фото в хранилище заняла больше 60 секунд и была остановлена.');
-      throw new Error(`Не удалось связаться с хранилищем: ${err?.message || err}`);
+      if (err?.name === 'AbortError') throw new Error('Загрузка заняла больше 90 секунд и была остановлена.');
+      throw new Error(`Не удалось отправить фото: ${err?.message || err}`);
     }
     clearTimeout(timeout);
+
+    const raw = await r.text().catch(() => '');
+    let data = {};
+    try { data = raw ? JSON.parse(raw) : {}; } catch (_) {}
 
     if (r.status === 401 && !retried && state.session?.refresh_token) {
       await refreshSession();
       return uploadSingleImage(file, color, true);
     }
 
-    if (!r.ok) {
-      const raw = await r.text().catch(() => '');
-      let detail = raw;
-      try {
-        const parsed = JSON.parse(raw);
-        detail = parsed.message || parsed.error || parsed.statusCode || raw;
-      } catch (_) {}
-      if (r.status === 403) throw new Error('Supabase отклонил загрузку: у текущей учётной записи нет права записи в хранилище.');
-      throw new Error(`Storage отклонил «${file.name}»${detail ? `: ${detail}` : ` (HTTP ${r.status})`}`);
+    if (!r.ok || !data?.url) {
+      const labels = {
+        unauthorized:'Сервер не получил сессию администратора. Выйдите из админки и войдите снова.',
+        invalid_session:'Сессия истекла. Выйдите из админки и войдите снова.',
+        forbidden:'У этой учётной записи нет прав администратора.',
+        file_missing:'Сервер не получил выбранный файл.',
+        invalid_file_type:'Этот формат изображения не поддерживается.',
+        file_too_large:'Файл слишком большой. Максимальный размер — 15 МБ.',
+        upload_failed:`Storage отклонил файл: ${data?.detail || 'неизвестная ошибка'}`,
+        server_not_configured:'Сервер загрузки не настроен.'
+      };
+      const detail = data?.detail || data?.message || data?.error || raw || `HTTP ${r.status}`;
+      throw new Error(labels[data?.error] || `Не удалось загрузить «${file.name}»: ${detail}`);
     }
 
-    return `${baseUrl()}/storage/v1/object/public/${encodeURIComponent(bucket)}/${encodedPath}`;
+    return data.url;
   }
 
   async function uploadImages(files) {
