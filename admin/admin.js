@@ -561,19 +561,36 @@
     return `${baseUrl()}/storage/v1/object/public/${encodeURIComponent(bucket)}/${encodedPath}`;
   }
 
-  async function uploadSingleImage(file, folderSuffix = '') {
+  async function uploadSingleImage(file, color = '', retried = false) {
     if (!state.session?.access_token) throw new Error('Сессия администратора не найдена. Войдите заново.');
     if (!isImageFile(file)) throw new Error('Выберите файл изображения: JPG, PNG, WEBP, GIF, AVIF, HEIC или HEIF.');
-    const key = $('#editKey').value || `new-${Date.now()}`;
-    const bucket = cfg.storageBucket || 'product-images';
-    const ext = uploadExtension(file);
-    const random = (globalThis.crypto?.randomUUID?.() || Math.random().toString(36).slice(2)).replace(/[^a-z0-9-]/gi, '');
-    const name = `${Date.now()}-${random}.${ext}`;
-    const suffix = folderSuffix ? `/${folderSuffix}` : '';
-    const path = `products/${asciiProductFolder(key)}${suffix}/${name}`;
-    const encoded = path.split('/').map(encodeURIComponent).join('/');
-    await uploadStorageObject(file, bucket, encoded);
-    return publicStorageUrl(bucket, encoded);
+    const form = new FormData();
+    form.append('file', file, file.name || 'image');
+    form.append('productKey', $('#editKey').value || $('#editName').value.trim() || `new-${Date.now()}`);
+    if (color) form.append('color', String(color));
+
+    const r = await fetch(`${baseUrl()}/functions/v1/admin-upload-image`, {
+      method:'POST',
+      headers:authHeaders(),
+      body:form
+    });
+    if (r.status === 401 && !retried && state.session?.refresh_token) {
+      await refreshSession();
+      return uploadSingleImage(file, color, true);
+    }
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok || !data?.url) {
+      const detail = data?.detail || data?.message || data?.error || `HTTP ${r.status}`;
+      const labels = {
+        invalid_session:'Сессия истекла. Войдите заново.',
+        forbidden:'У этой учётной записи нет прав администратора.',
+        file_too_large:'Файл слишком большой. Максимальный размер — 25 МБ.',
+        file_required:'Файл не получен сервером.',
+        empty_file:'Выбран пустой файл.'
+      };
+      throw new Error(labels[data?.error] || `Не удалось загрузить «${file.name}»: ${detail}`);
+    }
+    return data.url;
   }
 
   async function uploadImages(files) {
@@ -595,7 +612,7 @@
   async function uploadColorImage(color, file) {
     color = String(color || '').trim();
     if (!color) throw new Error('Не удалось определить цвет.');
-    const url = await uploadSingleImage(file, `colors/${asciiProductFolder(color)}`);
+    const url = await uploadSingleImage(file, color);
     state.editColorImages[color] = url;
     renderColorImageBindings();
     toast(`Фото для цвета «${color}» загружено и привязано`);
