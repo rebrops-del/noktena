@@ -321,7 +321,10 @@
       return `<div class="color-image-row">
         <div class="color-image-preview">${selected ? `<img src="${esc(selected)}" alt="${esc(color)}">` : '<span>Нет фото</span>'}</div>
         <div class="color-image-meta"><b>${esc(color)}</b><small>Фото при выборе этого цвета</small></div>
-        <select data-color-image-select="${esc(color)}">${options}</select>
+        <div class="color-image-controls">
+          <select data-color-image-select="${esc(color)}">${options}</select>
+          ${selected ? `<button type="button" class="color-image-delete" data-color-image-remove="${esc(color)}">Удалить фото</button>` : ''}
+        </div>
       </div>`;
     }).join('');
   }
@@ -500,26 +503,72 @@
     return String(value || 'product').toLowerCase().replace(/[^a-zа-я0-9._-]+/gi,'-').replace(/^-+|-+$/g,'').slice(0,80) || 'product';
   }
 
+  function asciiProductFolder(value) {
+    const text = String(value || 'product');
+    let hash = 2166136261;
+    for (let i = 0; i < text.length; i++) {
+      hash ^= text.charCodeAt(i);
+      hash = Math.imul(hash, 16777619);
+    }
+    return `p-${(hash >>> 0).toString(36)}`;
+  }
+
+  function uploadExtension(file) {
+    const fromName = String(file?.name || '').match(/\.([a-z0-9]{1,8})$/i)?.[1]?.toLowerCase();
+    if (fromName) return fromName === 'jpeg' ? 'jpg' : fromName;
+    const type = String(file?.type || '').toLowerCase();
+    if (type === 'image/jpeg') return 'jpg';
+    if (type === 'image/png') return 'png';
+    if (type === 'image/webp') return 'webp';
+    if (type === 'image/gif') return 'gif';
+    if (type === 'image/avif') return 'avif';
+    return 'img';
+  }
+
+  async function uploadStorageObject(file, bucket, encodedPath, retried = false) {
+    const r = await fetch(`${baseUrl()}/storage/v1/object/${encodeURIComponent(bucket)}/${encodedPath}`, {
+      method:'POST',
+      headers:authHeaders({
+        'Content-Type':file.type || 'application/octet-stream',
+        'x-upsert':'false',
+        'cache-control':'3600'
+      }),
+      body:file
+    });
+    if (r.status === 401 && !retried && state.session?.refresh_token) {
+      await refreshSession();
+      return uploadStorageObject(file, bucket, encodedPath, true);
+    }
+    if (!r.ok) {
+      const raw = await r.text().catch(() => '');
+      let detail = raw;
+      try {
+        const parsed = JSON.parse(raw);
+        detail = parsed.message || parsed.error || parsed.statusCode || raw;
+      } catch (_) {}
+      throw new Error(`Не удалось загрузить «${file.name}»${detail ? `: ${detail}` : ` (HTTP ${r.status})`}`);
+    }
+  }
+
   async function uploadImages(files) {
     if (!files?.length) return;
+    if (!state.session?.access_token) throw new Error('Сессия администратора не найдена. Войдите заново.');
     const key = $('#editKey').value || `new-${Date.now()}`;
     const bucket = cfg.storageBucket || 'product-images';
-    for (const file of files) {
-      if (!file.type.startsWith('image/')) continue;
-      const name = `${Date.now()}-${safeSegment(file.name)}`;
-      const path = `products/${safeSegment(key)}/${name}`;
+    const validFiles = [...files].filter(file => String(file?.type || '').startsWith('image/'));
+    if (!validFiles.length) throw new Error('Выберите файл изображения: JPG, PNG, WEBP, GIF или AVIF.');
+    for (const file of validFiles) {
+      const ext = uploadExtension(file);
+      const random = (globalThis.crypto?.randomUUID?.() || Math.random().toString(36).slice(2)).replace(/[^a-z0-9-]/gi, '');
+      const name = `${Date.now()}-${random}.${ext}`;
+      const path = `products/${asciiProductFolder(key)}/${name}`;
       const encoded = path.split('/').map(encodeURIComponent).join('/');
-      const r = await fetch(`${baseUrl()}/storage/v1/object/${encodeURIComponent(bucket)}/${encoded}`, {
-        method:'POST',
-        headers:authHeaders({'Content-Type':file.type,'x-upsert':'true'}),
-        body:file
-      });
-      if (!r.ok) throw new Error(`Не удалось загрузить ${file.name}`);
+      await uploadStorageObject(file, bucket, encoded);
       state.editImages.push(`${baseUrl()}/storage/v1/object/public/${encodeURIComponent(bucket)}/${encoded}`);
     }
     renderImages();
     renderColorImageBindings();
-    toast('Фотографии загружены');
+    toast(validFiles.length === 1 ? 'Фотография загружена' : `Фотографии загружены: ${validFiles.length}`);
   }
 
   function priceTransform(value) {
@@ -715,7 +764,32 @@
       const edit = e.target.closest('[data-edit-key]'); if (edit) openEditor(edit.dataset.editKey);
       if (e.target.closest('[data-close-modal]')) closeEditor();
       if (e.target.closest('[data-close-bulk]')) closeBulk();
-      const rm = e.target.closest('[data-image-remove]'); if (rm) { state.editImages.splice(Number(rm.dataset.imageRemove),1); renderImages(); renderColorImageBindings(); }
+      const rm = e.target.closest('[data-image-remove]'); if (rm) {
+        const index = Number(rm.dataset.imageRemove);
+        const src = state.editImages[index];
+        if (src) {
+          state.editImages.splice(index, 1);
+          for (const [color, url] of Object.entries(state.editColorImages || {})) {
+            if (url === src) delete state.editColorImages[color];
+          }
+        }
+        renderImages();
+        renderColorImageBindings();
+      }
+      const colorRm = e.target.closest('[data-color-image-remove]'); if (colorRm) {
+        const color = String(colorRm.dataset.colorImageRemove || '').trim();
+        const src = state.editColorImages[color] || '';
+        if (color) delete state.editColorImages[color];
+        if (src) {
+          state.editImages = state.editImages.filter(url => url !== src);
+          for (const [otherColor, url] of Object.entries(state.editColorImages || {})) {
+            if (url === src) delete state.editColorImages[otherColor];
+          }
+        }
+        renderImages();
+        renderColorImageBindings();
+        toast(color ? `Фото для цвета «${color}» удалено из карточки` : 'Фото удалено из карточки');
+      }
       const main = e.target.closest('[data-image-main]'); if (main) { const i=Number(main.dataset.imageMain); if(i>0){const [src]=state.editImages.splice(i,1);state.editImages.unshift(src);renderImages();renderColorImageBindings();} }
       const vrm = e.target.closest('[data-v-remove]'); if (vrm) { syncVariantsFromDom(); state.editVariants.splice(Number(vrm.dataset.vRemove),1); renderVariants(); }
     });
@@ -743,7 +817,7 @@
     $('#editKind').addEventListener('change', e => setEditorMode(e.target.value));
     $('#addVariant').addEventListener('click', () => { syncVariantsFromDom(); state.editVariants.push({size:'',color:'',price:Number($('#editPrice').value)||0,available:true}); renderVariants(); });
     $('#addImageUrl').addEventListener('click', () => { const u=$('#imageUrlInput').value.trim(); if(u){state.editImages.push(u);$('#imageUrlInput').value='';renderImages();renderColorImageBindings();} });
-    $('#imageUpload').addEventListener('change', async e => { try { await uploadImages([...e.target.files]); e.target.value=''; } catch(err){toast(err.message,true);} });
+    $('#imageUpload').addEventListener('change', async e => { const input=e.target; try { toast('Загружаем фотографию…'); await uploadImages([...input.files]); } catch(err){ console.error(err); toast(err.message || 'Не удалось загрузить фото',true); } finally { input.value=''; } });
     $('#resetOverrideBtn').addEventListener('click', resetCurrentOverride);
     ['bulkScope','bulkSign','bulkPercent','bulkRound','bulkRoundMode'].forEach(id => $('#'+id).addEventListener(id==='bulkPercent'?'input':'change', renderBulkPreview));
     $('#applyBulkBtn').addEventListener('click', applyBulk);
