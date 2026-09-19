@@ -1,0 +1,28 @@
+name: Apply admin binary upload
+
+on:
+  push:
+    paths:
+      - 'scripts/patch_admin_binary_upload.py'
+      - '.github/workflows/apply-admin-binary-upload.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply patch
+        run: python scripts/patch_admin_binary_upload.py
+      - name: Validate JavaScript
+        run: node --check admin/admin.js
+      - name: Commit changes
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add admin/admin.js admin/index.html
+          git diff --cached --quiet && exit 0
+          git commit -m 'Send admin image uploads as binary data'
+          git push
