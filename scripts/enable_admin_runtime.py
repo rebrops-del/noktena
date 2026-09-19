@@ -23,8 +23,8 @@ index = replace_once(
 )
 index = replace_once(
     index,
-    "const pp=PHOTO_POS[x.model],photo=pp?`<div class=\"photo-media\"><div class=\"product-photo\" style=\"--col:${pp[0]};background-image:url('assets/product-row-${pp[1]+1}.webp?v=20260905-photos2')\"></div></div>`:'',topBadge=",
-    "const customImg=Array.isArray(x.images)&&x.images[0]?x.images[0]:'',pp=PHOTO_POS[x.model],photo=customImg?`<div class=\"photo-media\"><img src=\"${safe(customImg)}\" alt=\"${safe(x.model)}\" style=\"width:100%;height:100%;object-fit:cover;display:block\"></div>`:pp?`<div class=\"photo-media\"><div class=\"product-photo\" style=\"--col:${pp[0]};background-image:url('assets/product-row-${pp[1]+1}.webp?v=20260905-photos2')\"></div></div>`:'',topBadge=",
+    "const pp=PHOTO_POS[x.model],photo=pp?",
+    "const customImg=Array.isArray(x.images)&&x.images[0]?x.images[0]:'',pp=PHOTO_POS[x.model],photo=customImg?`<div class=\"photo-media\"><img src=\"${safe(customImg)}\" alt=\"${safe(x.model)}\" style=\"width:100%;height:100%;object-fit:cover;display:block\"></div>`:pp?",
     'mattress custom image',
 )
 index = replace_once(
