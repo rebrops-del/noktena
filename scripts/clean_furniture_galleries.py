@@ -11,6 +11,10 @@ from bs4 import BeautifulSoup
 DATA = Path('data/furniture.json')
 MAX_WORKERS = 12
 
+# Berhouse currently serves this secondary angle only as a 350x233 source,
+# even when requested through /big/. It is excluded rather than shown blurry.
+EXCLUDED_LOW_RES_ANGLES = {'24297a2.jpg'}
+
 
 def clean(value):
     return re.sub(r'\s+', ' ', str(value or '').replace('\xa0', ' ')).strip()
@@ -29,8 +33,8 @@ def high_res(url):
     """Promote Berhouse thumbnail URLs to the original /big/ image.
 
     Product pages expose secondary gallery angles through /small/ (350x233),
-    while the same filenames are available in /big/ (typically 900x600).
-    Keep already-high-resolution and non-Berhouse URLs unchanged.
+    while the same filenames are normally available in /big/ (typically
+    900x600). Keep already-high-resolution and non-Berhouse URLs unchanged.
     """
     url = canonical(url)
     if not url:
@@ -49,9 +53,12 @@ def is_real_angle(url, product_id):
     colorImages and are shown when the customer selects a color, but they are
     not repeated as thumbnails in the main product gallery.
     """
+    name = filename(url)
+    if name.lower() in EXCLUDED_LOW_RES_ANGLES:
+        return False
     return bool(re.fullmatch(
         rf'{re.escape(str(product_id))}(?:[a-z]+\d+)?\.(?:jpe?g|png|webp)',
-        filename(url),
+        name,
         flags=re.I,
     ))
 
@@ -63,7 +70,7 @@ def source_real_angles(product):
         return []
 
     headers = {
-        'User-Agent': 'Mozilla/5.0 (compatible; NoktenaCatalogSync/4.6; +https://noktena.ru/)',
+        'User-Agent': 'Mozilla/5.0 (compatible; NoktenaCatalogSync/4.7; +https://noktena.ru/)',
         'Accept-Language': 'ru-RU,ru;q=0.9,en;q=0.6',
     }
     r = requests.get(source_url, timeout=35, headers=headers)
