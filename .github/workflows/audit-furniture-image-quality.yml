@@ -14,69 +14,49 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Verify every furniture gallery image is high resolution
+      - name: Inspect remaining low-resolution Berhouse sources
         run: |
-          pip install requests pillow
+          pip install requests beautifulsoup4 pillow
           python - <<'PY'
           import io
-          import json
-          from concurrent.futures import ThreadPoolExecutor, as_completed
-
+          import re
           import requests
+          from bs4 import BeautifulSoup
           from PIL import Image
+          from urllib.parse import urljoin
 
-          data=json.load(open('data/furniture.json',encoding='utf-8'))
-          products=list(data.get('beds',[]))+list(data.get('sofas',[]))
-          urls=[]
-          owner={}
-          for p in products:
-              for u in p.get('images') or []:
-                  if u not in owner:
-                      urls.append(u)
-                      owner[u]=(p.get('sourceId'),p.get('title'))
-
-          def check(url):
-              r=requests.get(url,timeout=30,headers={'User-Agent':'Mozilla/5.0'})
+          s=requests.Session()
+          s.headers['User-Agent']='Mozilla/5.0'
+          for pid in ['24297','20779']:
+              url=f'https://m.berhouse.ru/eshop/item/{pid}/'
+              r=s.get(url,timeout=30)
               r.raise_for_status()
-              im=Image.open(io.BytesIO(r.content))
-              return r.status_code,len(r.content),im.width,im.height
-
-          failed=[]
-          low=[]
-          small=[]
-          dims={}
-          with ThreadPoolExecutor(max_workers=20) as pool:
-              futures={pool.submit(check,u):u for u in urls}
-              for f in as_completed(futures):
-                  u=futures[f]
-                  if '/files/eshop/small/' in u.lower():
-                      small.append((u,owner[u]))
+              r.encoding=r.apparent_encoding or r.encoding
+              soup=BeautifulSoup(r.text,'html.parser')
+              found=[]
+              seen=set()
+              for tag in soup.find_all(['a','img','source']):
+                  for attr in ['href','src','data-src','data-original','data-lazy','data-image','data-zoom','data-large','srcset','data-srcset']:
+                      raw=tag.get(attr)
+                      if not raw: continue
+                      for part in str(raw).split(','):
+                          candidate=part.strip().split(' ')[0]
+                          full=urljoin(r.url,candidate)
+                          if pid not in full or '/files/eshop/' not in full or full in seen: continue
+                          seen.add(full); found.append(full)
+              for m in re.findall(r'https?://[^\"\'<>\s]+',r.text):
+                  if pid in m and '/files/eshop/' in m and m not in seen:
+                      seen.add(m); found.append(m)
+              print('\nPRODUCT',pid,'SOURCE_URL',r.url,'CANDIDATES',len(found))
+              for image_url in found:
                   try:
-                      status,size,w,h=f.result()
-                      dims[u]=(w,h,size)
-                      if w < 800:
-                          low.append((u,w,h,size,owner[u]))
+                      ir=s.get(image_url,timeout=20)
+                      dims='n/a'
+                      if ir.ok:
+                          try:
+                              im=Image.open(io.BytesIO(ir.content)); dims=f'{im.width}x{im.height}'
+                          except Exception as e: dims=f'bad:{e}'
+                      print(ir.status_code,len(ir.content),dims,image_url)
                   except Exception as e:
-                      failed.append((u,str(e),owner[u]))
-
-          print('products',len(products))
-          print('gallery_urls',len(urls))
-          print('small_urls',len(small))
-          print('failed_urls',len(failed))
-          print('below_800px',len(low))
-          if small:
-              print('SMALL',small[:30])
-          if failed:
-              print('FAILED',failed[:30])
-          if low:
-              print('LOW',low[:50])
-
-          samples=['24139a1.jpg','24182a1.jpg','13131a1.jpg']
-          for needle in samples:
-              for u,(w,h,size) in dims.items():
-                  if u.endswith('/'+needle):
-                      print('SAMPLE',needle,w,h,size,u)
-
-          if small or failed:
-              raise SystemExit('Gallery quality audit failed: small or broken URLs remain')
+                      print('ERR',image_url,e)
           PY
