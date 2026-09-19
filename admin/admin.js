@@ -12,7 +12,8 @@
     rowsByKey: new Map(),
     items: [],
     editImages: [],
-    editVariants: []
+    editVariants: [],
+    editColorImages: {}
   };
 
   const configured = () => Boolean(cfg.supabaseUrl && cfg.supabaseAnonKey);
@@ -213,7 +214,54 @@
   }
 
   function renderVariants() {
-    $('#variantRows').innerHTML = state.editVariants.map((v,i) => `<div class="variant-row" data-variant-index="${i}"><input data-v-size value="${esc(v.size || '')}" placeholder="1600×2000"><input data-v-color value="${esc(v.color || '')}" placeholder="Цвет"><input data-v-price type="number" min="0" step="1" value="${Number(v.price)||0}"><button type="button" class="variant-remove" data-v-remove="${i}">×</button></div>`).join('');
+    $('#variantRows').innerHTML = state.editVariants.map((v,i) => `<div class="variant-row" data-variant-index="${i}"><input data-v-size value="${esc(v.size || '')}" placeholder="1600×2000"><input data-v-color data-prev-color="${esc(v.color || '')}" value="${esc(v.color || '')}" placeholder="Цвет"><input data-v-price type="number" min="0" step="1" value="${Number(v.price)||0}"><button type="button" class="variant-remove" data-v-remove="${i}">×</button></div>`).join('');
+    renderColorImageBindings();
+  }
+
+  function currentVariantColors() {
+    return uniq($$('.variant-row').map(row => $('[data-v-color]', row)?.value || ''));
+  }
+
+  function syncColorImagesFromDom() {
+    $$('#colorImageRows [data-color-image-select]').forEach(select => {
+      const color = String(select.dataset.colorImageSelect || '').trim();
+      if (!color) return;
+      if (select.value) state.editColorImages[color] = select.value;
+      else delete state.editColorImages[color];
+    });
+  }
+
+  function colorImageLabel(src) {
+    let file = String(src || '').split(/[?#]/)[0].split('/').pop() || 'изображение';
+    try { file = decodeURIComponent(file); } catch (_) {}
+    const index = state.editImages.indexOf(src);
+    return index >= 0 ? `Фото ${index + 1} · ${file}` : `Фото цвета · ${file}`;
+  }
+
+  function renderColorImageBindings() {
+    const section = $('#colorImagesSection');
+    const mount = $('#colorImageRows');
+    if (!section || !mount) return;
+    const furniture = $('#editKind')?.value === 'furniture';
+    section.classList.toggle('hidden', !furniture);
+    if (!furniture) return;
+
+    const colors = currentVariantColors();
+    if (!colors.length) {
+      mount.innerHTML = '<div class="color-image-empty">Сначала укажите цвета в блоке «Размеры и цены».</div>';
+      return;
+    }
+
+    const candidates = uniq([...state.editImages, ...Object.values(state.editColorImages || {})]);
+    mount.innerHTML = colors.map(color => {
+      const selected = state.editColorImages[color] || '';
+      const options = [`<option value="">Без привязки</option>`, ...candidates.map(src => `<option value="${esc(src)}" ${src === selected ? 'selected' : ''}>${esc(colorImageLabel(src))}</option>`)].join('');
+      return `<div class="color-image-row">
+        <div class="color-image-preview">${selected ? `<img src="${esc(selected)}" alt="${esc(color)}">` : '<span>Нет фото</span>'}</div>
+        <div class="color-image-meta"><b>${esc(color)}</b><small>Фото при выборе этого цвета</small></div>
+        <select data-color-image-select="${esc(color)}">${options}</select>
+      </div>`;
+    }).join('');
   }
 
   function syncVariantsFromDom() {
@@ -228,6 +276,7 @@
   function setEditorMode(kind) {
     const furniture = kind === 'furniture';
     $('#specsSection').classList.toggle('hidden', !furniture);
+    $('#colorImagesSection')?.classList.toggle('hidden', !furniture);
     $('#editCategory').innerHTML = furniture
       ? '<option value="beds">Кровати</option><option value="sofas">Диваны</option>'
       : '<option value="Матрасы">Матрасы</option><option value="Подушки">Подушки</option><option value="Чехлы">Чехлы</option>';
@@ -254,6 +303,7 @@
     $('#editHidden').checked = Boolean(item._hidden);
     state.editImages = [...(item.images || [])];
     state.editVariants = clone(item.variants || []);
+    state.editColorImages = clone(item.colorImages || {});
     renderImages();
     renderVariants();
     const reset = $('#resetOverrideBtn');
@@ -268,6 +318,7 @@
 
   function managedObjectFromForm(existing = null) {
     syncVariantsFromDom();
+    syncColorImagesFromDom();
     const kind = $('#editKind').value;
     const category = $('#editCategory').value;
     const name = $('#editName').value.trim();
@@ -299,6 +350,7 @@
       variants,
       sizes: uniq(variants.map(v => v.size)),
       colors: uniq(variants.map(v => v.color)),
+      colorImages: clone(state.editColorImages),
       specs: textToSpecs($('#editSpecs').value),
       available: $('#editAvailable').checked,
       hit: $('#editHit').checked
@@ -308,10 +360,16 @@
   function diffPayload(base, edited, kind) {
     const fields = kind === 'mattress'
       ? ['model','category','intro','description','images','variants']
-      : ['category','title','subtype','summary','description','price','images','variants','sizes','colors','specs','available','hit'];
+      : ['category','title','subtype','summary','description','price','images','variants','sizes','colors','colorImages','specs','available','hit'];
     const out = {};
     for (const field of fields) if (!deepEqual(base?.[field], edited?.[field])) out[field] = clone(edited[field]);
     return out;
+  }
+
+  function invalidatePublicCatalogCache() {
+    try {
+      for (const key of Object.keys(localStorage)) if (key.startsWith('noktena-catalog-overrides-')) localStorage.removeItem(key);
+    } catch (_) {}
   }
 
   async function upsertRows(rows) {
@@ -321,6 +379,7 @@
       headers:{'Content-Type':'application/json',Prefer:'resolution=merge-duplicates,return=minimal'},
       body:JSON.stringify(rows)
     });
+    invalidatePublicCatalogCache();
   }
 
   async function saveEditor(e) {
@@ -368,6 +427,7 @@
     if (!confirm(question)) return;
     try {
       await request(`/rest/v1/catalog_overrides?product_key=eq.${encodeURIComponent(key)}`, {method:'DELETE',headers:{Prefer:'return=minimal'}});
+      invalidatePublicCatalogCache();
       await reloadData();
       closeEditor();
       toast(item?._isCustom ? 'Товар удалён' : 'Изменения сброшены');
@@ -396,6 +456,7 @@
       state.editImages.push(`${baseUrl()}/storage/v1/object/public/${encodeURIComponent(bucket)}/${encoded}`);
     }
     renderImages();
+    renderColorImageBindings();
     toast('Фотографии загружены');
   }
 
@@ -510,14 +571,34 @@
       const edit = e.target.closest('[data-edit-key]'); if (edit) openEditor(edit.dataset.editKey);
       if (e.target.closest('[data-close-modal]')) closeEditor();
       if (e.target.closest('[data-close-bulk]')) closeBulk();
-      const rm = e.target.closest('[data-image-remove]'); if (rm) { state.editImages.splice(Number(rm.dataset.imageRemove),1); renderImages(); }
-      const main = e.target.closest('[data-image-main]'); if (main) { const i=Number(main.dataset.imageMain); if(i>0){const [src]=state.editImages.splice(i,1);state.editImages.unshift(src);renderImages();} }
+      const rm = e.target.closest('[data-image-remove]'); if (rm) { state.editImages.splice(Number(rm.dataset.imageRemove),1); renderImages(); renderColorImageBindings(); }
+      const main = e.target.closest('[data-image-main]'); if (main) { const i=Number(main.dataset.imageMain); if(i>0){const [src]=state.editImages.splice(i,1);state.editImages.unshift(src);renderImages();renderColorImageBindings();} }
       const vrm = e.target.closest('[data-v-remove]'); if (vrm) { syncVariantsFromDom(); state.editVariants.splice(Number(vrm.dataset.vRemove),1); renderVariants(); }
+    });
+    document.addEventListener('input', e => {
+      const input = e.target.closest('[data-v-color]');
+      if (!input) return;
+      const previous = String(input.dataset.prevColor || '').trim();
+      const next = input.value.trim();
+      if (previous && next && previous !== next && state.editColorImages[previous] && !state.editColorImages[next]) {
+        state.editColorImages[next] = state.editColorImages[previous];
+        delete state.editColorImages[previous];
+      }
+      input.dataset.prevColor = next;
+      renderColorImageBindings();
+    });
+    document.addEventListener('change', e => {
+      const select = e.target.closest('[data-color-image-select]');
+      if (!select) return;
+      const color = String(select.dataset.colorImageSelect || '').trim();
+      if (select.value) state.editColorImages[color] = select.value;
+      else delete state.editColorImages[color];
+      renderColorImageBindings();
     });
     $('#editorForm').addEventListener('submit', saveEditor);
     $('#editKind').addEventListener('change', e => setEditorMode(e.target.value));
     $('#addVariant').addEventListener('click', () => { syncVariantsFromDom(); state.editVariants.push({size:'',color:'',price:Number($('#editPrice').value)||0,available:true}); renderVariants(); });
-    $('#addImageUrl').addEventListener('click', () => { const u=$('#imageUrlInput').value.trim(); if(u){state.editImages.push(u);$('#imageUrlInput').value='';renderImages();} });
+    $('#addImageUrl').addEventListener('click', () => { const u=$('#imageUrlInput').value.trim(); if(u){state.editImages.push(u);$('#imageUrlInput').value='';renderImages();renderColorImageBindings();} });
     $('#imageUpload').addEventListener('change', async e => { try { await uploadImages([...e.target.files]); e.target.value=''; } catch(err){toast(err.message,true);} });
     $('#resetOverrideBtn').addEventListener('click', resetCurrentOverride);
     ['bulkScope','bulkSign','bulkPercent','bulkRound','bulkRoundMode'].forEach(id => $('#'+id).addEventListener(id==='bulkPercent'?'input':'change', renderBulkPreview));

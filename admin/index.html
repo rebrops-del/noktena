@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="admin.css?v=20260919-1">
+<link rel="stylesheet" href="admin.css?v=20260919-colorphotos1">
 </head>
 <body>
 <div id="toast" class="toast" aria-live="polite"></div>
@@ -106,6 +106,11 @@
         <div class="variants-table"><div class="variant-head"><span>Размер</span><span>Цвет</span><span>Цена, ₽</span><span></span></div><div id="variantRows"></div></div>
       </div>
 
+      <div class="form-section furniture-only hidden" id="colorImagesSection">
+        <div class="section-head"><div><h3>Цвет → фото</h3><p>Для каждого цвета выберите изображение, которое будет показываться покупателю при переключении цвета.</p></div></div>
+        <div id="colorImageRows" class="color-image-bindings"></div>
+      </div>
+
       <div class="form-section furniture-only" id="specsSection">
         <div class="section-head"><div><h3>Характеристики</h3><p>По одной характеристике в строке: Название: значение</p></div></div>
         <textarea id="editSpecs" rows="7" placeholder="Спальное место: 1600×2000 мм\nПодъёмный механизм: есть"></textarea>
@@ -139,6 +144,6 @@
 
 <script src="../assets/admin-config.js?v=20260919-1"></script>
 <script src="bootstrap-ui.js?v=20260919-1"></script>
-<script src="admin.js?v=20260919-1"></script>
+<script src="admin.js?v=20260919-colorphotos1"></script>
 </body>
 </html>
