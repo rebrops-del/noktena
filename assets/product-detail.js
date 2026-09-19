@@ -53,7 +53,7 @@
       ${galleryImages.length>1?`<div class="pd-thumbs" id="pdThumbs">${galleryImages.map((src,i)=>`<button class="pd-thumb ${i===0?'is-active':''}" type="button" data-pd-index="${i}" aria-label="Фото ${i+1}"><img src="${esc(src)}" alt="" loading="lazy" referrerpolicy="no-referrer"></button>`).join('')}</div>`:''}
     </div>`;
   }
-  function mattressImageMarkup(product){const pp=PHOTO_POS[product.model];if(!pp)return galleryMarkup([],product.model);galleryImages=[];return `<div class="pd-gallery-card"><div class="pd-main-media pd-sprite-media"><div class="pd-sprite" style="--col:${pp[0]};background-image:url('assets/product-row-${pp[1]+1}.webp?v=20260905-photos2')" role="img" aria-label="${esc(product.model)}"></div></div></div>`;}
+  function mattressImageMarkup(product){if(Array.isArray(product.images)&&product.images.length)return galleryMarkup(product.images,product.model);const pp=PHOTO_POS[product.model];if(!pp)return galleryMarkup([],product.model);galleryImages=[];return `<div class="pd-gallery-card"><div class="pd-main-media pd-sprite-media"><div class="pd-sprite" style="--col:${pp[0]};background-image:url('assets/product-row-${pp[1]+1}.webp?v=20260905-photos2')" role="img" aria-label="${esc(product.model)}"></div></div></div>`;}
   function publicSpec([k,v]){return k&&v&&!/производител|артикул|sku/i.test(k);}
   function specsMarkup(specs){const entries=Object.entries(specs||{}).filter(publicSpec);if(!entries.length)return '<p class="pd-description">Характеристики уточняйте при оформлении заказа.</p>';return `<div class="pd-specs">${entries.map(([k,v])=>`<div class="pd-spec"><span>${esc(k)}</span><b>${esc(v)}</b></div>`).join('')}</div>`;}
   function variantFor(product,color,size){const vars=Array.isArray(product.variants)?product.variants:[];return vars.find(v=>(!color||colorKey(v.color)===colorKey(color))&&(!size||v.size===size))||vars.find(v=>(!size||v.size===size))||vars.find(v=>(!color||colorKey(v.color)===colorKey(color)))||null;}
@@ -142,9 +142,9 @@
     try{
       const kind=params.get('kind')||'furniture';
       if(kind==='mattress'){
-        const model=params.get('model')||'';const sets=await Promise.all(DATA_FILES.map(f=>fetch(`${f}?v=20260918-quality1`,{cache:'no-store'}).then(r=>r.json())));const all=sets.flat().filter(x=>!REMOVE_MODELS.has(x.model));const product=all.find(x=>x.model===model);if(!product)throw new Error('Матрас не найден');renderMattress(product);return;
+        const model=params.get('model')||'';const sets=await Promise.all(DATA_FILES.map(f=>fetch(`${f}?v=20260918-quality1`,{cache:'no-store'}).then(r=>r.json())));let all=sets.flat();if(window.NoktenaCatalog)all=await window.NoktenaCatalog.mergeMattresses(all);all=all.filter(x=>!REMOVE_MODELS.has(x.model));const product=all.find(x=>x.model===model);if(!product)throw new Error('Матрас не найден');renderMattress(product);return;
       }
-      const id=params.get('id')||'';const r=await fetch(`data/furniture.json?v=${Date.now()}`,{cache:'no-store'});if(!r.ok)throw new Error(`HTTP ${r.status}`);const data=await r.json();const product=[...(data.beds||[]),...(data.sofas||[])].find(x=>x.id===id);if(!product)throw new Error('Товар не найден');renderFurniture(product);
+      const id=params.get('id')||'';const r=await fetch(`data/furniture.json?v=${Date.now()}`,{cache:'no-store'});if(!r.ok)throw new Error(`HTTP ${r.status}`);const raw=await r.json();const data=window.NoktenaCatalog?await window.NoktenaCatalog.mergeFurniture(raw):raw;const product=[...(data.beds||[]),...(data.sofas||[])].find(x=>x.id===id);if(!product)throw new Error('Товар не найден');renderFurniture(product);
     }catch(e){console.error(e);root.innerHTML='<div class="pd-error"><h1>Не удалось открыть товар</h1><p>Вернитесь в каталог и выберите модель ещё раз.</p><a href="/">Вернуться на главную</a></div>';}
   }
   load();
