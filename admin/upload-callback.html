@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex,nofollow">
+<meta name="referrer" content="no-referrer">
+<title>Загрузка фото</title>
+</head>
+<body>
+<script>
+(() => {
+  const q = new URLSearchParams(location.search);
+  const payload = {
+    type: 'noktena-upload-result',
+    nonce: q.get('nonce') || '',
+    ok: q.get('ok') === '1',
+    url: q.get('url') || '',
+    error: q.get('error') || '',
+    detail: q.get('detail') || ''
+  };
+  try {
+    if (window.parent && window.parent !== window) {
+      window.parent.postMessage(payload, location.origin);
+    }
+  } catch (_) {}
+  document.body.textContent = payload.ok ? 'Фото загружено' : 'Ошибка загрузки';
+})();
+</script>
+</body>
+</html>
