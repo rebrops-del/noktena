@@ -1,5 +1,5 @@
 -- NOKTENA admin backend for Supabase
--- Run once in the Supabase SQL editor.
+-- Safe to run repeatedly.
 
 create table if not exists public.admin_users (
   user_id uuid primary key references auth.users(id) on delete cascade,
@@ -26,6 +26,7 @@ $$;
 revoke all on function public.is_catalog_admin() from public;
 grant execute on function public.is_catalog_admin() to anon, authenticated;
 
+drop policy if exists "admin can read own admin record" on public.admin_users;
 create policy "admin can read own admin record"
 on public.admin_users
 for select
@@ -65,19 +66,22 @@ for each row execute function public.set_catalog_updated_at();
 
 alter table public.catalog_overrides enable row level security;
 
--- The storefront needs anonymous read access. These rows contain only public catalog data.
+-- The storefront needs anonymous read access. The table stores only public catalog data.
+drop policy if exists "public can read catalog overrides" on public.catalog_overrides;
 create policy "public can read catalog overrides"
 on public.catalog_overrides
 for select
 to anon, authenticated
 using (true);
 
+drop policy if exists "admins can insert catalog overrides" on public.catalog_overrides;
 create policy "admins can insert catalog overrides"
 on public.catalog_overrides
 for insert
 to authenticated
 with check (public.is_catalog_admin());
 
+drop policy if exists "admins can update catalog overrides" on public.catalog_overrides;
 create policy "admins can update catalog overrides"
 on public.catalog_overrides
 for update
@@ -85,6 +89,7 @@ to authenticated
 using (public.is_catalog_admin())
 with check (public.is_catalog_admin());
 
+drop policy if exists "admins can delete catalog overrides" on public.catalog_overrides;
 create policy "admins can delete catalog overrides"
 on public.catalog_overrides
 for delete
@@ -95,18 +100,21 @@ insert into storage.buckets (id, name, public)
 values ('product-images', 'product-images', true)
 on conflict (id) do update set public = excluded.public;
 
+drop policy if exists "public can view product images" on storage.objects;
 create policy "public can view product images"
 on storage.objects
 for select
 to anon, authenticated
 using (bucket_id = 'product-images');
 
+drop policy if exists "admins can upload product images" on storage.objects;
 create policy "admins can upload product images"
 on storage.objects
 for insert
 to authenticated
 with check (bucket_id = 'product-images' and public.is_catalog_admin());
 
+drop policy if exists "admins can update product images" on storage.objects;
 create policy "admins can update product images"
 on storage.objects
 for update
@@ -114,13 +122,14 @@ to authenticated
 using (bucket_id = 'product-images' and public.is_catalog_admin())
 with check (bucket_id = 'product-images' and public.is_catalog_admin());
 
+drop policy if exists "admins can delete product images" on storage.objects;
 create policy "admins can delete product images"
 on storage.objects
 for delete
 to authenticated
 using (bucket_id = 'product-images' and public.is_catalog_admin());
 
--- After creating the first user in Authentication > Users, make that user an admin:
+-- After the first Auth user is created, grant that user admin access:
 -- insert into public.admin_users (user_id, email)
 -- select id, email from auth.users where email = 'YOUR_EMAIL@example.com'
 -- on conflict (user_id) do nothing;
