@@ -1,0 +1,38 @@
+name: Fix admin photo upload delete v2
+
+on:
+  push:
+    paths:
+      - 'scripts/fix_admin_photo_upload_delete_v2.py'
+      - '.github/workflows/fix-admin-photo-upload-delete-v2.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Apply patch
+        run: python scripts/fix_admin_photo_upload_delete_v2.py
+
+      - name: Validate JavaScript syntax
+        run: node --check admin/admin.js
+
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add admin/admin.js admin/admin.css admin/index.html
+          if git diff --cached --quiet; then
+            echo "No changes"
+          else
+            git commit -m "Fix admin photo upload and color image deletion"
+            git push
+          fi
