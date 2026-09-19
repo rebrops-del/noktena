@@ -321,7 +321,12 @@
       return `<div class="color-image-row">
         <div class="color-image-preview">${selected ? `<img src="${esc(selected)}" alt="${esc(color)}">` : '<span>Нет фото</span>'}</div>
         <div class="color-image-meta"><b>${esc(color)}</b><small>Фото при выборе этого цвета</small></div>
-        <select data-color-image-select="${esc(color)}">${options}</select>
+        <div class="color-image-controls">
+          <select data-color-image-select="${esc(color)}">${options}</select>
+          <button type="button" class="secondary-btn" data-color-upload-trigger="${esc(color)}">+ Загрузить фото</button>
+          <input type="file" accept="image/jpeg,image/png,image/webp" data-color-upload="${esc(color)}" hidden>
+          ${selected ? `<button type="button" class="danger-link" data-color-image-remove="${esc(color)}">Удалить фото</button>` : ''}
+        </div>
       </div>`;
     }).join('');
   }
@@ -356,6 +361,7 @@
     $('#editCategory').value = item.category || (item._kind === 'furniture' ? 'beds' : 'Матрасы');
     $('#editName').value = itemName(item) || '';
     $('#editPrice').value = Number(item.price) || minPrice(item) || '';
+    $('#editPrice').dataset.originalPrice = String(Number(item.price) || minPrice(item) || 0);
     $('#editSubtype').value = item.subtype || '';
     $('#editSummary').value = item._kind === 'mattress' ? (item.intro || '') : (item.summary || '');
     $('#editDescription').value = item.description || '';
@@ -388,7 +394,9 @@
     const description = $('#editDescription').value.trim();
     const summary = $('#editSummary').value.trim();
     const variants = clone(state.editVariants);
-    if (price > 0 && variants.length && variants.every(v => !Number(v.price))) variants.forEach(v => v.price = price);
+    const originalPrice = Number($('#editPrice').dataset.originalPrice) || 0;
+    const basePriceChanged = price > 0 && price !== originalPrice;
+    if (price > 0 && variants.length && (basePriceChanged || variants.every(v => !Number(v.price)))) variants.forEach(v => v.price = price);
     if (kind === 'mattress') {
       return {
         model: name,
@@ -496,30 +504,116 @@
     } catch (err) { toast(err.message, true); }
   }
 
-  function safeSegment(value) {
-    return String(value || 'product').toLowerCase().replace(/[^a-zа-я0-9._-]+/gi,'-').replace(/^-+|-+$/g,'').slice(0,80) || 'product';
+
+  const ADMIN_BRIDGE_URL = `${baseUrl()}/functions/v1/noktena-admin-bridge`;
+  const bridgePending = new Map();
+
+  window.addEventListener('message', e => {
+    const data = e.data;
+    if (!data || data.type !== 'noktena-admin-bridge' || !data.request_id) return;
+    const pending = bridgePending.get(data.request_id);
+    if (!pending) return;
+    bridgePending.delete(data.request_id);
+    clearTimeout(pending.timer);
+    try { pending.form.remove(); } catch (_) {}
+    try { pending.iframe.remove(); } catch (_) {}
+    if (data.ok) pending.resolve(data);
+    else pending.reject(new Error(data.error || 'Сервер не выполнил операцию'));
+  });
+
+  function bridgePost(fields, timeoutMs = 45000) {
+    return new Promise((resolve, reject) => {
+      if (!state.session?.access_token) return reject(new Error('Сессия администратора не найдена. Войдите заново.'));
+      const requestId = (crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`);
+      const frameName = `noktena_bridge_${requestId.replace(/[^a-z0-9]/gi,'')}`;
+      const iframe = document.createElement('iframe');
+      iframe.name = frameName;
+      iframe.hidden = true;
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = ADMIN_BRIDGE_URL;
+      form.target = frameName;
+      form.enctype = 'application/x-www-form-urlencoded';
+      form.style.display = 'none';
+      const all = {...fields, request_id: requestId, access_token: state.session.access_token};
+      for (const [name, value] of Object.entries(all)) {
+        const input = document.createElement('textarea');
+        input.name = name;
+        input.value = String(value ?? '');
+        form.appendChild(input);
+      }
+      document.body.appendChild(iframe);
+      document.body.appendChild(form);
+      const timer = setTimeout(() => {
+        bridgePending.delete(requestId);
+        try { form.remove(); } catch (_) {}
+        try { iframe.remove(); } catch (_) {}
+        reject(new Error('Сервер не ответил на загрузку фото.'));
+      }, timeoutMs);
+      bridgePending.set(requestId, {resolve, reject, timer, form, iframe});
+      form.submit();
+    });
   }
 
-  async function uploadImages(files) {
-    if (!files?.length) return;
-    const key = $('#editKey').value || `new-${Date.now()}`;
-    const bucket = cfg.storageBucket || 'product-images';
-    for (const file of files) {
-      if (!file.type.startsWith('image/')) continue;
-      const name = `${Date.now()}-${safeSegment(file.name)}`;
-      const path = `products/${safeSegment(key)}/${name}`;
-      const encoded = path.split('/').map(encodeURIComponent).join('/');
-      const r = await fetch(`${baseUrl()}/storage/v1/object/${encodeURIComponent(bucket)}/${encoded}`, {
-        method:'POST',
-        headers:authHeaders({'Content-Type':file.type,'x-upsert':'true'}),
-        body:file
-      });
-      if (!r.ok) throw new Error(`Не удалось загрузить ${file.name}`);
-      state.editImages.push(`${baseUrl()}/storage/v1/object/public/${encodeURIComponent(bucket)}/${encoded}`);
+  function fileToDataUrl(blob) {
+    return new Promise((resolve, reject) => {
+      const r = new FileReader();
+      r.onload = () => resolve(String(r.result || ''));
+      r.onerror = () => reject(new Error('Не удалось прочитать изображение'));
+      r.readAsDataURL(blob);
+    });
+  }
+
+  function canvasToBlob(canvas, quality) {
+    return new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', quality));
+  }
+
+  async function preparePhotoForBridge(file) {
+    if (!file || !String(file.type || '').startsWith('image/')) throw new Error('Выберите изображение JPG, PNG или WEBP.');
+    if (file.size > 25 * 1024 * 1024) throw new Error('Фото больше 25 МБ.');
+    let bitmap;
+    try { bitmap = await createImageBitmap(file); }
+    catch (_) {
+      if (file.size <= 250 * 1024) return await fileToDataUrl(file);
+      throw new Error('Не удалось обработать изображение. Сохраните его как JPG и попробуйте снова.');
     }
-    renderImages();
-    renderColorImageBindings();
-    toast('Фотографии загружены');
+    const attempts = [[1600,.78],[1400,.72],[1200,.68],[1000,.62],[850,.58]];
+    let dataUrl = '';
+    for (const [maxSide, quality] of attempts) {
+      const scale = Math.min(1, maxSide / Math.max(bitmap.width, bitmap.height));
+      const w = Math.max(1, Math.round(bitmap.width * scale));
+      const h = Math.max(1, Math.round(bitmap.height * scale));
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      const ctx = canvas.getContext('2d', {alpha:false});
+      ctx.fillStyle = '#fff'; ctx.fillRect(0,0,w,h); ctx.drawImage(bitmap,0,0,w,h);
+      const blob = await canvasToBlob(canvas, quality);
+      if (!blob) continue;
+      dataUrl = await fileToDataUrl(blob);
+      if (dataUrl.length <= 430000) break;
+    }
+    try { bitmap.close(); } catch (_) {}
+    if (!dataUrl || dataUrl.length > 480000) throw new Error('Фото слишком большое даже после оптимизации.');
+    return dataUrl;
+  }
+
+  async function uploadImages(files, color = '') {
+    if (!files?.length) return [];
+    const uploaded = [];
+    const productKey = $('#editKey').value || $('#editName').value.trim() || `new-${Date.now()}`;
+    for (const file of files) {
+      const dataUrl = await preparePhotoForBridge(file);
+      const result = await bridgePost({action:'save_image', product_key:productKey, data_url:dataUrl});
+      if (!result.url) throw new Error('Сервер не вернул адрес загруженного фото.');
+      const url = result.url;
+      if (color) state.editColorImages[color] = url;
+      else if (!state.editImages.includes(url)) state.editImages.push(url);
+      uploaded.push(url);
+      renderImages();
+      renderColorImageBindings();
+    }
+    toast(color ? `Фото для цвета «${color}» загружено` : 'Фотография загружена');
+    return uploaded;
   }
 
   function priceTransform(value) {
@@ -718,6 +812,8 @@
       const rm = e.target.closest('[data-image-remove]'); if (rm) { state.editImages.splice(Number(rm.dataset.imageRemove),1); renderImages(); renderColorImageBindings(); }
       const main = e.target.closest('[data-image-main]'); if (main) { const i=Number(main.dataset.imageMain); if(i>0){const [src]=state.editImages.splice(i,1);state.editImages.unshift(src);renderImages();renderColorImageBindings();} }
       const vrm = e.target.closest('[data-v-remove]'); if (vrm) { syncVariantsFromDom(); state.editVariants.splice(Number(vrm.dataset.vRemove),1); renderVariants(); }
+      const colorUpload = e.target.closest('[data-color-upload-trigger]'); if (colorUpload) { const color=colorUpload.dataset.colorUploadTrigger; const input=[...document.querySelectorAll('[data-color-upload]')].find(x=>x.dataset.colorUpload===color); if(input) input.click(); }
+      const colorRemove = e.target.closest('[data-color-image-remove]'); if (colorRemove) { const color=String(colorRemove.dataset.colorImageRemove||''); const src=state.editColorImages[color]; delete state.editColorImages[color]; if(src){ state.editImages=state.editImages.filter(x=>x!==src); for(const [c,u] of Object.entries(state.editColorImages)){ if(u===src) delete state.editColorImages[c]; } } renderImages(); renderColorImageBindings(); }
     });
     document.addEventListener('input', e => {
       const input = e.target.closest('[data-v-color]');
@@ -731,7 +827,15 @@
       input.dataset.prevColor = next;
       renderColorImageBindings();
     });
-    document.addEventListener('change', e => {
+    document.addEventListener('change', async e => {
+      const colorFile = e.target.closest('[data-color-upload]');
+      if (colorFile) {
+        const color = String(colorFile.dataset.colorUpload || '').trim();
+        const file = colorFile.files?.[0];
+        colorFile.value = '';
+        if (file) { try { await uploadImages([file], color); } catch (err) { toast(err.message || 'Не удалось загрузить фото', true); } }
+        return;
+      }
       const select = e.target.closest('[data-color-image-select]');
       if (!select) return;
       const color = String(select.dataset.colorImageSelect || '').trim();
