@@ -1,0 +1,40 @@
+name: Test signed upload
+
+on:
+  push:
+    paths:
+      - '.github/workflows/test-signed-upload.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Test signed upload path
+        shell: bash
+        run: |
+          set -euo pipefail
+          json=$(curl -fsS 'https://oldtlbkrftflfthfsqdv.supabase.co/functions/v1/admin-upload-image?health=signed')
+          printf '%s' "$json" > /tmp/signed.json
+          signed=$(python - <<'PY'
+          import json
+          d=json.load(open('/tmp/signed.json'))
+          print(d['signedUrl'])
+          PY
+          )
+          public=$(python - <<'PY'
+          import json
+          d=json.load(open('/tmp/signed.json'))
+          print(d['url'])
+          PY
+          )
+          printf 'signed-upload-health' >/tmp/health.txt
+          curl -fsS -X PUT \
+            -F 'cacheControl=3600' \
+            -F '=@/tmp/health.txt;type=text/plain' \
+            "$signed" >/tmp/upload-response.txt
+          cat /tmp/upload-response.txt
+          curl -fsS "$public" | grep -q 'signed-upload-health'
+          echo 'SIGNED_UPLOAD_OK'
