@@ -35,8 +35,23 @@
     <label>E-mail<input id="loginEmail" type="email" autocomplete="username" required placeholder="admin@example.com"></label>
     <label>Пароль<input id="loginPassword" type="password" autocomplete="current-password" required placeholder="••••••••"></label>
     <button class="primary-btn" type="submit">Войти</button>
+    <button id="forgotPasswordBtn" class="ghost-btn" type="button">Забыли пароль?</button>
+    <div id="recoveryStatus" class="form-error"></div>
     <div id="loginError" class="form-error"></div>
     <a href="/" class="text-link">← Вернуться на сайт</a>
+  </form>
+</section>
+
+<section id="recoveryScreen" class="auth-screen hidden">
+  <form id="resetPasswordForm" class="auth-card">
+    <div class="brand-mark">N</div>
+    <div class="eyebrow">НОКТЕНА · ADMIN</div>
+    <h1>Новый пароль</h1>
+    <p>Введите новый пароль для учётной записи администратора.</p>
+    <label>Новый пароль<input id="resetPassword" type="password" autocomplete="new-password" minlength="8" required placeholder="Минимум 8 символов"></label>
+    <label>Повторите пароль<input id="resetPasswordRepeat" type="password" autocomplete="new-password" minlength="8" required></label>
+    <button id="resetPasswordSubmit" class="primary-btn" type="submit">Сохранить новый пароль</button>
+    <div id="resetPasswordStatus" class="form-error"></div>
   </form>
 </section>
 
@@ -48,7 +63,7 @@
       <button class="nav-item" id="bulkNav"><span>%</span>Цены</button>
       <a class="nav-item" href="/" target="_blank"><span>↗</span>Открыть сайт</a>
     </nav>
-    <div class="sidebar-bottom"><div id="adminEmail" class="admin-email"></div><button id="logoutBtn" class="ghost-btn">Выйти</button></div>
+    <div class="sidebar-bottom"><div id="adminEmail" class="admin-email"></div><button id="changePasswordBtn" class="ghost-btn">Сменить пароль</button><button id="logoutBtn" class="ghost-btn">Выйти</button></div>
   </aside>
 
   <main class="main">
@@ -127,6 +142,20 @@
   </div>
 </div>
 
+<div id="passwordModal" class="modal hidden" role="dialog" aria-modal="true">
+  <div class="modal-backdrop" data-close-password></div>
+  <div class="modal-card bulk-modal">
+    <div class="modal-head"><div><div class="eyebrow">БЕЗОПАСНОСТЬ</div><h2>Сменить пароль</h2></div><button class="close-btn" type="button" data-close-password>×</button></div>
+    <form id="changePasswordForm">
+      <label>Текущий пароль<input id="currentPassword" type="password" autocomplete="current-password" required></label>
+      <label>Новый пароль<input id="newPassword" type="password" autocomplete="new-password" minlength="8" required placeholder="Минимум 8 символов"></label>
+      <label>Повторите новый пароль<input id="newPasswordRepeat" type="password" autocomplete="new-password" minlength="8" required></label>
+      <div id="changePasswordStatus" class="form-error"></div>
+      <div class="modal-actions"><span></span><div class="right-actions"><button class="ghost-btn" type="button" data-close-password>Отмена</button><button id="changePasswordSubmit" class="primary-btn" type="submit">Изменить пароль</button></div></div>
+    </form>
+  </div>
+</div>
+
 <div id="bulkModal" class="modal hidden" role="dialog" aria-modal="true">
   <div class="modal-backdrop" data-close-bulk></div>
   <div class="modal-card bulk-modal">
@@ -143,7 +172,7 @@
 </div>
 
 <script src="../assets/admin-config.js?v=20260919-1"></script>
-<script src="bootstrap-ui.js?v=20260919-1"></script>
-<script src="admin.js?v=20260919-colorphotos1"></script>
+<script src="bootstrap-ui.js?v=20260919-authfix1"></script>
+<script src="admin.js?v=20260919-authfix1"></script>
 </body>
 </html>

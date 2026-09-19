@@ -35,23 +35,47 @@
   }
 
   function authHeaders(extra = {}, token = null) {
-    return {
-      apikey: cfg.supabaseAnonKey,
-      Authorization: `Bearer ${token || state.session?.access_token || cfg.supabaseAnonKey}`,
-      ...extra
-    };
+    const headers = {apikey: cfg.supabaseAnonKey, ...extra};
+    const bearer = token || state.session?.access_token;
+    if (bearer) headers.Authorization = `Bearer ${bearer}`;
+    return headers;
   }
 
-  async function request(path, options = {}) {
+  function publicAuthHeaders(extra = {}) {
+    return {apikey: cfg.supabaseAnonKey, ...extra};
+  }
+
+  async function refreshSession() {
+    const refreshToken = state.session?.refresh_token;
+    if (!refreshToken) throw new Error('Нет refresh token');
+    const r = await fetch(`${baseUrl()}/auth/v1/token?grant_type=refresh_token`, {
+      method:'POST',
+      headers:publicAuthHeaders({'Content-Type':'application/json'}),
+      body:JSON.stringify({refresh_token:refreshToken})
+    });
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok || !data.access_token) throw new Error(data.error_description || data.msg || 'Сессия истекла');
+    state.session = data;
+    localStorage.setItem(SESSION_KEY, JSON.stringify(data));
+    return data;
+  }
+
+  async function request(path, options = {}, retried = false) {
     const r = await fetch(`${baseUrl()}${path}`, {
       ...options,
       headers: authHeaders(options.headers || {})
     });
+    if (r.status === 401 && !retried && state.session?.refresh_token) {
+      try {
+        await refreshSession();
+        return request(path, options, true);
+      } catch (_) {
+        localStorage.removeItem(SESSION_KEY);
+        state.session = null;
+      }
+    }
     if (!r.ok) {
       const text = await r.text().catch(() => '');
-      if (r.status === 401) {
-        localStorage.removeItem(SESSION_KEY);
-      }
       throw new Error(text || `HTTP ${r.status}`);
     }
     if (r.status === 204 || options.headers?.Prefer?.includes('return=minimal')) return null;
@@ -62,14 +86,52 @@
   async function signIn(email, password) {
     const r = await fetch(`${baseUrl()}/auth/v1/token?grant_type=password`, {
       method: 'POST',
-      headers: authHeaders({'Content-Type':'application/json'}, cfg.supabaseAnonKey),
+      headers: publicAuthHeaders({'Content-Type':'application/json'}),
       body: JSON.stringify({email, password})
     });
     const data = await r.json().catch(() => ({}));
-    if (!r.ok || !data.access_token) throw new Error(data.error_description || data.msg || 'Не удалось войти');
+    if (!r.ok || !data.access_token) throw new Error(data.error_description || data.msg || data.error || 'Не удалось войти');
     state.session = data;
     localStorage.setItem(SESSION_KEY, JSON.stringify(data));
     return data;
+  }
+
+  async function updatePassword(password) {
+    const token = state.session?.access_token;
+    if (!token) throw new Error('Сессия не найдена. Войдите заново.');
+    const r = await fetch(`${baseUrl()}/auth/v1/user`, {
+      method:'PUT',
+      headers:authHeaders({'Content-Type':'application/json'}, token),
+      body:JSON.stringify({password})
+    });
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(data.msg || data.message || data.error_description || data.error || 'Не удалось изменить пароль');
+    return data;
+  }
+
+  async function sendRecovery(email) {
+    const redirectTo = `${location.origin}/admin/`;
+    const r = await fetch(`${baseUrl()}/auth/v1/recover?redirect_to=${encodeURIComponent(redirectTo)}`, {
+      method:'POST',
+      headers:publicAuthHeaders({'Content-Type':'application/json'}),
+      body:JSON.stringify({email})
+    });
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(data.msg || data.message || data.error_description || data.error || 'Не удалось отправить письмо');
+  }
+
+  function adoptRecoverySession() {
+    const hash = new URLSearchParams(location.hash.replace(/^#/, ''));
+    if (hash.get('type') !== 'recovery' || !hash.get('access_token')) return false;
+    state.session = {
+      access_token: hash.get('access_token'),
+      refresh_token: hash.get('refresh_token') || '',
+      token_type: hash.get('token_type') || 'bearer',
+      expires_in: Number(hash.get('expires_in')) || 3600,
+      user: null
+    };
+    localStorage.setItem(SESSION_KEY, JSON.stringify(state.session));
+    return true;
   }
 
   function restoreSession() {
@@ -560,7 +622,89 @@
         btn.textContent = 'Войти';
       }
     });
-    $('#logoutBtn').addEventListener('click', () => { localStorage.removeItem(SESSION_KEY); location.reload(); });
+    $('#forgotPasswordBtn').addEventListener('click', async () => {
+      const email = $('#loginEmail').value.trim().toLowerCase();
+      const status = $('#recoveryStatus');
+      status.textContent = '';
+      if (!email) { status.textContent = 'Введите e-mail администратора.'; return; }
+      const btn = $('#forgotPasswordBtn');
+      btn.disabled = true;
+      btn.textContent = 'Отправляем…';
+      try {
+        await sendRecovery(email);
+        status.style.color = '#16704a';
+        status.textContent = 'Ссылка для смены пароля отправлена на e-mail.';
+      } catch (err) {
+        status.style.color = '#c93845';
+        status.textContent = err.message || 'Не удалось отправить письмо.';
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Забыли пароль?';
+      }
+    });
+
+    $('#resetPasswordForm').addEventListener('submit', async e => {
+      e.preventDefault();
+      const pass = $('#resetPassword').value;
+      const repeat = $('#resetPasswordRepeat').value;
+      const status = $('#resetPasswordStatus');
+      status.textContent = '';
+      if (pass.length < 8) { status.textContent = 'Пароль должен содержать минимум 8 символов.'; return; }
+      if (pass !== repeat) { status.textContent = 'Пароли не совпадают.'; return; }
+      const btn = $('#resetPasswordSubmit');
+      btn.disabled = true;
+      btn.textContent = 'Сохраняем…';
+      try {
+        await updatePassword(pass);
+        localStorage.removeItem(SESSION_KEY);
+        state.session = null;
+        history.replaceState(null, '', '/admin/');
+        $('#recoveryScreen').classList.add('hidden');
+        $('#loginScreen').classList.remove('hidden');
+        $('#loginError').style.color = '#16704a';
+        $('#loginError').textContent = 'Пароль изменён. Войдите с новым паролем.';
+      } catch (err) {
+        status.textContent = err.message || 'Не удалось изменить пароль.';
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Сохранить новый пароль';
+      }
+    });
+
+    $('#changePasswordBtn').addEventListener('click', () => {
+      $('#changePasswordForm').reset();
+      $('#changePasswordStatus').textContent = '';
+      $('#passwordModal').classList.remove('hidden');
+    });
+    $$('[data-close-password]').forEach(el => el.addEventListener('click', () => $('#passwordModal').classList.add('hidden')));
+    $('#changePasswordForm').addEventListener('submit', async e => {
+      e.preventDefault();
+      const current = $('#currentPassword').value;
+      const next = $('#newPassword').value;
+      const repeat = $('#newPasswordRepeat').value;
+      const status = $('#changePasswordStatus');
+      status.textContent = '';
+      if (next.length < 8) { status.textContent = 'Новый пароль должен содержать минимум 8 символов.'; return; }
+      if (next !== repeat) { status.textContent = 'Новые пароли не совпадают.'; return; }
+      const email = state.session?.user?.email || $('#adminEmail').textContent.trim();
+      if (!email) { status.textContent = 'Не удалось определить e-mail администратора.'; return; }
+      const btn = $('#changePasswordSubmit');
+      btn.disabled = true;
+      btn.textContent = 'Сохраняем…';
+      try {
+        await signIn(email, current);
+        await updatePassword(next);
+        $('#passwordModal').classList.add('hidden');
+        toast('Пароль изменён');
+      } catch (err) {
+        status.textContent = err.message || 'Не удалось изменить пароль.';
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Изменить пароль';
+      }
+    });
+
+    $('#logoutBtn').addEventListener('click', () => { localStorage.removeItem(SESSION_KEY); state.session = null; location.reload(); });
     $('#searchInput').addEventListener('input', renderTable);
     $('#kindFilter').addEventListener('change', renderTable);
     $('#statusFilter').addEventListener('change', renderTable);
@@ -611,12 +755,27 @@
       $('#setupScreen').classList.remove('hidden');
       return;
     }
+    if (adoptRecoverySession()) {
+      $('#loginScreen').classList.add('hidden');
+      $('#recoveryScreen').classList.remove('hidden');
+      return;
+    }
     restoreSession();
     if (!state.session) {
       $('#loginScreen').classList.remove('hidden');
       return;
     }
-    await enterApp();
+    try {
+      if (state.session.refresh_token) await refreshSession();
+      await enterApp();
+    } catch (err) {
+      console.error(err);
+      localStorage.removeItem(SESSION_KEY);
+      state.session = null;
+      $('#app').classList.add('hidden');
+      $('#loginScreen').classList.remove('hidden');
+      $('#loginError').textContent = 'Сессия истекла. Войдите снова.';
+    }
   }
 
   init();
