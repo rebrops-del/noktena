@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>НОКТЕНА — Админ-панель</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="admin.css?v=20260919-1">
+</head>
+<body>
+<div id="toast" class="toast" aria-live="polite"></div>
+
+<section id="setupScreen" class="auth-screen hidden">
+  <div class="auth-card setup-card">
+    <div class="brand-mark">N</div>
+    <div>
+      <div class="eyebrow">НОКТЕНА · ADMIN</div>
+      <h1>Подключение базы данных</h1>
+      <p>Интерфейс админ-панели установлен. Для сохранения изменений нужно подключить Supabase. После подключения URL проекта и public anon key будут записаны в конфигурацию сайта.</p>
+      <div class="setup-status"><span></span>Ожидается подключение Supabase</div>
+      <a href="/" class="text-link">← Вернуться на сайт</a>
+    </div>
+  </div>
+</section>
+
+<section id="loginScreen" class="auth-screen hidden">
+  <form id="loginForm" class="auth-card">
+    <div class="brand-mark">N</div>
+    <div class="eyebrow">НОКТЕНА · ADMIN</div>
+    <h1>Вход в админ-панель</h1>
+    <p>Управление карточками, фотографиями и ценами каталога.</p>
+    <label>E-mail<input id="loginEmail" type="email" autocomplete="username" required placeholder="admin@example.com"></label>
+    <label>Пароль<input id="loginPassword" type="password" autocomplete="current-password" required placeholder="••••••••"></label>
+    <button class="primary-btn" type="submit">Войти</button>
+    <div id="loginError" class="form-error"></div>
+    <a href="/" class="text-link">← Вернуться на сайт</a>
+  </form>
+</section>
+
+<div id="app" class="app hidden">
+  <aside class="sidebar">
+    <a class="admin-brand" href="/admin/"><span>N</span><div><b>НОКТЕНА</b><small>Админ-панель</small></div></a>
+    <nav>
+      <button class="nav-item active" data-nav="catalog"><span>▦</span>Каталог</button>
+      <button class="nav-item" id="bulkNav"><span>%</span>Цены</button>
+      <a class="nav-item" href="/" target="_blank"><span>↗</span>Открыть сайт</a>
+    </nav>
+    <div class="sidebar-bottom"><div id="adminEmail" class="admin-email"></div><button id="logoutBtn" class="ghost-btn">Выйти</button></div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <div><div class="eyebrow">УПРАВЛЕНИЕ КАТАЛОГОМ</div><h1>Товары</h1></div>
+      <div class="top-actions"><button id="bulkBtn" class="secondary-btn">Изменить цены</button><button id="addBtn" class="primary-btn">+ Добавить товар</button></div>
+    </header>
+
+    <section class="stats" id="stats"></section>
+
+    <section class="panel">
+      <div class="toolbar">
+        <div class="search-box"><span>⌕</span><input id="searchInput" type="search" placeholder="Поиск по названию…"></div>
+        <select id="kindFilter"><option value="">Все товары</option><option value="mattress">Матрасы</option><option value="beds">Кровати</option><option value="sofas">Диваны</option></select>
+        <select id="statusFilter"><option value="">Все статусы</option><option value="active">Активные</option><option value="hidden">Скрытые</option><option value="changed">Изменённые вручную</option></select>
+      </div>
+      <div class="table-wrap">
+        <table class="products-table">
+          <thead><tr><th>Товар</th><th>Категория</th><th>Цена от</th><th>Статус</th><th>Источник</th><th></th></tr></thead>
+          <tbody id="productRows"><tr><td colspan="6" class="loading-row">Загружаем каталог…</td></tr></tbody>
+        </table>
+      </div>
+      <div id="tableFooter" class="table-footer"></div>
+    </section>
+  </main>
+</div>
+
+<div id="editorModal" class="modal hidden" role="dialog" aria-modal="true">
+  <div class="modal-backdrop" data-close-modal></div>
+  <div class="modal-card editor-modal">
+    <div class="modal-head"><div><div class="eyebrow">КАРТОЧКА ТОВАРА</div><h2 id="editorTitle">Редактирование</h2></div><button class="close-btn" data-close-modal>×</button></div>
+    <form id="editorForm">
+      <input id="editKey" type="hidden">
+      <input id="editIsCustom" type="hidden">
+      <div class="form-grid two">
+        <label>Тип товара<select id="editKind"><option value="mattress">Матрас</option><option value="furniture">Мебель</option></select></label>
+        <label>Категория<select id="editCategory"><option value="Матрасы">Матрасы</option><option value="beds">Кровати</option><option value="sofas">Диваны</option><option value="Подушки">Подушки</option><option value="Чехлы">Чехлы</option></select></label>
+      </div>
+      <label>Название<input id="editName" required></label>
+      <div class="form-grid two">
+        <label>Базовая цена, ₽<input id="editPrice" type="number" min="0" step="1"></label>
+        <label>Подтип / группа<input id="editSubtype" placeholder="Например: Прямой"></label>
+      </div>
+      <label>Краткое описание<textarea id="editSummary" rows="3"></textarea></label>
+      <label>Полное описание<textarea id="editDescription" rows="7"></textarea></label>
+
+      <div class="form-section">
+        <div class="section-head"><div><h3>Фотографии</h3><p>Первая фотография используется как главная.</p></div><label class="upload-btn">+ Загрузить фото<input id="imageUpload" type="file" accept="image/*" multiple hidden></label></div>
+        <div id="imageGrid" class="image-grid"></div>
+        <label>Или добавить ссылку<div class="inline-input"><input id="imageUrlInput" type="url" placeholder="https://..."><button id="addImageUrl" type="button" class="secondary-btn">Добавить</button></div></label>
+      </div>
+
+      <div class="form-section">
+        <div class="section-head"><div><h3>Размеры и цены</h3><p>Цена каждого варианта может отличаться.</p></div><button id="addVariant" type="button" class="secondary-btn">+ Вариант</button></div>
+        <div class="variants-table"><div class="variant-head"><span>Размер</span><span>Цвет</span><span>Цена, ₽</span><span></span></div><div id="variantRows"></div></div>
+      </div>
+
+      <div class="form-section furniture-only" id="specsSection">
+        <div class="section-head"><div><h3>Характеристики</h3><p>По одной характеристике в строке: Название: значение</p></div></div>
+        <textarea id="editSpecs" rows="7" placeholder="Спальное место: 1600×2000 мм\nПодъёмный механизм: есть"></textarea>
+      </div>
+
+      <div class="flags-row">
+        <label class="check"><input id="editAvailable" type="checkbox"><span>В наличии</span></label>
+        <label class="check"><input id="editHit" type="checkbox"><span>Хит продаж</span></label>
+        <label class="check danger-check"><input id="editHidden" type="checkbox"><span>Скрыть на сайте</span></label>
+      </div>
+
+      <div class="modal-actions"><div><button id="resetOverrideBtn" type="button" class="danger-link hidden">Сбросить ручные изменения</button></div><div class="right-actions"><button type="button" class="ghost-btn" data-close-modal>Отмена</button><button id="saveProductBtn" type="submit" class="primary-btn">Сохранить</button></div></div>
+    </form>
+  </div>
+</div>
+
+<div id="bulkModal" class="modal hidden" role="dialog" aria-modal="true">
+  <div class="modal-backdrop" data-close-bulk></div>
+  <div class="modal-card bulk-modal">
+    <div class="modal-head"><div><div class="eyebrow">МАССОВОЕ ИЗМЕНЕНИЕ</div><h2>Изменить цены</h2></div><button class="close-btn" data-close-bulk>×</button></div>
+    <div class="form-grid two">
+      <label>Какие товары<select id="bulkScope"><option value="all">Все товары</option><option value="mattress">Только матрасы</option><option value="beds">Только кровати</option><option value="sofas">Только диваны</option></select></label>
+      <label>Изменение, %<div class="percent-field"><select id="bulkSign"><option value="1">+</option><option value="-1">−</option></select><input id="bulkPercent" type="number" min="0" max="500" step="0.1" value="10"></div></label>
+      <label>Округление<select id="bulkRound"><option value="1">до 1 ₽</option><option value="10">до 10 ₽</option><option value="50">до 50 ₽</option><option value="100" selected>до 100 ₽</option><option value="500">до 500 ₽</option><option value="1000">до 1 000 ₽</option></select></label>
+      <label>Способ округления<select id="bulkRoundMode"><option value="nearest">до ближайшего</option><option value="up">вверх</option><option value="down">вниз</option></select></label>
+    </div>
+    <div id="bulkPreview" class="bulk-preview"></div>
+    <div class="modal-actions"><span></span><div class="right-actions"><button class="ghost-btn" type="button" data-close-bulk>Отмена</button><button id="applyBulkBtn" class="primary-btn" type="button">Применить изменения</button></div></div>
+  </div>
+</div>
+
+<script src="../assets/admin-config.js?v=20260919-1"></script>
+<script src="admin.js?v=20260919-1"></script>
+</body>
+</html>
