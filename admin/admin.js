@@ -13,7 +13,8 @@
     items: [],
     editImages: [],
     editVariants: [],
-    editColorImages: {}
+    editColorImages: {},
+    assetUrls: new Map()
   };
 
   const configured = () => Boolean(cfg.supabaseUrl && cfg.supabaseAnonKey);
@@ -24,6 +25,11 @@
   const clone = obj => JSON.parse(JSON.stringify(obj ?? {}));
   const uniq = list => [...new Set((list || []).filter(Boolean).map(v => String(v).trim()).filter(Boolean))];
   const keyFor = (kind, p) => kind === 'furniture' ? `furniture:${p.id}` : `mattress:${p.model}`;
+
+  function imageSrc(value) {
+    const key = String(value || '');
+    return state.assetUrls.get(key) || key;
+  }
 
   function toast(message, error = false) {
     const el = $('#toast');
@@ -169,6 +175,11 @@
     state.rowsByKey = new Map((rows || []).map(r => [r.product_key, r]));
   }
 
+  async function loadCatalogImages() {
+    const rows = await request('/rest/v1/catalog_images?select=id,data_url&order=created_at.asc');
+    state.assetUrls = new Map((rows || []).map(row => [`asset:${row.id}`, row.data_url]));
+  }
+
   function rebuildItems() {
     const items = [];
     for (const rec of state.baseByKey.values()) {
@@ -208,7 +219,7 @@
   }
 
   function imageFor(item) {
-    return Array.isArray(item.images) && item.images[0] ? item.images[0] : '';
+    return Array.isArray(item.images) && item.images[0] ? imageSrc(item.images[0]) : '';
   }
 
   function renderStats() {
@@ -272,7 +283,7 @@
   }
 
   function renderImages() {
-    $('#imageGrid').innerHTML = state.editImages.length ? state.editImages.map((src,i) => `<div class="image-item"><img src="${esc(src)}" alt=""><div class="image-actions"><button type="button" data-image-main="${i}">${i===0?'Главное':'Сделать главным'}</button><button type="button" data-image-remove="${i}">Удалить</button></div></div>`).join('') : '<div class="loading-row">Фотографии не добавлены</div>';
+    $('#imageGrid').innerHTML = state.editImages.length ? state.editImages.map((src,i) => `<div class="image-item"><img src="${esc(imageSrc(src))}" alt=""><div class="image-actions"><button type="button" data-image-main="${i}">${i===0?'Главное':'Сделать главным'}</button><button type="button" data-image-remove="${i}">Удалить</button></div></div>`).join('') : '<div class="loading-row">Фотографии не добавлены</div>';
   }
 
   function renderVariants() {
@@ -294,9 +305,10 @@
   }
 
   function colorImageLabel(src) {
+    const index = state.editImages.indexOf(src);
+    if (String(src || '').startsWith('asset:')) return index >= 0 ? `Фото ${index + 1} · загруженное` : 'Фото цвета · загруженное';
     let file = String(src || '').split(/[?#]/)[0].split('/').pop() || 'изображение';
     try { file = decodeURIComponent(file); } catch (_) {}
-    const index = state.editImages.indexOf(src);
     return index >= 0 ? `Фото ${index + 1} · ${file}` : `Фото цвета · ${file}`;
   }
 
@@ -319,7 +331,7 @@
       const selected = state.editColorImages[color] || '';
       const options = [`<option value="">Без привязки</option>`, ...candidates.map(src => `<option value="${esc(src)}" ${src === selected ? 'selected' : ''}>${esc(colorImageLabel(src))}</option>`)].join('');
       return `<div class="color-image-row">
-        <div class="color-image-preview">${selected ? `<img src="${esc(selected)}" alt="${esc(color)}">` : '<span>Нет фото</span>'}</div>
+        <div class="color-image-preview">${selected ? `<img src="${esc(imageSrc(selected))}" alt="${esc(color)}">` : '<span>Нет фото</span>'}</div>
         <div class="color-image-meta"><b>${esc(color)}</b><small>Фото при выборе этого цвета</small></div>
         <div class="color-image-controls">
           <select data-color-image-select="${esc(color)}">${options}</select>
@@ -582,7 +594,7 @@
     const type = String(file.type || '').toLowerCase();
     const canDecode = ['image/jpeg','image/png','image/webp','image/avif'].includes(type);
     if (!canDecode) {
-      if (Number(file.size || 0) > 650 * 1024) throw new Error('Для GIF/HEIC/HEIF используйте файл до 650 КБ либо предварительно сохраните его как JPG/PNG/WEBP.');
+      if (Number(file.size || 0) > 85 * 1024) throw new Error('Для GIF/HEIC/HEIF используйте файл до 85 КБ либо предварительно сохраните его как JPG/PNG/WEBP.');
       return readBlobAsDataUrl(file);
     }
 
@@ -590,7 +602,7 @@
     try {
       bitmap = await createImageBitmap(file);
     } catch (_) {
-      if (Number(file.size || 0) <= 650 * 1024) return readBlobAsDataUrl(file);
+      if (Number(file.size || 0) <= 85 * 1024) return readBlobAsDataUrl(file);
       throw new Error('Браузер не смог обработать это изображение. Сохраните его как обычный JPG или PNG и загрузите снова.');
     }
 
@@ -608,20 +620,42 @@
       return canvasBlob(canvas, 'image/jpeg', quality);
     };
 
-    let blob = await render(1800, 0.82);
-    if (blob && blob.size > 620 * 1024) blob = await render(1500, 0.74);
-    if (blob && blob.size > 620 * 1024) blob = await render(1250, 0.68);
+    const attempts = [
+      [1300, 0.76],
+      [1100, 0.68],
+      [950, 0.62],
+      [820, 0.57],
+      [720, 0.52]
+    ];
+    let blob = null;
+    for (const [maxSide, quality] of attempts) {
+      blob = await render(maxSide, quality);
+      if (blob && blob.size <= 85 * 1024) break;
+    }
     if (typeof bitmap.close === 'function') bitmap.close();
     if (!blob) throw new Error('Не удалось подготовить изображение. Попробуйте другой JPG или PNG.');
-    if (blob.size > 700 * 1024) throw new Error('Фото после оптимизации всё ещё слишком большое. Используйте изображение меньшего разрешения.');
-
+    if (blob.size > 95 * 1024) throw new Error('Фото после оптимизации всё ещё слишком большое. Используйте изображение меньшего разрешения.');
     return readBlobAsDataUrl(blob);
   }
 
   async function uploadSingleImage(file, color = '') {
     const dataUrl = await prepareInlineImage(file);
     if (!dataUrl.startsWith('data:image/')) throw new Error('Не удалось подготовить изображение.');
-    return dataUrl;
+    const productKey = $('#editKey').value || $('#editName').value.trim() || `new-${Date.now()}`;
+    const rows = await request('/rest/v1/catalog_images?select=id,data_url', {
+      method:'POST',
+      headers:{'Content-Type':'application/json', Prefer:'return=representation'},
+      body:JSON.stringify({
+        product_key:productKey,
+        color:String(color || ''),
+        data_url:dataUrl
+      })
+    });
+    const row = Array.isArray(rows) ? rows[0] : rows;
+    if (!row?.id) throw new Error('Фото обработано, но база не вернула ID изображения.');
+    const token = `asset:${row.id}`;
+    state.assetUrls.set(token, row.data_url || dataUrl);
+    return token;
   }
 
   async function uploadImages(files) {
@@ -785,7 +819,7 @@
   }
 
   async function reloadData() {
-    await loadOverrides();
+    await Promise.all([loadOverrides(), loadCatalogImages()]);
     rebuildItems();
     renderTable();
   }

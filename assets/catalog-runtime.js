@@ -31,30 +31,52 @@
     } catch (_) {}
   }
 
+  function resolveCatalogImageTokens(rows, assets) {
+    const assetMap = new Map((assets || []).map(row => [`asset:${row.id}`, row.data_url]));
+    const resolveOne = value => {
+      const key = String(value || '');
+      return assetMap.get(key) || value;
+    };
+    return (rows || []).map(row => {
+      if (!row?.payload || typeof row.payload !== 'object') return row;
+      const payload = { ...row.payload };
+      if (Array.isArray(payload.images)) payload.images = payload.images.map(resolveOne);
+      if (payload.colorImages && typeof payload.colorImages === 'object') {
+        payload.colorImages = Object.fromEntries(Object.entries(payload.colorImages).map(([color, value]) => [color, resolveOne(value)]));
+      }
+      return { ...row, payload };
+    });
+  }
+
   async function fetchRows() {
     if (!configured()) return [];
     if (!rowsPromise) {
       const cached = readCache();
-      const url = `${cfg.supabaseUrl.replace(/\/$/, '')}/rest/v1/catalog_overrides?select=product_key,kind,payload,hidden,is_custom,updated_at`;
+      const root = cfg.supabaseUrl.replace(/\/$/, '');
+      const overridesUrl = `${root}/rest/v1/catalog_overrides?select=product_key,kind,payload,hidden,is_custom,updated_at`;
+      const imagesUrl = `${root}/rest/v1/catalog_images?select=id,data_url`;
 
-      const network = fetch(url, { headers: headers(), cache: 'no-store' })
-        .then(async r => {
-          if (!r.ok) throw new Error(`Supabase catalog HTTP ${r.status}`);
-          const rows = await r.json();
-          writeCache(rows);
-          return rows;
+      const network = Promise.all([
+        fetch(overridesUrl, { headers: headers(), cache: 'no-store' }),
+        fetch(imagesUrl, { headers: headers(), cache: 'no-store' })
+      ])
+        .then(async ([overrideResponse, imageResponse]) => {
+          if (!overrideResponse.ok) throw new Error(`Supabase catalog HTTP ${overrideResponse.status}`);
+          if (!imageResponse.ok) throw new Error(`Supabase images HTTP ${imageResponse.status}`);
+          const [rows, assets] = await Promise.all([overrideResponse.json(), imageResponse.json()]);
+          const resolvedRows = resolveCatalogImageTokens(rows, assets);
+          writeCache(resolvedRows);
+          return resolvedRows;
         })
         .catch(err => {
           console.warn('NOKTENA catalog overrides unavailable; using cached/base catalog.', err);
           return cached;
         });
 
-      // If we already have previous overrides, render immediately and refresh them in background.
       if (cached.length) {
         network.catch(() => {});
         rowsPromise = Promise.resolve(cached);
       } else {
-        // First visit: never let a slow/cold backend hold the public catalog for several seconds.
         rowsPromise = Promise.race([
           network,
           new Promise(resolve => setTimeout(() => resolve([]), MAX_INITIAL_WAIT_MS))
