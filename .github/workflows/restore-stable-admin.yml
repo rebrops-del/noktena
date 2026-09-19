@@ -1,0 +1,35 @@
+name: Restore stable admin
+on:
+  push:
+    paths:
+      - '.github/workflows/restore-stable-admin.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  restore:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Restore known stable admin
+        run: |
+          git show ebed3790fa04258b67f3b51c4426e2e4af46e0c6:admin/admin.js > admin/admin.js
+          git show ebed3790fa04258b67f3b51c4426e2e4af46e0c6:admin/index.html > admin/index.html
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('admin/index.html')
+          s=p.read_text()
+          import re
+          s=re.sub(r'admin\.js\?v=[^"\']+', 'admin.js?v=20260919-stable-restore1', s)
+          p.write_text(s)
+          PY
+          node --check admin/admin.js
+      - name: Commit stable admin
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add admin/admin.js admin/index.html
+          git commit -m 'Restore last known stable admin core' || exit 0
+          git push
