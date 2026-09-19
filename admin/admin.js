@@ -13,8 +13,7 @@
     items: [],
     editImages: [],
     editVariants: [],
-    editColorImages: {},
-    assetUrls: new Map()
+    editColorImages: {}
   };
 
   const configured = () => Boolean(cfg.supabaseUrl && cfg.supabaseAnonKey);
@@ -25,11 +24,6 @@
   const clone = obj => JSON.parse(JSON.stringify(obj ?? {}));
   const uniq = list => [...new Set((list || []).filter(Boolean).map(v => String(v).trim()).filter(Boolean))];
   const keyFor = (kind, p) => kind === 'furniture' ? `furniture:${p.id}` : `mattress:${p.model}`;
-
-  function imageSrc(value) {
-    const key = String(value || '');
-    return state.assetUrls.get(key) || key;
-  }
 
   function toast(message, error = false) {
     const el = $('#toast');
@@ -116,7 +110,7 @@
   }
 
   async function sendRecovery(email) {
-    const redirectTo = window.NOKTENA_ADMIN_SHELL_URL || `${location.origin}/admin/`;
+    const redirectTo = `${location.origin}/admin/`;
     const r = await fetch(`${baseUrl()}/auth/v1/recover?redirect_to=${encodeURIComponent(redirectTo)}`, {
       method:'POST',
       headers:publicAuthHeaders({'Content-Type':'application/json'}),
@@ -175,11 +169,6 @@
     state.rowsByKey = new Map((rows || []).map(r => [r.product_key, r]));
   }
 
-  async function loadCatalogImages() {
-    const rows = await request('/rest/v1/catalog_images?select=id,data_url&order=created_at.asc');
-    state.assetUrls = new Map((rows || []).map(row => [`asset:${row.id}`, row.data_url]));
-  }
-
   function rebuildItems() {
     const items = [];
     for (const rec of state.baseByKey.values()) {
@@ -219,7 +208,7 @@
   }
 
   function imageFor(item) {
-    return Array.isArray(item.images) && item.images[0] ? imageSrc(item.images[0]) : '';
+    return Array.isArray(item.images) && item.images[0] ? item.images[0] : '';
   }
 
   function renderStats() {
@@ -283,7 +272,7 @@
   }
 
   function renderImages() {
-    $('#imageGrid').innerHTML = state.editImages.length ? state.editImages.map((src,i) => `<div class="image-item"><img src="${esc(imageSrc(src))}" alt=""><div class="image-actions"><button type="button" data-image-main="${i}">${i===0?'Главное':'Сделать главным'}</button><button type="button" data-image-remove="${i}">Удалить</button></div></div>`).join('') : '<div class="loading-row">Фотографии не добавлены</div>';
+    $('#imageGrid').innerHTML = state.editImages.length ? state.editImages.map((src,i) => `<div class="image-item"><img src="${esc(src)}" alt=""><div class="image-actions"><button type="button" data-image-main="${i}">${i===0?'Главное':'Сделать главным'}</button><button type="button" data-image-remove="${i}">Удалить</button></div></div>`).join('') : '<div class="loading-row">Фотографии не добавлены</div>';
   }
 
   function renderVariants() {
@@ -305,10 +294,9 @@
   }
 
   function colorImageLabel(src) {
-    const index = state.editImages.indexOf(src);
-    if (String(src || '').startsWith('asset:')) return index >= 0 ? `Фото ${index + 1} · загруженное` : 'Фото цвета · загруженное';
     let file = String(src || '').split(/[?#]/)[0].split('/').pop() || 'изображение';
     try { file = decodeURIComponent(file); } catch (_) {}
+    const index = state.editImages.indexOf(src);
     return index >= 0 ? `Фото ${index + 1} · ${file}` : `Фото цвета · ${file}`;
   }
 
@@ -331,14 +319,9 @@
       const selected = state.editColorImages[color] || '';
       const options = [`<option value="">Без привязки</option>`, ...candidates.map(src => `<option value="${esc(src)}" ${src === selected ? 'selected' : ''}>${esc(colorImageLabel(src))}</option>`)].join('');
       return `<div class="color-image-row">
-        <div class="color-image-preview">${selected ? `<img src="${esc(imageSrc(selected))}" alt="${esc(color)}">` : '<span>Нет фото</span>'}</div>
+        <div class="color-image-preview">${selected ? `<img src="${esc(selected)}" alt="${esc(color)}">` : '<span>Нет фото</span>'}</div>
         <div class="color-image-meta"><b>${esc(color)}</b><small>Фото при выборе этого цвета</small></div>
-        <div class="color-image-controls">
-          <select data-color-image-select="${esc(color)}">${options}</select>
-          <button type="button" class="color-image-upload-btn" data-color-image-upload-trigger="${esc(color)}">+ Загрузить фото</button>
-          <input type="file" accept="image/*,.jpg,.jpeg,.png,.webp,.gif,.avif,.heic,.heif" data-color-image-upload="${esc(color)}" hidden>
-          ${selected ? `<button type="button" class="color-image-delete" data-color-image-remove="${esc(color)}">Удалить фото</button>` : ''}
-        </div>
+        <select data-color-image-select="${esc(color)}">${options}</select>
       </div>`;
     }).join('');
   }
@@ -517,171 +500,26 @@
     return String(value || 'product').toLowerCase().replace(/[^a-zа-я0-9._-]+/gi,'-').replace(/^-+|-+$/g,'').slice(0,80) || 'product';
   }
 
-  function asciiProductFolder(value) {
-    const text = String(value || 'product');
-    let hash = 2166136261;
-    for (let i = 0; i < text.length; i++) {
-      hash ^= text.charCodeAt(i);
-      hash = Math.imul(hash, 16777619);
-    }
-    return `p-${(hash >>> 0).toString(36)}`;
-  }
-
-  function uploadExtension(file) {
-    const fromName = String(file?.name || '').match(/\.([a-z0-9]{1,8})$/i)?.[1]?.toLowerCase();
-    if (fromName) return fromName === 'jpeg' ? 'jpg' : fromName;
-    const type = String(file?.type || '').toLowerCase();
-    if (type === 'image/jpeg') return 'jpg';
-    if (type === 'image/png') return 'png';
-    if (type === 'image/webp') return 'webp';
-    if (type === 'image/gif') return 'gif';
-    if (type === 'image/avif') return 'avif';
-    return 'img';
-  }
-
-  async function uploadStorageObject(file, bucket, encodedPath, retried = false) {
-    const r = await fetch(`${baseUrl()}/storage/v1/object/${encodeURIComponent(bucket)}/${encodedPath}`, {
-      method:'POST',
-      headers:authHeaders({
-        'Content-Type':file.type || 'application/octet-stream',
-        'x-upsert':'false'
-      }),
-      body:file
-    });
-    if (r.status === 401 && !retried && state.session?.refresh_token) {
-      await refreshSession();
-      return uploadStorageObject(file, bucket, encodedPath, true);
-    }
-    if (!r.ok) {
-      const raw = await r.text().catch(() => '');
-      let detail = raw;
-      try {
-        const parsed = JSON.parse(raw);
-        detail = parsed.message || parsed.error || parsed.statusCode || raw;
-      } catch (_) {}
-      throw new Error(`Не удалось загрузить «${file.name}»${detail ? `: ${detail}` : ` (HTTP ${r.status})`}`);
-    }
-  }
-
-  function isImageFile(file) {
-    const type = String(file?.type || '').toLowerCase();
-    if (type.startsWith('image/')) return true;
-    return /\.(jpe?g|png|webp|gif|avif|heic|heif)$/i.test(String(file?.name || ''));
-  }
-
-  function publicStorageUrl(bucket, encodedPath) {
-    return `${baseUrl()}/storage/v1/object/public/${encodeURIComponent(bucket)}/${encodedPath}`;
-  }
-
-  function readBlobAsDataUrl(blob) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(String(reader.result || ''));
-      reader.onerror = () => reject(new Error('Не удалось прочитать выбранное фото.'));
-      reader.readAsDataURL(blob);
-    });
-  }
-
-  function canvasBlob(canvas, type, quality) {
-    return new Promise(resolve => canvas.toBlob(resolve, type, quality));
-  }
-
-  async function prepareInlineImage(file) {
-    if (!file) throw new Error('Файл не выбран.');
-    if (!isImageFile(file)) throw new Error('Выберите изображение JPG, PNG, WEBP, GIF, AVIF, HEIC или HEIF.');
-    if (Number(file.size || 0) > 25 * 1024 * 1024) throw new Error('Исходное фото слишком большое. Максимальный размер — 25 МБ.');
-
-    const type = String(file.type || '').toLowerCase();
-    const canDecode = ['image/jpeg','image/png','image/webp','image/avif'].includes(type);
-    if (!canDecode) {
-      if (Number(file.size || 0) > 85 * 1024) throw new Error('Для GIF/HEIC/HEIF используйте файл до 85 КБ либо предварительно сохраните его как JPG/PNG/WEBP.');
-      return readBlobAsDataUrl(file);
-    }
-
-    let bitmap;
-    try {
-      bitmap = await createImageBitmap(file);
-    } catch (_) {
-      if (Number(file.size || 0) <= 85 * 1024) return readBlobAsDataUrl(file);
-      throw new Error('Браузер не смог обработать это изображение. Сохраните его как обычный JPG или PNG и загрузите снова.');
-    }
-
-    const render = async (maxSide, quality) => {
-      const scale = Math.min(1, maxSide / Math.max(bitmap.width, bitmap.height));
-      const width = Math.max(1, Math.round(bitmap.width * scale));
-      const height = Math.max(1, Math.round(bitmap.height * scale));
-      const canvas = document.createElement('canvas');
-      canvas.width = width;
-      canvas.height = height;
-      const ctx = canvas.getContext('2d', {alpha:false});
-      ctx.fillStyle = '#fff';
-      ctx.fillRect(0, 0, width, height);
-      ctx.drawImage(bitmap, 0, 0, width, height);
-      return canvasBlob(canvas, 'image/jpeg', quality);
-    };
-
-    const attempts = [
-      [1300, 0.76],
-      [1100, 0.68],
-      [950, 0.62],
-      [820, 0.57],
-      [720, 0.52]
-    ];
-    let blob = null;
-    for (const [maxSide, quality] of attempts) {
-      blob = await render(maxSide, quality);
-      if (blob && blob.size <= 85 * 1024) break;
-    }
-    if (typeof bitmap.close === 'function') bitmap.close();
-    if (!blob) throw new Error('Не удалось подготовить изображение. Попробуйте другой JPG или PNG.');
-    if (blob.size > 95 * 1024) throw new Error('Фото после оптимизации всё ещё слишком большое. Используйте изображение меньшего разрешения.');
-    return readBlobAsDataUrl(blob);
-  }
-
-  async function uploadSingleImage(file, color = '') {
-    const dataUrl = await prepareInlineImage(file);
-    if (!dataUrl.startsWith('data:image/')) throw new Error('Не удалось подготовить изображение.');
-    const productKey = $('#editKey').value || $('#editName').value.trim() || `new-${Date.now()}`;
-    const rows = await request('/rest/v1/catalog_images?select=id,data_url', {
-      method:'POST',
-      headers:{'Content-Type':'application/json', Prefer:'return=representation'},
-      body:JSON.stringify({
-        product_key:productKey,
-        color:String(color || ''),
-        data_url:dataUrl
-      })
-    });
-    const row = Array.isArray(rows) ? rows[0] : rows;
-    if (!row?.id) throw new Error('Фото обработано, но база не вернула ID изображения.');
-    const token = `asset:${row.id}`;
-    state.assetUrls.set(token, row.data_url || dataUrl);
-    return token;
-  }
-
   async function uploadImages(files) {
-    if (!files?.length) return [];
-    const validFiles = [...files].filter(isImageFile);
-    if (!validFiles.length) throw new Error('Выберите файл изображения: JPG, PNG, WEBP, GIF, AVIF, HEIC или HEIF.');
-    const uploaded = [];
-    for (const file of validFiles) {
-      const url = await uploadSingleImage(file);
-      state.editImages.push(url);
-      uploaded.push(url);
-      renderImages();
-      renderColorImageBindings();
+    if (!files?.length) return;
+    const key = $('#editKey').value || `new-${Date.now()}`;
+    const bucket = cfg.storageBucket || 'product-images';
+    for (const file of files) {
+      if (!file.type.startsWith('image/')) continue;
+      const name = `${Date.now()}-${safeSegment(file.name)}`;
+      const path = `products/${safeSegment(key)}/${name}`;
+      const encoded = path.split('/').map(encodeURIComponent).join('/');
+      const r = await fetch(`${baseUrl()}/storage/v1/object/${encodeURIComponent(bucket)}/${encoded}`, {
+        method:'POST',
+        headers:authHeaders({'Content-Type':file.type,'x-upsert':'true'}),
+        body:file
+      });
+      if (!r.ok) throw new Error(`Не удалось загрузить ${file.name}`);
+      state.editImages.push(`${baseUrl()}/storage/v1/object/public/${encodeURIComponent(bucket)}/${encoded}`);
     }
-    toast(validFiles.length === 1 ? 'Фотография загружена' : `Фотографии загружены: ${validFiles.length}`);
-    return uploaded;
-  }
-
-  async function uploadColorImage(color, file) {
-    color = String(color || '').trim();
-    if (!color) throw new Error('Не удалось определить цвет.');
-    const url = await uploadSingleImage(file, color);
-    state.editColorImages[color] = url;
+    renderImages();
     renderColorImageBindings();
-    toast(`Фото для цвета «${color}» загружено и привязано`);
-    return url;
+    toast('Фотографии загружены');
   }
 
   function priceTransform(value) {
@@ -747,79 +585,8 @@
     }
   }
 
-  async function restoreUploadReturn() {
-    const params = new URLSearchParams(location.search);
-    if (params.get('upload_return') !== '1') return;
-
-    const nonce = params.get('nonce') || '';
-    const raw = nonce ? sessionStorage.getItem(uploadDraftKey(nonce)) : '';
-    if (nonce) sessionStorage.removeItem(uploadDraftKey(nonce));
-    history.replaceState(null, '', '/admin/');
-
-    if (!raw) {
-      toast('Не удалось восстановить карточку после загрузки. Откройте товар снова.', true);
-      return;
-    }
-
-    let draft;
-    try { draft = JSON.parse(raw); } catch (_) { draft = null; }
-    if (!draft?.fields) {
-      toast('Не удалось восстановить карточку после загрузки.', true);
-      return;
-    }
-
-    const key = String(draft.fields.editKey || '');
-    openEditor(key || null);
-
-    $('#editKind').value = draft.fields.editKind || 'mattress';
-    setEditorMode($('#editKind').value);
-    for (const [id, value] of Object.entries(draft.fields || {})) {
-      const el = $('#'+id);
-      if (el) el.value = value ?? '';
-    }
-    $('#editAvailable').checked = Boolean(draft.checks?.editAvailable);
-    $('#editHit').checked = Boolean(draft.checks?.editHit);
-    $('#editHidden').checked = Boolean(draft.checks?.editHidden);
-    state.editImages = Array.isArray(draft.images) ? [...draft.images] : [];
-    state.editVariants = Array.isArray(draft.variants) ? clone(draft.variants) : [];
-    state.editColorImages = draft.colorImages && typeof draft.colorImages === 'object' ? clone(draft.colorImages) : {};
-
-    const result = {
-      ok: params.get('ok') === '1',
-      url: params.get('url') || '',
-      error: params.get('error') || '',
-      detail: params.get('detail') || ''
-    };
-
-    if (result.ok && result.url) {
-      const color = String(draft.uploadColor || '').trim();
-      if (color) state.editColorImages[color] = result.url;
-      else if (!state.editImages.includes(result.url)) state.editImages.push(result.url);
-    }
-
-    renderImages();
-    renderVariants();
-    renderColorImageBindings();
-
-    const status = $('#imageUploadStatus');
-    if (result.ok && result.url) {
-      if (status && !draft.uploadColor) {
-        status.className = 'upload-status success';
-        status.textContent = 'Фото загружено. Нажмите «Сохранить» в карточке.';
-      }
-      toast(draft.uploadColor ? `Фото для цвета «${draft.uploadColor}» загружено` : 'Фотография загружена');
-    } else {
-      const err = uploadResultError(result, 'фото');
-      if (status && !draft.uploadColor) {
-        status.className = 'upload-status error';
-        status.textContent = err.message;
-      }
-      toast(err.message, true);
-    }
-  }
-
   async function reloadData() {
-    await Promise.all([loadOverrides(), loadCatalogImages()]);
+    await loadOverrides();
     rebuildItems();
     renderTable();
   }
@@ -948,37 +715,7 @@
       const edit = e.target.closest('[data-edit-key]'); if (edit) openEditor(edit.dataset.editKey);
       if (e.target.closest('[data-close-modal]')) closeEditor();
       if (e.target.closest('[data-close-bulk]')) closeBulk();
-      const rm = e.target.closest('[data-image-remove]'); if (rm) {
-        const index = Number(rm.dataset.imageRemove);
-        const src = state.editImages[index];
-        if (src) {
-          state.editImages.splice(index, 1);
-          for (const [color, url] of Object.entries(state.editColorImages || {})) {
-            if (url === src) delete state.editColorImages[color];
-          }
-        }
-        renderImages();
-        renderColorImageBindings();
-      }
-      const colorUploadTrigger = e.target.closest('[data-color-image-upload-trigger]'); if (colorUploadTrigger) {
-        const color = String(colorUploadTrigger.dataset.colorImageUploadTrigger || '').trim();
-        const input = $$('[data-color-image-upload]').find(el => String(el.dataset.colorImageUpload || '').trim() === color);
-        if (input) input.click();
-      }
-      const colorRm = e.target.closest('[data-color-image-remove]'); if (colorRm) {
-        const color = String(colorRm.dataset.colorImageRemove || '').trim();
-        const src = state.editColorImages[color] || '';
-        if (color) delete state.editColorImages[color];
-        if (src) {
-          state.editImages = state.editImages.filter(url => url !== src);
-          for (const [otherColor, url] of Object.entries(state.editColorImages || {})) {
-            if (url === src) delete state.editColorImages[otherColor];
-          }
-        }
-        renderImages();
-        renderColorImageBindings();
-        toast(color ? `Фото для цвета «${color}» удалено из карточки` : 'Фото удалено из карточки');
-      }
+      const rm = e.target.closest('[data-image-remove]'); if (rm) { state.editImages.splice(Number(rm.dataset.imageRemove),1); renderImages(); renderColorImageBindings(); }
       const main = e.target.closest('[data-image-main]'); if (main) { const i=Number(main.dataset.imageMain); if(i>0){const [src]=state.editImages.splice(i,1);state.editImages.unshift(src);renderImages();renderColorImageBindings();} }
       const vrm = e.target.closest('[data-v-remove]'); if (vrm) { syncVariantsFromDom(); state.editVariants.splice(Number(vrm.dataset.vRemove),1); renderVariants(); }
     });
@@ -994,25 +731,7 @@
       input.dataset.prevColor = next;
       renderColorImageBindings();
     });
-    document.addEventListener('change', async e => {
-      const uploadInput = e.target.closest('[data-color-image-upload]');
-      if (uploadInput) {
-        const color = String(uploadInput.dataset.colorImageUpload || '').trim();
-        const file = uploadInput.files?.[0];
-        if (!file) return;
-        const trigger = $$('[data-color-image-upload-trigger]').find(el => String(el.dataset.colorImageUploadTrigger || '').trim() === color);
-        if (trigger) { trigger.disabled = true; trigger.textContent = 'Обрабатываем…'; }
-        try {
-          await uploadColorImage(color, file);
-        } catch (err) {
-          console.error(err);
-          toast(err.message || 'Не удалось загрузить фото для цвета', true);
-        } finally {
-          uploadInput.value = '';
-          renderColorImageBindings();
-        }
-        return;
-      }
+    document.addEventListener('change', e => {
       const select = e.target.closest('[data-color-image-select]');
       if (!select) return;
       const color = String(select.dataset.colorImageSelect || '').trim();
@@ -1024,27 +743,7 @@
     $('#editKind').addEventListener('change', e => setEditorMode(e.target.value));
     $('#addVariant').addEventListener('click', () => { syncVariantsFromDom(); state.editVariants.push({size:'',color:'',price:Number($('#editPrice').value)||0,available:true}); renderVariants(); });
     $('#addImageUrl').addEventListener('click', () => { const u=$('#imageUrlInput').value.trim(); if(u){state.editImages.push(u);$('#imageUrlInput').value='';renderImages();renderColorImageBindings();} });
-    $('#imageUploadButton')?.addEventListener('click', () => $('#imageUpload')?.click());
-    $('#imageUpload').addEventListener('change', async e => {
-      const input = e.target;
-      const button = $('#imageUploadButton');
-      const status = $('#imageUploadStatus');
-      const files = [...input.files];
-      if (!files.length) return;
-      if (button) { button.disabled = true; button.textContent = 'Обрабатываем…'; }
-      if (status) { status.className = 'upload-status'; status.textContent = 'Подготавливаем фото…'; }
-      try {
-        await uploadImages(files);
-        if (status) { status.className = 'upload-status success'; status.textContent = 'Фото загружено. Не забудьте нажать «Сохранить» в карточке.'; }
-      } catch(err) {
-        console.error(err);
-        if (status) { status.className = 'upload-status error'; status.textContent = err.message || 'Не удалось загрузить фото'; }
-        toast(err.message || 'Не удалось загрузить фото',true);
-      } finally {
-        input.value='';
-        if (button) { button.disabled = false; button.textContent = '+ Загрузить фото'; }
-      }
-    });
+    $('#imageUpload').addEventListener('change', async e => { try { await uploadImages([...e.target.files]); e.target.value=''; } catch(err){toast(err.message,true);} });
     $('#resetOverrideBtn').addEventListener('click', resetCurrentOverride);
     ['bulkScope','bulkSign','bulkPercent','bulkRound','bulkRoundMode'].forEach(id => $('#'+id).addEventListener(id==='bulkPercent'?'input':'change', renderBulkPreview));
     $('#applyBulkBtn').addEventListener('click', applyBulk);
