@@ -1,0 +1,48 @@
+name: Audit furniture image quality
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/audit-furniture-image-quality.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compare small and big Berhouse images
+        run: |
+          pip install requests pillow
+          python - <<'PY'
+          import io
+          import requests
+          from PIL import Image
+
+          urls = [
+              'https://berhouse.ru/files/eshop/small/24139a1.jpg',
+              'https://berhouse.ru/files/eshop/big/24139a1.jpg',
+              'https://berhouse.ru/files/eshop/small/24182a1.jpg',
+              'https://berhouse.ru/files/eshop/big/24182a1.jpg',
+              'https://berhouse.ru/files/eshop/small/13131a1.jpg',
+              'https://berhouse.ru/files/eshop/big/13131a1.jpg',
+          ]
+          s=requests.Session()
+          s.headers['User-Agent']='Mozilla/5.0'
+          for url in urls:
+              try:
+                  r=s.get(url,timeout=30)
+                  dims='n/a'
+                  if r.ok:
+                      try:
+                          im=Image.open(io.BytesIO(r.content))
+                          dims=f'{im.width}x{im.height}'
+                      except Exception as e:
+                          dims=f'bad-image:{e}'
+                  print(r.status_code, len(r.content), dims, url)
+              except Exception as e:
+                  print('ERR', url, e)
+          PY
