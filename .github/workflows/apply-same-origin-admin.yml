@@ -1,0 +1,30 @@
+name: Apply same-origin admin
+
+on:
+  push:
+    paths:
+      - 'scripts/switch_admin_to_same_origin.py'
+      - '.github/workflows/apply-same-origin-admin.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch admin and storefront data path
+        run: python scripts/switch_admin_to_same_origin.py
+      - name: Validate JavaScript
+        run: |
+          node --check admin/admin.js
+          node --check assets/catalog-runtime.js
+      - name: Commit changes
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add admin/index.html admin/admin.js assets/catalog-runtime.js index.html product.html
+          git diff --cached --quiet && exit 0
+          git commit -m 'Move admin writes to same-origin Supabase shell'
+          git push
