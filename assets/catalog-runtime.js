@@ -49,6 +49,15 @@
   }
 
   async function fetchRows() {
+    const bootstrap = window.NOKTENA_CATALOG_BOOTSTRAP;
+    if (Array.isArray(bootstrap?.rows)) {
+      if (!rowsPromise) {
+        const resolvedRows = resolveCatalogImageTokens(bootstrap.rows, Array.isArray(bootstrap.assets) ? bootstrap.assets : []);
+        writeCache(resolvedRows);
+        rowsPromise = Promise.resolve(resolvedRows);
+      }
+      return rowsPromise;
+    }
     if (!configured()) return [];
     if (!rowsPromise) {
       const cached = readCache();

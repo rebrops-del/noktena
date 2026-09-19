@@ -116,7 +116,7 @@
   }
 
   async function sendRecovery(email) {
-    const redirectTo = `${location.origin}/admin/`;
+    const redirectTo = window.NOKTENA_ADMIN_SHELL_URL || `${location.origin}/admin/`;
     const r = await fetch(`${baseUrl()}/auth/v1/recover?redirect_to=${encodeURIComponent(redirectTo)}`, {
       method:'POST',
       headers:publicAuthHeaders({'Content-Type':'application/json'}),
