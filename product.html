@@ -28,10 +28,15 @@
 .pd-service-item b{display:block;margin-bottom:2px;color:#21473b;font-size:11.5px;font-weight:800}
 .pd-service-item span{display:block;color:#7e8a84;font-size:9.5px;line-height:1.35}
 .pd-main{padding-top:18px!important}
+.pd-back-row{display:flex;align-items:center;margin:2px 0 14px}
+.pd-back-btn{appearance:none;display:inline-flex;align-items:center;gap:8px;min-height:42px;padding:0 15px;border:1px solid rgba(23,62,50,.16);border-radius:12px;background:#fff;color:#173e32;font:inherit;font-size:13px;font-weight:800;cursor:pointer;box-shadow:0 5px 16px rgba(23,62,50,.05);transition:background .18s ease,border-color .18s ease,transform .18s ease,box-shadow .18s ease}
+.pd-back-btn:hover{background:#f6f8f6;border-color:rgba(23,62,50,.28);box-shadow:0 8px 20px rgba(23,62,50,.08);transform:translateY(-1px)}
+.pd-back-btn:active{transform:translateY(0)}
+.pd-back-arrow{font-size:18px;line-height:1;transform:translateY(-1px)}
 @media(max-width:980px){.pd-header-links{gap:16px}.pd-header-links a{font-size:11.5px}.pd-header-max{padding:0 13px}}
 @media(max-width:900px){.pd-service-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:760px){.pd-header-links{display:none}.pd-header-max{margin-left:auto}}
-@media(max-width:620px){.pd-service-strip{padding:10px 0 0}.pd-service-grid{display:flex;overflow-x:auto;gap:8px;padding-bottom:4px;scrollbar-width:none}.pd-service-grid::-webkit-scrollbar{display:none}.pd-service-item{min-width:230px;min-height:58px;padding:10px 12px}.pd-main{padding-top:12px!important}}
+@media(max-width:620px){.pd-service-strip{padding:10px 0 0}.pd-service-grid{display:flex;overflow-x:auto;gap:8px;padding-bottom:4px;scrollbar-width:none}.pd-service-grid::-webkit-scrollbar{display:none}.pd-service-item{min-width:230px;min-height:58px;padding:10px 12px}.pd-main{padding-top:12px!important}.pd-back-row{margin:0 0 11px}.pd-back-btn{min-height:40px;padding:0 13px;font-size:12px}}
 @media(max-width:430px){.pd-brand img{height:40px!important;max-width:145px!important}.pd-header-max{min-height:39px;padding:0 10px;font-size:10px;gap:7px}.pd-header-max img{width:20px;height:20px}}
 </style>
 
@@ -73,11 +78,31 @@
 <main class="pd-main">
   <div class="pd-wrap">
     <nav class="pd-breadcrumbs" id="breadcrumbs" aria-label="Навигация"><a href="/">Главная</a><span>›</span><span>Товар</span></nav>
+    <div class="pd-back-row"><button class="pd-back-btn" id="productBackButton" type="button" aria-label="Вернуться назад"><span class="pd-back-arrow" aria-hidden="true">←</span><span>Назад</span></button></div>
     <div id="productRoot"><div class="pd-loading">Загружаем информацию о товаре…</div></div>
   </div>
 </main>
 <section class="pd-help"><div class="pd-wrap"><div class="pd-help-box"><div><h2>Поможем проверить выбранный вариант</h2><p>Подтвердим размер, цвет, комплектацию и актуальное наличие перед оформлением.</p></div><a class="pd-max-btn" href="https://max.ru/u/f9LHodD0cOKZqie3BJvn11xgsNvxJK_kFOqYtKyFuZ2uMitoxZIwNaH8-NY" target="_blank" rel="noopener"><img src="https://max.ru/s/img/big-logo.png" alt="" aria-hidden="true"><span>Получить консультацию в MAX</span></a></div></div></section>
 <footer class="pd-footer"><div class="pd-wrap"><b>НОКТЕНА · федеральная онлайн-сеть</b><span>Екатеринбургский филиал · склад: г. Берёзовский</span></div></footer>
+<script>
+(function(){
+  var button=document.getElementById('productBackButton');
+  if(!button)return;
+  button.addEventListener('click',function(){
+    var ref=document.referrer;
+    if(ref){
+      try{
+        var refUrl=new URL(ref,window.location.href);
+        if(refUrl.origin===window.location.origin && refUrl.href!==window.location.href){
+          window.history.back();
+          return;
+        }
+      }catch(e){}
+    }
+    window.location.href='/#mattresses';
+  });
+})();
+</script>
 <script src="assets/furniture-source-colors.js?v=20260918-galleryfix4"></script>
 <script src="assets/product-detail.js?v=20260918-realcolors1"></script>
 <script src="assets/product-detail-content-polish.js?v=20260918-description5"></script>
