@@ -71,33 +71,31 @@ new = r'''  function readBlobAsDataUrl(blob) {
 '''
 s = s[:start] + new + s[end:]
 
-# Disable stale full-page return handling in init/login paths.
 s = s.replace('        await restoreUploadReturn();\n', '')
 s = s.replace('      await restoreUploadReturn();\n', '')
-
-# Update upload copy so it no longer suggests a network upload.
 s = s.replace("status.textContent = `Загрузка: ${files.length} файл(а)…`;", "status.textContent = 'Подготавливаем фото…';")
 s = s.replace("button.textContent = 'Загружаем…';", "button.textContent = 'Обрабатываем…';")
 s = s.replace("trigger.textContent = 'Загружаем…';", "trigger.textContent = 'Обрабатываем…';")
-
 p.write_text(s, encoding='utf-8')
 
 h = Path('admin/index.html')
 html = h.read_text(encoding='utf-8')
-html = re.sub(r'admin\\.js\\?v=[^"\\']+', 'admin.js?v=20260919-photo-inline1', html)
+html = re.sub(r"admin\.js\?v=[^\"']+", 'admin.js?v=20260919-photo-inline1', html)
 h.write_text(html, encoding='utf-8')
 
-# Fix public runtime: modern publishable key must not be sent as Bearer token.
 r = Path('assets/catalog-runtime.js')
 if r.exists():
     js = r.read_text(encoding='utf-8')
-    js = re.sub(r"const headers = \\(\\) => \\({\\s*apikey: cfg\\.supabaseAnonKey,\\s*Authorization: `Bearer \\${cfg\\.supabaseAnonKey}`,\\s*Accept: 'application/json'\\s*}\\);",
-                "const headers = () => ({\\n  apikey: cfg.supabaseAnonKey,\\n  Accept: 'application/json'\\n});", js)
+    js = re.sub(
+        r"const headers = \(\) => \(\{\s*apikey: cfg\.supabaseAnonKey,\s*Authorization: `Bearer \$\{cfg\.supabaseAnonKey\}`,\s*Accept: 'application/json'\s*\}\);",
+        "const headers = () => ({\n  apikey: cfg.supabaseAnonKey,\n  Accept: 'application/json'\n});",
+        js,
+    )
     r.write_text(js, encoding='utf-8')
 
 for page in ['index.html','product.html']:
     q = Path(page)
     if q.exists():
         text = q.read_text(encoding='utf-8')
-        text = re.sub(r'assets/catalog-runtime\\.js\\?v=[^"\\']+', 'assets/catalog-runtime.js?v=20260919-inline1', text)
+        text = re.sub(r"assets/catalog-runtime\.js\?v=[^\"']+", 'assets/catalog-runtime.js?v=20260919-inline1', text)
         q.write_text(text, encoding='utf-8')
