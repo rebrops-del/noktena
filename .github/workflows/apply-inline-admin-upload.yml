@@ -1,0 +1,30 @@
+name: Apply inline admin upload
+
+on:
+  push:
+    paths:
+      - 'scripts/switch_admin_upload_to_inline_data.py'
+      - '.github/workflows/apply-inline-admin-upload.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch admin uploader
+        run: python scripts/switch_admin_upload_to_inline_data.py
+      - name: Validate JavaScript
+        run: |
+          node --check admin/admin.js
+          node --check assets/catalog-runtime.js
+      - name: Commit changes
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add admin/admin.js admin/index.html assets/catalog-runtime.js index.html product.html
+          git diff --cached --quiet && exit 0
+          git commit -m 'Store admin uploaded photos inline in catalog overrides'
+          git push
