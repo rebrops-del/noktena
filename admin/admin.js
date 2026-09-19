@@ -323,6 +323,8 @@
         <div class="color-image-meta"><b>${esc(color)}</b><small>Фото при выборе этого цвета</small></div>
         <div class="color-image-controls">
           <select data-color-image-select="${esc(color)}">${options}</select>
+          <button type="button" class="color-image-upload-btn" data-color-image-upload-trigger="${esc(color)}">+ Загрузить фото</button>
+          <input type="file" accept="image/*,.jpg,.jpeg,.png,.webp,.gif,.avif,.heic,.heif" data-color-image-upload="${esc(color)}" hidden>
           ${selected ? `<button type="button" class="color-image-delete" data-color-image-remove="${esc(color)}">Удалить фото</button>` : ''}
         </div>
       </div>`;
@@ -530,8 +532,7 @@
       method:'POST',
       headers:authHeaders({
         'Content-Type':file.type || 'application/octet-stream',
-        'x-upsert':'false',
-        'cache-control':'3600'
+        'x-upsert':'false'
       }),
       body:file
     });
@@ -550,25 +551,55 @@
     }
   }
 
-  async function uploadImages(files) {
-    if (!files?.length) return;
+  function isImageFile(file) {
+    const type = String(file?.type || '').toLowerCase();
+    if (type.startsWith('image/')) return true;
+    return /\.(jpe?g|png|webp|gif|avif|heic|heif)$/i.test(String(file?.name || ''));
+  }
+
+  function publicStorageUrl(bucket, encodedPath) {
+    return `${baseUrl()}/storage/v1/object/public/${encodeURIComponent(bucket)}/${encodedPath}`;
+  }
+
+  async function uploadSingleImage(file, folderSuffix = '') {
     if (!state.session?.access_token) throw new Error('Сессия администратора не найдена. Войдите заново.');
+    if (!isImageFile(file)) throw new Error('Выберите файл изображения: JPG, PNG, WEBP, GIF, AVIF, HEIC или HEIF.');
     const key = $('#editKey').value || `new-${Date.now()}`;
     const bucket = cfg.storageBucket || 'product-images';
-    const validFiles = [...files].filter(file => String(file?.type || '').startsWith('image/'));
-    if (!validFiles.length) throw new Error('Выберите файл изображения: JPG, PNG, WEBP, GIF или AVIF.');
+    const ext = uploadExtension(file);
+    const random = (globalThis.crypto?.randomUUID?.() || Math.random().toString(36).slice(2)).replace(/[^a-z0-9-]/gi, '');
+    const name = `${Date.now()}-${random}.${ext}`;
+    const suffix = folderSuffix ? `/${folderSuffix}` : '';
+    const path = `products/${asciiProductFolder(key)}${suffix}/${name}`;
+    const encoded = path.split('/').map(encodeURIComponent).join('/');
+    await uploadStorageObject(file, bucket, encoded);
+    return publicStorageUrl(bucket, encoded);
+  }
+
+  async function uploadImages(files) {
+    if (!files?.length) return [];
+    const validFiles = [...files].filter(isImageFile);
+    if (!validFiles.length) throw new Error('Выберите файл изображения: JPG, PNG, WEBP, GIF, AVIF, HEIC или HEIF.');
+    const uploaded = [];
     for (const file of validFiles) {
-      const ext = uploadExtension(file);
-      const random = (globalThis.crypto?.randomUUID?.() || Math.random().toString(36).slice(2)).replace(/[^a-z0-9-]/gi, '');
-      const name = `${Date.now()}-${random}.${ext}`;
-      const path = `products/${asciiProductFolder(key)}/${name}`;
-      const encoded = path.split('/').map(encodeURIComponent).join('/');
-      await uploadStorageObject(file, bucket, encoded);
-      state.editImages.push(`${baseUrl()}/storage/v1/object/public/${encodeURIComponent(bucket)}/${encoded}`);
+      const url = await uploadSingleImage(file);
+      state.editImages.push(url);
+      uploaded.push(url);
+      renderImages();
+      renderColorImageBindings();
     }
-    renderImages();
-    renderColorImageBindings();
     toast(validFiles.length === 1 ? 'Фотография загружена' : `Фотографии загружены: ${validFiles.length}`);
+    return uploaded;
+  }
+
+  async function uploadColorImage(color, file) {
+    color = String(color || '').trim();
+    if (!color) throw new Error('Не удалось определить цвет.');
+    const url = await uploadSingleImage(file, `colors/${asciiProductFolder(color)}`);
+    state.editColorImages[color] = url;
+    renderColorImageBindings();
+    toast(`Фото для цвета «${color}» загружено и привязано`);
+    return url;
   }
 
   function priceTransform(value) {
@@ -776,6 +807,11 @@
         renderImages();
         renderColorImageBindings();
       }
+      const colorUploadTrigger = e.target.closest('[data-color-image-upload-trigger]'); if (colorUploadTrigger) {
+        const color = String(colorUploadTrigger.dataset.colorImageUploadTrigger || '').trim();
+        const input = $$('[data-color-image-upload]').find(el => String(el.dataset.colorImageUpload || '').trim() === color);
+        if (input) input.click();
+      }
       const colorRm = e.target.closest('[data-color-image-remove]'); if (colorRm) {
         const color = String(colorRm.dataset.colorImageRemove || '').trim();
         const src = state.editColorImages[color] || '';
@@ -805,7 +841,25 @@
       input.dataset.prevColor = next;
       renderColorImageBindings();
     });
-    document.addEventListener('change', e => {
+    document.addEventListener('change', async e => {
+      const uploadInput = e.target.closest('[data-color-image-upload]');
+      if (uploadInput) {
+        const color = String(uploadInput.dataset.colorImageUpload || '').trim();
+        const file = uploadInput.files?.[0];
+        if (!file) return;
+        const trigger = $$('[data-color-image-upload-trigger]').find(el => String(el.dataset.colorImageUploadTrigger || '').trim() === color);
+        if (trigger) { trigger.disabled = true; trigger.textContent = 'Загружаем…'; }
+        try {
+          await uploadColorImage(color, file);
+        } catch (err) {
+          console.error(err);
+          toast(err.message || 'Не удалось загрузить фото для цвета', true);
+        } finally {
+          uploadInput.value = '';
+          renderColorImageBindings();
+        }
+        return;
+      }
       const select = e.target.closest('[data-color-image-select]');
       if (!select) return;
       const color = String(select.dataset.colorImageSelect || '').trim();
@@ -817,7 +871,27 @@
     $('#editKind').addEventListener('change', e => setEditorMode(e.target.value));
     $('#addVariant').addEventListener('click', () => { syncVariantsFromDom(); state.editVariants.push({size:'',color:'',price:Number($('#editPrice').value)||0,available:true}); renderVariants(); });
     $('#addImageUrl').addEventListener('click', () => { const u=$('#imageUrlInput').value.trim(); if(u){state.editImages.push(u);$('#imageUrlInput').value='';renderImages();renderColorImageBindings();} });
-    $('#imageUpload').addEventListener('change', async e => { const input=e.target; try { toast('Загружаем фотографию…'); await uploadImages([...input.files]); } catch(err){ console.error(err); toast(err.message || 'Не удалось загрузить фото',true); } finally { input.value=''; } });
+    $('#imageUploadButton')?.addEventListener('click', () => $('#imageUpload')?.click());
+    $('#imageUpload').addEventListener('change', async e => {
+      const input = e.target;
+      const button = $('#imageUploadButton');
+      const status = $('#imageUploadStatus');
+      const files = [...input.files];
+      if (!files.length) return;
+      if (button) { button.disabled = true; button.textContent = 'Загружаем…'; }
+      if (status) { status.className = 'upload-status'; status.textContent = `Загрузка: ${files.length} файл(а)…`; }
+      try {
+        await uploadImages(files);
+        if (status) { status.className = 'upload-status success'; status.textContent = 'Фото загружено. Не забудьте нажать «Сохранить» в карточке.'; }
+      } catch(err) {
+        console.error(err);
+        if (status) { status.className = 'upload-status error'; status.textContent = err.message || 'Не удалось загрузить фото'; }
+        toast(err.message || 'Не удалось загрузить фото',true);
+      } finally {
+        input.value='';
+        if (button) { button.disabled = false; button.textContent = '+ Загрузить фото'; }
+      }
+    });
     $('#resetOverrideBtn').addEventListener('click', resetCurrentOverride);
     ['bulkScope','bulkSign','bulkPercent','bulkRound','bulkRoundMode'].forEach(id => $('#'+id).addEventListener(id==='bulkPercent'?'input':'change', renderBulkPreview));
     $('#applyBulkBtn').addEventListener('click', applyBulk);

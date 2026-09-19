@@ -111,7 +111,8 @@
       <label>Полное описание<textarea id="editDescription" rows="7"></textarea></label>
 
       <div class="form-section">
-        <div class="section-head"><div><h3>Фотографии</h3><p>Первая фотография используется как главная.</p></div><label class="upload-btn">+ Загрузить фото<input id="imageUpload" type="file" accept="image/*" multiple hidden></label></div>
+        <div class="section-head"><div><h3>Фотографии</h3><p>Первая фотография используется как главная.</p></div><div><button id="imageUploadButton" type="button" class="upload-btn">+ Загрузить фото</button><input id="imageUpload" type="file" accept="image/*,.jpg,.jpeg,.png,.webp,.gif,.avif,.heic,.heif" multiple hidden></div></div>
+        <div id="imageUploadStatus" class="upload-status" aria-live="polite"></div>
         <div id="imageGrid" class="image-grid"></div>
         <label>Или добавить ссылку<div class="inline-input"><input id="imageUrlInput" type="url" placeholder="https://..."><button id="addImageUrl" type="button" class="secondary-btn">Добавить</button></div></label>
       </div>
