@@ -535,7 +535,7 @@
       form.target = frameName;
       form.enctype = 'application/x-www-form-urlencoded';
       form.style.display = 'none';
-      const all = {...fields, request_id: requestId, access_token: state.session.access_token};
+      const all = {...fields, request_id: requestId, access_token: state.session.access_token, refresh_token: state.session.refresh_token || ''};
       for (const [name, value] of Object.entries(all)) {
         const input = document.createElement('textarea');
         input.name = name;
