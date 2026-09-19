@@ -1,0 +1,39 @@
+name: Fix admin auth
+
+on:
+  push:
+    paths:
+      - 'scripts/fix_admin_auth.py'
+      - '.github/workflows/fix-admin-auth.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Apply admin auth patch
+        run: python scripts/fix_admin_auth.py
+      - name: Validate JavaScript syntax
+        run: |
+          node --check admin/admin.js
+          node --check admin/bootstrap-ui.js
+      - name: Commit changes
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add admin/admin.js admin/index.html admin/bootstrap-ui.js
+          if git diff --cached --quiet; then
+            echo 'No changes to commit'
+            exit 0
+          fi
+          git commit -m 'Repair admin login and password management'
+          git push
