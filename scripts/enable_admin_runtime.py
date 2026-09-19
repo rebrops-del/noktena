@@ -23,8 +23,8 @@ index = replace_once(
 )
 index = replace_once(
     index,
-    "const pp=PHOTO_POS[x.model],photo=pp?",
-    "const customImg=Array.isArray(x.images)&&x.images[0]?x.images[0]:'',pp=PHOTO_POS[x.model],photo=customImg?`<div class=\"photo-media\"><img src=\"${safe(customImg)}\" alt=\"${safe(x.model)}\" style=\"width:100%;height:100%;object-fit:cover;display:block\"></div>`:pp?",
+    ",pp=PHOTO_POS[x.model],photo=pp?",
+    ",customImg=Array.isArray(x.images)&&x.images[0]?x.images[0]:'',pp=PHOTO_POS[x.model],photo=customImg?`<div class=\"photo-media\"><img src=\"${safe(customImg)}\" alt=\"${safe(x.model)}\" style=\"width:100%;height:100%;object-fit:cover;display:block\"></div>`:pp?",
     'mattress custom image',
 )
 index = replace_once(
