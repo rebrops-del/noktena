@@ -61,4 +61,4 @@ jobs:
           "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --virtual-time-budget=7000 --window-size=1280,900 --dump-dom "https://noktena.ru/checkout.html?atelier=$GITHUB_RUN_ID" > /tmp/checkout.html
           grep -q 'Оформление заказа НОКТЕНА' /tmp/checkout.html
           grep -q 'Наличие подтвердит менеджер' /tmp/checkout.html
-# verification retry after final Atelier deployment
+# verified against deployed Atelier generation
