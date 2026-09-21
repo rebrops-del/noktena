@@ -1,0 +1,43 @@
+name: Finalize Atelier storefront
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/finalize-atelier-v1.yml'
+permissions:
+  contents: write
+jobs:
+  finalize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Finalize typography and cache version
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          css=Path('assets/atelier-v1.css')
+          s=css.read_text()
+          imp='@import url("https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800&display=swap");\n'
+          if not s.startswith('@import url('):
+              s=imp+s
+          css.write_text(s)
+          for name in ['index.html','product.html','checkout.html']:
+              p=Path(name);t=p.read_text()
+              t=t.replace('assets/atelier-v1.css?v=20260921-1','assets/atelier-v1.css?v=20260921-3')
+              t=t.replace('assets/atelier-v1.js?v=20260921-1','assets/atelier-v1.js?v=20260921-3')
+              p.write_text(t)
+          PY
+          node --check assets/atelier-v1.js
+          grep -q '20260921-3' index.html
+          grep -q '20260921-3' product.html
+          grep -q '20260921-3' checkout.html
+      - name: Commit
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add assets/atelier-v1.css index.html product.html checkout.html
+          git diff --cached --quiet && exit 0
+          git commit -m 'Finalize Atelier storefront polish'
+          git push
