@@ -1,0 +1,62 @@
+name: Test cart services
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'checkout.html'
+      - 'assets/checkout.js'
+      - 'assets/cart.css'
+      - 'railway-admin/**'
+      - '.github/workflows/test-cart-services.yml'
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Static checks
+        run: |
+          set -euxo pipefail
+          node --check assets/checkout.js
+          node --check railway-admin/server.js
+          grep -q 'Подъём настраивается отдельно для каждого товара' checkout.html
+          grep -q 'assemblyQty' assets/checkout.js
+          grep -q 'data-lift-qty' assets/checkout.js
+      - name: Wait for live checkout and Railway v2
+        run: |
+          set -euxo pipefail
+          for i in $(seq 1 40); do
+            html=$(curl -fsSL "https://noktena.ru/checkout.html?multi=$GITHUB_RUN_ID" || true)
+            health=$(curl -fsSL "https://admin-proxy-v2-production.up.railway.app/health?multi=$GITHUB_RUN_ID" || true)
+            if printf '%s' "$html" | grep -q 'Подъём настраивается отдельно для каждого товара' && printf '%s' "$health" | grep -q '"order_api":"v2"'; then exit 0; fi
+            sleep 5
+          done
+          exit 1
+      - name: Create multi-service smoke order
+        run: |
+          set -euxo pipefail
+          cat > /tmp/order.json <<'JSON'
+          {
+            "customer_name":"SMOKE MULTI SERVICES",
+            "phone":"+70000000000",
+            "city":"Екатеринбург",
+            "address":"Тестовый адрес",
+            "delivery_method":"delivery",
+            "assembly_requested":true,
+            "assembly_qty":1,
+            "items":[
+              {"kind":"furniture","category":"beds","key":"smoke-bed","name":"Тест кровать","price":10000,"qty":2,"lift_method":"cargo","lift_qty":2,"lift_floor":0},
+              {"kind":"furniture","category":"sofas","key":"smoke-sofa","name":"Тест диван","price":20000,"qty":2,"lift_method":"stairs","lift_qty":1,"lift_floor":3},
+              {"kind":"mattress","category":"mattress","key":"smoke-mattress","name":"Тест матрас","price":5000,"qty":1,"lift_method":"none","lift_qty":0,"lift_floor":0}
+            ]
+          }
+          JSON
+          curl -fsS -X POST 'https://admin-proxy-v2-production.up.railway.app/api/noktena-admin?action=create-order' -H 'content-type: application/json' --data-binary @/tmp/order.json > /tmp/result.json
+          cat /tmp/result.json
+          node - <<'NODE'
+          const d=require('/tmp/result.json');
+          if(!d.ok) process.exit(1);
+          if(Number(d.order.total)!==70500) throw new Error('Bad total '+d.order.total);
+          if(Number(d.order.lift_count)!==3) throw new Error('Bad lift count '+d.order.lift_count);
+          if(Number(d.order.assembly_qty)!==1) throw new Error('Bad assembly qty '+d.order.assembly_qty);
+          NODE
