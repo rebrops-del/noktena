@@ -5,6 +5,7 @@ let items=[];
 let current=null;
 let draft=null;
 let originalBasePrice=0;
+let categorySettings=[];
 
 const $=selector=>document.querySelector(selector);
 const $$=selector=>[...document.querySelectorAll(selector)];
@@ -189,6 +190,9 @@ function openEditor(key){
   $('#category').value=draft.category||'';
   $('#price').value=originalBasePrice||'';
   $('#available').value=draft.available===false?'0':'1';
+  $('#deliveryOverride').value=draft.deliveryPriceOverride??'';
+  $('#freeDeliveryOverride').value=draft.freeDeliveryFromOverride??'';
+  $('#skipCategoryPrice').checked=!!draft.skipCategoryPriceAdjustment;
   $('#summary').value=draft._kind==='mattress'?(draft.intro||''):(draft.summary||'');
   $('#description').value=draft.description||'';
   $('#hidden').checked=!!draft._hidden;
@@ -268,6 +272,9 @@ function openFreshDraft(item){
   $('#category').value=draft.category||'';
   $('#price').value='';
   $('#available').value='1';
+  $('#deliveryOverride').value='';
+  $('#freeDeliveryOverride').value='';
+  $('#skipCategoryPrice').checked=false;
   $('#summary').value='';
   $('#description').value='';
   $('#hidden').checked=false;
@@ -290,6 +297,11 @@ async function saveEditor(event){
     draft.category=$('#category').value.trim();
     draft.available=$('#available').value==='1';
     draft.description=$('#description').value.trim();
+    const deliveryRaw=$('#deliveryOverride').value.trim();
+    const freeRaw=$('#freeDeliveryOverride').value.trim();
+    if(deliveryRaw==='')delete draft.deliveryPriceOverride;else draft.deliveryPriceOverride=Math.max(0,Number(deliveryRaw)||0);
+    if(freeRaw==='')delete draft.freeDeliveryFromOverride;else draft.freeDeliveryFromOverride=Math.max(0,Number(freeRaw)||0);
+    draft.skipCategoryPriceAdjustment=$('#skipCategoryPrice').checked;
 
     const name=$('#name').value.trim();
     if(!name)throw new Error('Название не может быть пустым');
@@ -361,6 +373,22 @@ async function bulkPrices(){
   }catch(error){toast(error.message,true)}
 }
 
+function settingsLabel(category){return category==='mattress'?'Матрасы':category==='beds'?'Кровати':'Диваны'}
+function renderCategorySettings(){
+  const defaults=['mattress','beds','sofas'].map(category=>({category,price_mode:'percent',price_value:0,delivery_price:0,free_delivery_from:0}));
+  const merged=defaults.map(d=>({...d,...(categorySettings.find(x=>x.category===d.category)||{})}));
+  $('#settingsRows').innerHTML=merged.map(s=>`<section class="settings-card" data-settings-category="${s.category}"><h3>${settingsLabel(s.category)}</h3><label>Изменение цены<select data-settings-mode><option value="percent" ${s.price_mode==='percent'?'selected':''}>Процент, %</option><option value="fixed" ${s.price_mode==='fixed'?'selected':''}>Сумма, ₽</option></select></label><label>Наценка / скидка<input data-settings-value type="number" step="1" value="${Number(s.price_value)||0}"></label><label>Доставка, ₽<input data-settings-delivery type="number" min="0" value="${Number(s.delivery_price)||0}"></label><label>Бесплатная доставка от, ₽<input data-settings-free type="number" min="0" value="${Number(s.free_delivery_from)||0}"></label><div class="muted">0 в поле доставки = стоимость уточняется. 0 в «бесплатно от» = порог отключён.</div></section>`).join('');
+}
+async function openCategorySettings(){
+  try{const data=await request('settings');categorySettings=Array.isArray(data.settings)?data.settings:[];renderCategorySettings();$('#settingsModal').classList.remove('hide')}catch(error){toast(error.message,true)}
+}
+function closeCategorySettings(){$('#settingsModal').classList.add('hide')}
+async function saveCategorySettings(event){
+  event.preventDefault();
+  const rows=$$('[data-settings-category]').map(card=>({category:card.dataset.settingsCategory,price_mode:card.querySelector('[data-settings-mode]').value,price_value:Number(card.querySelector('[data-settings-value]').value)||0,delivery_price:Math.max(0,Number(card.querySelector('[data-settings-delivery]').value)||0),free_delivery_from:Math.max(0,Number(card.querySelector('[data-settings-free]').value)||0)}));
+  try{const data=await request('settings-save',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({rows})});categorySettings=data.settings||rows;closeCategorySettings();toast('Настройки цен и доставки сохранены')}catch(error){toast(error.message,true)}
+}
+
 async function start(){
   try{
     $('#login').classList.add('hide');
@@ -405,6 +433,10 @@ $('#logout').addEventListener('click',()=>{saveSession(null);location.reload()})
 $('#reload').addEventListener('click',()=>loadCatalog().catch(error=>toast(error.message,true)));
 $('#add').addEventListener('click',openNewCard);
 $('#bulk').addEventListener('click',bulkPrices);
+$('#settingsOpen').addEventListener('click',openCategorySettings);
+$('#settingsClose').addEventListener('click',closeCategorySettings);
+$('#settingsCancel').addEventListener('click',closeCategorySettings);
+$('#settingsForm').addEventListener('submit',saveCategorySettings);
 $('#closeEditor').addEventListener('click',closeEditor);
 $('#cancel').addEventListener('click',closeEditor);
 $('#reset').addEventListener('click',resetOrDelete);

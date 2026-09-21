@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="robots" content="noindex,nofollow">
   <title>НОКТЕНА — ADMIN</title>
-  <link rel="stylesheet" href="./admin.css?v=4">
+  <link rel="stylesheet" href="./admin.css?v=5">
 </head>
 <body>
   <div id="toast" class="toast hide"></div>
@@ -39,6 +39,7 @@
         <div class="actions">
           <button id="reload" class="btn secondary" type="button">Обновить</button>
           <button id="bulk" class="btn secondary" type="button">Цены %</button>
+          <button id="settingsOpen" class="btn secondary" type="button">Цены и доставка</button>
           <button id="add" class="btn primary" type="button">+ Добавить карточку</button>
         </div>
       </div>
@@ -82,6 +83,8 @@
           <label>Категория<input id="category"></label>
           <label>Базовая цена, ₽<input id="price" type="number" min="0"></label>
           <label>В наличии<select id="available"><option value="1">Да</option><option value="0">Нет</option></select></label>
+          <label>Индивидуальная доставка, ₽<input id="deliveryOverride" type="number" min="0" placeholder="Пусто = по категории"></label>
+          <label>Бесплатная доставка от, ₽<input id="freeDeliveryOverride" type="number" min="0" placeholder="Пусто = по категории"></label>
         </div>
 
         <label>Краткое описание<textarea id="summary" rows="3"></textarea></label>
@@ -112,6 +115,7 @@
         </section>
 
         <label class="section check"><input id="hidden" type="checkbox"> Скрыть товар на сайте</label>
+        <label class="check"><input id="skipCategoryPrice" type="checkbox"> Не применять наценку категории к этому товару</label>
 
         <div class="savebar">
           <button id="reset" type="button" class="btn danger">Сбросить изменения</button>
@@ -121,6 +125,14 @@
           </div>
         </div>
       </form>
+    </div>
+  </div>
+
+
+  <div id="settingsModal" class="modal hide">
+    <div class="modalbox">
+      <div class="modalhead"><div><b>Цены и доставка по категориям</b><div class="muted">Настройки применяются автоматически ко всему каталогу.</div></div><button id="settingsClose" type="button" class="btn secondary">Закрыть</button></div>
+      <form id="settingsForm"><div id="settingsRows" class="settings-grid"></div><div class="savebar"><span></span><div class="actions"><button id="settingsCancel" type="button" class="btn secondary">Отмена</button><button type="submit" class="btn primary">Сохранить настройки</button></div></div></form>
     </div>
   </div>
 
@@ -149,6 +161,6 @@
     </div>
   </div>
 
-  <script src="./admin.js?v=4" defer></script>
+  <script src="./admin.js?v=5" defer></script>
 </body>
 </html>
