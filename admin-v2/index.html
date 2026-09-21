@@ -1,1 +1,154 @@
-<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>НОКТЕНА — ADMIN v2</title><style>:root{--g:#0a8d55;--i:#173e32;--m:#70827a;--l:#dbe8e1;--b:#f5f8f6;--r:#c93643}*{box-sizing:border-box}body{margin:0;font-family:Arial,Segoe UI,sans-serif;background:var(--b);color:var(--i)}button,input,select,textarea{font:inherit}.hide{display:none!important}.login{min-height:100vh;display:grid;place-items:center;padding:24px}.box,.panel,.modalbox{background:#fff;border:1px solid var(--l);border-radius:20px}.box{width:min(430px,94vw);padding:28px;box-shadow:0 18px 55px rgba(22,77,53,.12)}.brand{font-size:27px;font-weight:900;color:var(--g)}label{display:grid;gap:6px;margin:13px 0;font-weight:700}input,select,textarea{width:100%;border:1px solid #cdded4;border-radius:11px;padding:11px;background:#fff;color:var(--i)}input,select{height:44px}textarea{resize:vertical}.btn{border:0;border-radius:11px;min-height:42px;padding:0 16px;font-weight:800;cursor:pointer}.p{background:var(--g);color:#fff}.s{background:#fff;border:1px solid #cdded4;color:var(--i)}.d{background:#fff0f1;color:var(--r);border:1px solid #ffd1d5}.app{display:grid;grid-template-columns:220px 1fr;min-height:100vh}.side{background:#123d32;color:#fff;padding:22px;display:flex;flex-direction:column;gap:20px}.side .brand{color:#fff}.side .bottom{margin-top:auto}.main{padding:26px}.top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:16px}.actions{display:flex;gap:8px;flex-wrap:wrap}.toolbar{display:grid;grid-template-columns:1fr 180px 180px;gap:9px;padding:13px;border-bottom:1px solid var(--l)}table{width:100%;border-collapse:collapse}th,td{padding:11px 13px;border-bottom:1px solid #edf2ef;text-align:left;font-size:14px}.prod{display:flex;gap:9px;align-items:center}.thumb{width:58px;height:46px;object-fit:cover;border-radius:8px;background:#eef3f0}.mut{font-size:12px;color:var(--m)}.pill{padding:4px 8px;border-radius:999px;background:#e8f7ef;color:#087345;font-size:11px;font-weight:800}.modal{position:fixed;inset:0;background:#082a2299;display:grid;place-items:center;padding:18px;z-index:20}.modalbox{width:min(1050px,96vw);max-height:94vh;overflow:auto;padding:20px}.mh{display:flex;justify-content:space-between;position:sticky;top:-20px;background:#fff;padding:10px 0;border-bottom:1px solid var(--l);z-index:2}.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.sec{border-top:1px solid var(--l);margin-top:16px;padding-top:16px}.imgs{display:flex;flex-wrap:wrap;gap:9px}.im{width:135px;border:1px solid var(--l);border-radius:10px;overflow:hidden}.im img{width:100%;height:95px;object-fit:cover}.im button{width:50%;border:0;background:#fff;padding:7px;font-size:11px}.variants{display:grid;gap:7px}.vr{display:grid;grid-template-columns:1fr 1fr 150px 42px;gap:7px}.colors{display:grid;gap:8px}.cr{display:grid;grid-template-columns:70px 180px 1fr auto auto;gap:8px;align-items:center;border:1px solid var(--l);padding:9px;border-radius:12px}.cr img{width:64px;height:52px;object-fit:cover;border-radius:8px}.savebar{display:flex;justify-content:space-between;position:sticky;bottom:-20px;background:#fff;border-top:1px solid var(--l);padding-top:12px;margin-top:18px}.toast{position:fixed;right:18px;bottom:18px;padding:12px 15px;border-radius:10px;background:#173e32;color:#fff;z-index:40}.toast.err{background:#b82e3b}.statusline{margin-top:10px;font-size:12px;color:var(--m)}@media(max-width:800px){.app{grid-template-columns:1fr}.side{display:none}.main{padding:12px}.toolbar,.g2{grid-template-columns:1fr}.vr{grid-template-columns:1fr 1fr}.cr{grid-template-columns:65px 1fr}.cr select,.cr label,.cr button{grid-column:2}.wrap{overflow:auto}}</style></head><body><div id="toast" class="toast hide"></div><section id="login" class="login"><form id="lf" class="box"><div class="brand">НОКТЕНА</div><h1>Новая админ-панель</h1><p class="mut">Цены, карточки и фотографии через единый API.</p><label>E-mail<input id="em" type="email" autocomplete="username" required></label><label>Пароль<input id="pw" type="password" autocomplete="current-password" required></label><button id="loginBtn" class="btn p">Войти</button><div id="le" style="color:#b82e3b;margin-top:10px"></div><div id="apiStatus" class="statusline">Проверяем сервер…</div></form></section><div id="app" class="app hide"><aside class="side"><div><div class="brand">НОКТЕНА</div><small>ADMIN v2</small></div><a style="color:#fff" href="https://noktena.ru" target="_blank">Открыть сайт ↗</a><div class="bottom"><div id="ae" class="mut" style="color:#bdd1c8;margin-bottom:9px"></div><button id="out" class="btn s">Выйти</button></div></aside><main class="main"><div class="top"><div><h1 style="margin:0">Каталог</h1><div class="mut">Матрасы, кровати, диваны</div></div><div class="actions"><button id="reload" class="btn s">Обновить</button><button id="bulk" class="btn s">Цены %</button></div></div><div class="panel"><div class="toolbar"><input id="q" placeholder="Поиск товара"><select id="kf"><option value="">Все товары</option><option value="mattress">Матрасы</option><option value="beds">Кровати</option><option value="sofas">Диваны</option></select><select id="sf"><option value="">Все</option><option value="changed">Изменённые</option></select></div><div class="wrap"><table><thead><tr><th>Товар</th><th>Категория</th><th>Цена</th><th>Статус</th><th></th></tr></thead><tbody id="rows"><tr><td colspan="5">Загрузка…</td></tr></tbody></table></div></div></main></div><div id="modal" class="modal hide"><div class="modalbox"><div class="mh"><div><b id="title"></b><div id="key" class="mut"></div></div><button id="x" type="button" class="btn s">Закрыть</button></div><form id="ed"><div class="g2"><label>Название<input id="name" required></label><label>Категория<input id="cat"></label><label>Базовая цена, ₽<input id="price" type="number" min="0"></label><label>В наличии<select id="avail"><option value="1">Да</option><option value="0">Нет</option></select></label></div><label>Краткое описание<textarea id="sum" rows="3"></textarea></label><label>Полное описание<textarea id="desc" rows="6"></textarea></label><div class="sec"><h3>Фотографии</h3><div class="mut">Первая фотография используется как главная.</div><div class="actions" style="margin-top:10px"><label class="btn p" style="display:inline-flex;align-items:center;cursor:pointer">+ Загрузить<input id="photo" type="file" accept="image/*" hidden></label><input id="url" placeholder="https:// ссылка" style="max-width:450px"><button id="addurl" type="button" class="btn s">Добавить ссылку</button></div><div id="imgs" class="imgs" style="margin-top:10px"></div></div><div class="sec"><h3>Размеры / цвета / цены</h3><div class="mut">Если изменить базовую цену, она применится ко всем вариантам.</div><div id="vars" class="variants" style="margin-top:10px"></div><button id="addv" type="button" class="btn s" style="margin-top:9px">+ Вариант</button></div><div id="colorsec" class="sec"><h3>Цвет → фото</h3><div class="mut" style="margin-bottom:9px">Для каждого цвета можно выбрать существующее фото или загрузить отдельное.</div><div id="colors" class="colors"></div></div><label class="sec"><input id="hidden" type="checkbox" style="width:auto;height:auto"> Скрыть товар на сайте</label><div class="savebar"><button id="reset" type="button" class="btn d">Сбросить изменения</button><div class="actions"><button id="cancel" type="button" class="btn s">Отмена</button><button id="save" class="btn p">Сохранить</button></div></div></form></div></div><script>const API='https://oldtlbkrftflfthfsqdv.supabase.co/functions/v1/noktena-admin-api';let ses=null,items=[],cur=null,edit=null,op=0;const $=s=>document.querySelector(s);function E(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}function T(m,e){const t=$('#toast');t.textContent=m;t.className='toast'+(e?' err':'');setTimeout(()=>t.classList.add('hide'),4000)}function SS(s){ses=s;localStorage.setItem('nkt-adm2',JSON.stringify(s))}try{ses=JSON.parse(localStorage.getItem('nkt-adm2')||'null')}catch{}async function req(a,o={},auth=true,retry=true){const h={...(o.headers||{})};if(auth&&ses?.access_token)h.Authorization='Bearer '+ses.access_token;let r=await fetch(API+'?action='+encodeURIComponent(a),{...o,headers:h});if(r.status===401&&auth&&retry&&ses?.refresh_token){const rr=await fetch(API+'?action=refresh',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({refresh_token:ses.refresh_token})});const rd=await rr.json().catch(()=>({}));if(!rr.ok)throw Error(rd.error||'Сессия истекла');SS(rd.session);return req(a,o,auth,false)}const d=await r.json().catch(()=>({error:'Ошибка ответа сервера'}));if(!r.ok)throw Error(d.error||'Ошибка сервера');return d}function N(x){return x._kind==='mattress'?x.model:x.title}function G(x){return x._kind==='mattress'?'mattress':x.category==='sofas'?'sofas':'beds'}function P(x){const a=(x.variants||[]).map(v=>+v.price).filter(n=>n>0);if(+x.price>0)a.push(+x.price);return a.length?Math.min(...a):0}function R(n){return(Number(n)||0).toLocaleString('ru-RU')+' ₽'}function DRAW(){const q=$('#q').value.toLowerCase(),k=$('#kf').value,s=$('#sf').value,a=items.filter(x=>(!q||(N(x)+' '+(x.description||'')).toLowerCase().includes(q))&&(!k||G(x)===k)&&(!s||x._changed));$('#rows').innerHTML=a.map(x=>'<tr><td><div class="prod">'+(x.images?.[0]?'<img class="thumb" src="'+E(x.images[0])+'">':'<div class="thumb"></div>')+'<div><b>'+E(N(x))+'</b><div class="mut">'+E(x._key)+'</div></div></div></td><td>'+E(x.category||G(x))+'</td><td><b>'+R(P(x))+'</b></td><td>'+(x._changed?'<span class="pill">Изменён</span>':'Каталог')+'</td><td><button class="btn s" data-e="'+E(x._key)+'">Изменить</button></td></tr>').join('')||'<tr><td colspan="5">Нет товаров</td></tr>'}async function LOAD(){const d=await req('catalog');items=d.items;DRAW()}function SV(){edit.variants=[...document.querySelectorAll('.vr')].map(r=>({size:r.querySelector('[data-sz]').value.trim(),color:r.querySelector('[data-co]').value.trim(),price:+r.querySelector('[data-pr]').value||0,available:true})).filter(v=>v.size||v.color||v.price)}function RI(){$('#imgs').innerHTML=(edit.images||[]).map((u,i)=>'<div class="im"><img src="'+E(u)+'"><div><button type="button" data-main="'+i+'">Главное</button><button type="button" data-ri="'+i+'" style="color:#c33">Удалить</button></div></div>').join('')||'<div class="mut">Фото нет</div>'}function RV(){$('#vars').innerHTML=(edit.variants||[]).map((v,i)=>'<div class="vr"><input data-sz value="'+E(v.size||'')+'" placeholder="Размер"><input data-co value="'+E(v.color||'')+'" placeholder="Цвет"><input data-pr type="number" value="'+(+v.price||0)+'"><button type="button" class="btn d" data-rv="'+i+'">×</button></div>').join('');RC()}function RC(){if(edit._kind!=='furniture'){$('#colorsec').classList.add('hide');return}$('#colorsec').classList.remove('hide');SV();edit.colorImages=edit.colorImages||{};const cs=[...new Set(edit.variants.map(v=>v.color).filter(Boolean))],ca=[...new Set([...(edit.images||[]),...Object.values(edit.colorImages)])];$('#colors').innerHTML=cs.map(c=>{const s=edit.colorImages[c]||'',o=ca.map(u=>'<option value="'+E(u)+'" '+(u===s?'selected':'')+'>Фото</option>').join('');return'<div class="cr">'+(s?'<img src="'+E(s)+'">':'<div class="thumb"></div>')+'<b>'+E(c)+'</b><select data-cs="'+E(c)+'"><option value="">Без привязки</option>'+o+'</select><label class="btn s" style="display:inline-flex;align-items:center;cursor:pointer">+ Фото<input data-cf="'+E(c)+'" type="file" accept="image/*" hidden></label>'+(s?'<button type="button" class="btn d" data-cr="'+E(c)+'">Удалить</button>':'')+'</div>'}).join('')||'<div class="mut">Укажите цвета в вариантах.</div>'}function OPEN(k){cur=items.find(x=>x._key===k);edit=structuredClone(cur);op=+edit.price||P(edit);$('#title').textContent=N(edit);$('#key').textContent=edit._key;$('#name').value=N(edit)||'';$('#cat').value=edit.category||'';$('#price').value=+edit.price||P(edit)||'';$('#avail').value=edit.available===false?'0':'1';$('#sum').value=edit._kind==='mattress'?(edit.intro||''):(edit.summary||'');$('#desc').value=edit.description||'';$('#hidden').checked=!!edit._hidden;RI();RV();$('#modal').classList.remove('hide')}function CLOSE(){$('#modal').classList.add('hide')}async function UP(f,c=''){const fd=new FormData();fd.append('file',f);fd.append('product_key',edit._key);const d=await req('upload',{method:'POST',body:fd});if(c){edit.colorImages=edit.colorImages||{};edit.colorImages[c]=d.url}else{edit.images=edit.images||[];edit.images.push(d.url)}RI();RC();T('Фото загружено')}$('#lf').onsubmit=async e=>{e.preventDefault();$('#le').textContent='';$('#loginBtn').disabled=true;try{const d=await req('login',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({email:$('#em').value.trim(),password:$('#pw').value})},false);SS(d.session);START()}catch(x){$('#le').textContent=x.message}finally{$('#loginBtn').disabled=false}};async function START(){try{$('#login').classList.add('hide');$('#app').classList.remove('hide');$('#ae').textContent=ses.user?.email||'';await LOAD()}catch(x){T(x.message,1);localStorage.removeItem('nkt-adm2');ses=null;$('#app').classList.add('hide');$('#login').classList.remove('hide')}}$('#out').onclick=()=>{localStorage.removeItem('nkt-adm2');location.reload()};$('#reload').onclick=()=>LOAD().catch(x=>T(x.message,1));['q','kf','sf'].forEach(i=>$('#'+i).addEventListener(i==='q'?'input':'change',DRAW));document.onclick=e=>{const a=e.target.closest('[data-e]');if(a)OPEN(a.dataset.e);const ri=e.target.closest('[data-ri]');if(ri){const i=+ri.dataset.ri,u=edit.images[i];edit.images.splice(i,1);for(const[c,v]of Object.entries(edit.colorImages||{}))if(v===u)delete edit.colorImages[c];RI();RC()}const m=e.target.closest('[data-main]');if(m){const i=+m.dataset.main;if(i>0){const[u]=edit.images.splice(i,1);edit.images.unshift(u);RI();RC()}}const rv=e.target.closest('[data-rv]');if(rv){SV();edit.variants.splice(+rv.dataset.rv,1);RV()}const cr=e.target.closest('[data-cr]');if(cr){delete edit.colorImages[cr.dataset.cr];RC()}};document.onchange=async e=>{const s=e.target.closest('[data-cs]');if(s){if(s.value)edit.colorImages[s.dataset.cs]=s.value;else delete edit.colorImages[s.dataset.cs];RC();return}const f=e.target.closest('[data-cf]');if(f&&f.files?.[0]){try{await UP(f.files[0],f.dataset.cf)}catch(x){T(x.message,1)}f.value=''}};$('#photo').onchange=async e=>{const f=e.target.files?.[0];if(f)try{await UP(f)}catch(x){T(x.message,1)}e.target.value=''};$('#addurl').onclick=()=>{const u=$('#url').value.trim();if(u){edit.images=edit.images||[];edit.images.push(u);$('#url').value='';RI();RC()}};$('#addv').onclick=()=>{SV();edit.variants.push({size:'',color:'',price:+$('#price').value||0,available:true});RV()};$('#x').onclick=CLOSE;$('#cancel').onclick=CLOSE;$('#ed').onsubmit=async e=>{e.preventDefault();try{SV();const np=+$('#price').value||0;if(np>0&&np!==op)edit.variants.forEach(v=>v.price=np);edit.category=$('#cat').value.trim();edit.available=$('#avail').value==='1';edit.description=$('#desc').value.trim();if(edit._kind==='mattress'){edit.model=$('#name').value.trim();edit.intro=$('#sum').value.trim()}else{edit.title=$('#name').value.trim();edit.summary=$('#sum').value.trim();edit.price=np;edit.sizes=[...new Set(edit.variants.map(v=>v.size).filter(Boolean))];edit.colors=[...new Set(edit.variants.map(v=>v.color).filter(Boolean))]}$('#save').disabled=true;await req('save',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({key:edit._key,kind:edit._kind,item:edit,hidden:$('#hidden').checked,is_custom:!!edit._isCustom})});T('Сохранено');CLOSE();await LOAD()}catch(x){T(x.message,1)}finally{$('#save').disabled=false}};$('#reset').onclick=async()=>{if(!cur?._changed)return T('Нет ручных изменений',1);if(!confirm('Сбросить изменения?'))return;try{await req('reset',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({key:cur._key})});CLOSE();await LOAD();T('Сброшено')}catch(x){T(x.message,1)}};$('#bulk').onclick=async()=>{const p=prompt('Изменить все цены на %, например 10 или -5');if(p===null)return;const z=Number(p);if(!z)return T('Некорректный процент',1);if(!confirm('Применить '+z+'% ко всем товарам?'))return;try{const f=n=>Math.round(n*(1+z/100)/100)*100,rows=items.map(x=>{const y=structuredClone(x);if(y.price>0)y.price=f(y.price);if(y.variants)y.variants=y.variants.map(v=>({...v,price:v.price>0?f(v.price):v.price}));return{key:y._key,kind:y._kind,item:y,hidden:false,is_custom:!!y._isCustom}});await req('save-many',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({rows})});await LOAD();T('Цены обновлены')}catch(x){T(x.message,1)}};async function health(){try{const d=await req('health',{},false);$('#apiStatus').textContent=d.ok?'Сервер готов':'Сервер недоступен';$('#apiStatus').style.color=d.ok?'#087345':'#b82e3b'}catch(e){$('#apiStatus').textContent='Сервер недоступен: '+e.message;$('#apiStatus').style.color='#b82e3b'}}health();if(ses)START();</script></body></html>
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>НОКТЕНА — ADMIN v2</title>
+  <link rel="stylesheet" href="./styles.css?v=4">
+</head>
+<body>
+  <div id="toast" class="toast hide"></div>
+
+  <section id="login" class="login">
+    <form id="loginForm" class="box">
+      <div class="brand">НОКТЕНА</div>
+      <h1>Админ-панель</h1>
+      <p class="muted">Цены, карточки и фотографии через единый защищённый API.</p>
+      <label>E-mail<input id="email" type="email" autocomplete="username" required></label>
+      <label>Пароль<input id="password" type="password" autocomplete="current-password" required></label>
+      <button id="loginBtn" class="btn primary" type="submit">Войти</button>
+      <div id="loginError" style="color:#b82e3b;margin-top:10px"></div>
+      <div id="apiStatus" class="statusline">Проверяем сервер…</div>
+    </form>
+  </section>
+
+  <div id="app" class="app hide">
+    <aside class="side">
+      <div><div class="brand">НОКТЕНА</div><small>ADMIN v2</small></div>
+      <a href="https://noktena.ru" target="_blank" rel="noopener">Открыть сайт ↗</a>
+      <div class="bottom">
+        <div id="adminEmail" class="muted" style="color:#bdd1c8;margin-bottom:9px"></div>
+        <button id="logout" class="btn secondary" type="button">Выйти</button>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="top">
+        <div><h1 style="margin:0">Каталог</h1><div class="muted">Матрасы, кровати, диваны</div></div>
+        <div class="actions">
+          <button id="reload" class="btn secondary" type="button">Обновить</button>
+          <button id="bulk" class="btn secondary" type="button">Цены %</button>
+          <button id="add" class="btn primary" type="button">+ Добавить карточку</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="toolbar">
+          <input id="q" placeholder="Поиск товара">
+          <select id="kindFilter">
+            <option value="">Все товары</option>
+            <option value="mattress">Матрасы</option>
+            <option value="beds">Кровати</option>
+            <option value="sofas">Диваны</option>
+          </select>
+          <select id="statusFilter">
+            <option value="">Все статусы</option>
+            <option value="changed">Изменённые</option>
+            <option value="custom">Добавленные</option>
+          </select>
+        </div>
+        <div style="padding:0 13px 10px"><span id="count" class="count"></span></div>
+        <div class="wrap">
+          <table>
+            <thead><tr><th>Товар</th><th>Категория</th><th>Цена</th><th>Статус</th><th></th></tr></thead>
+            <tbody id="rows"><tr><td colspan="5">Загрузка…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <div id="editor" class="modal hide">
+    <div class="modalbox">
+      <div class="modalhead">
+        <div><b id="editorTitle"></b><div id="editorKey" class="muted"></div></div>
+        <button id="closeEditor" type="button" class="btn secondary">Закрыть</button>
+      </div>
+
+      <form id="editorForm">
+        <div class="grid2">
+          <label>Название<input id="name" required></label>
+          <label>Категория<input id="category"></label>
+          <label>Базовая цена, ₽<input id="price" type="number" min="0"></label>
+          <label>В наличии<select id="available"><option value="1">Да</option><option value="0">Нет</option></select></label>
+        </div>
+
+        <label>Краткое описание<textarea id="summary" rows="3"></textarea></label>
+        <label>Полное описание<textarea id="description" rows="6"></textarea></label>
+
+        <section class="section">
+          <h3>Фотографии</h3>
+          <div class="muted">Первая фотография используется как главная. «Убрать» удаляет фото из карточки.</div>
+          <div class="actions" style="margin-top:10px">
+            <label class="btn primary" style="display:inline-flex;align-items:center;cursor:pointer;margin:0">+ Загрузить фото<input id="photo" type="file" accept="image/*" hidden></label>
+            <input id="photoUrl" placeholder="https:// ссылка на фото" style="max-width:450px">
+            <button id="addUrl" type="button" class="btn secondary">Добавить ссылку</button>
+          </div>
+          <div id="images" class="images"></div>
+        </section>
+
+        <section class="section">
+          <h3>Размеры / цвета / цены</h3>
+          <div class="notice">Служебные данные исходного каталога сохраняются. При изменении базовой цены новая цена применяется ко всем вариантам.</div>
+          <div id="variants" class="variants"></div>
+          <button id="addVariant" type="button" class="btn secondary" style="margin-top:9px">+ Вариант</button>
+        </section>
+
+        <section id="colorSection" class="section">
+          <h3>Цвет → фото</h3>
+          <div class="muted" style="margin-bottom:9px">Для каждого цвета можно выбрать существующее фото или загрузить отдельное.</div>
+          <div id="colors" class="colors"></div>
+        </section>
+
+        <label class="section check"><input id="hidden" type="checkbox"> Скрыть товар на сайте</label>
+
+        <div class="savebar">
+          <button id="reset" type="button" class="btn danger">Сбросить изменения</button>
+          <div class="actions">
+            <button id="cancel" type="button" class="btn secondary">Отмена</button>
+            <button id="save" type="submit" class="btn primary">Сохранить</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="newModal" class="modal hide">
+    <div class="modalbox small">
+      <div class="modalhead">
+        <div><b>Новая карточка</b><div class="muted">Выберите тип товара и задайте название.</div></div>
+        <button id="closeNew" type="button" class="btn secondary">Закрыть</button>
+      </div>
+      <form id="newForm">
+        <div class="custom-type" style="margin-top:16px">
+          <label>Тип товара
+            <select id="newType">
+              <option value="mattress">Матрас</option>
+              <option value="beds">Кровать</option>
+              <option value="sofas">Диван</option>
+            </select>
+          </label>
+          <label>Название<input id="newName" required placeholder="Например, Матрас Комфорт"></label>
+        </div>
+        <div class="actions" style="justify-content:flex-end;margin-top:18px">
+          <button id="cancelNew" type="button" class="btn secondary">Отмена</button>
+          <button type="submit" class="btn primary">Создать и заполнить</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="./app.js?v=4" defer></script>
+</body>
+</html>
