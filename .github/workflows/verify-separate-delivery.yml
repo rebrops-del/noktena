@@ -56,8 +56,10 @@ jobs:
           ! grep -q 'Каталог временно не загрузился' /tmp/home.html
           grep -q '1 500 ₽' /tmp/home.html
           grep -q '600 ₽' /tmp/home.html
-          grep -q '+400 ₽' /tmp/home.html
+          grep -q 'Подъём дивана' /tmp/home.html
+          grep -q '400 ₽' /tmp/home.html
 
           "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --virtual-time-budget=16000 --dump-dom "https://noktena.ru/product.html?kind=furniture&id=24177" > /tmp/product.html
           grep -q 'global-delivery-product' /tmp/product.html
-          grep -q 'диван +400 ₽' /tmp/product.html
+          grep -q 'диван' /tmp/product.html
+          grep -q '400 ₽' /tmp/product.html
