@@ -54,7 +54,7 @@
   function upgradeFooter(){
     const foot=$('.footer .foot');
     if(!foot||foot.classList.contains('premium-footer-grid'))return;
-    foot.className='premium-footer-grid';
+    foot.className='wrap premium-footer-grid';
     foot.innerHTML=`<div class="premium-footer-brand"><b>НОКТЕНА</b><p>Товары для сна и отдыха: матрасы, кровати и диваны. Екатеринбургский филиал, региональный склад — г. Берёзовский.</p><p class="premium-footer-note">Перед оформлением менеджер подтверждает актуальное наличие, комплектацию и условия доставки.</p></div><div><h3>Покупателям</h3><a href="#mattresses">Матрасы</a><a href="#beds">Кровати</a><a href="#sofas">Диваны</a><a href="#guide">Как выбрать</a><a href="#delivery">Доставка и подъём</a></div><div><h3>Связаться</h3><a href="tel:+79321207635">+7 (932) 120-76-35</a><a href="mailto:noktena@mail.ru">noktena@mail.ru</a><a href="${MAX_LINK}" target="_blank" rel="noopener">Написать в MAX</a></div>`;
   }
 
