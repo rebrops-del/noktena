@@ -1,31 +1,43 @@
 (()=>{
   'use strict';
   const b=window.NOKTENA_CATALOG_BOOTSTRAP||{};
-  const raw=b.deliverySettings||{};
+  const legacy=b.deliverySettings||{};
+  const v2row=(b.rows||[]).find(r=>r.product_key==='settings:delivery_v2');
+  const raw=v2row?.payload||{};
   const delivery={
-    delivery_price:Math.max(0,Number(raw.delivery_price)||0),
-    lift_price:Math.max(0,Number(raw.lift_price)||0),
-    sofa_lift_surcharge:Math.max(0,Number(raw.sofa_lift_surcharge)||0),
-    free_delivery_from:Math.max(0,Number(raw.free_delivery_from)||0)
+    delivery_price:Math.max(0,Number(raw.delivery_price??legacy.delivery_price)||0),
+    cargo_lift_price:Math.max(0,Number(raw.cargo_lift_price??legacy.lift_price)||0),
+    stair_lift_price:Math.max(0,Number(raw.stair_lift_price)||0),
+    sofa_lift_surcharge:Math.max(0,Number(raw.sofa_lift_surcharge??legacy.sofa_lift_surcharge)||0),
+    free_delivery_from:Math.max(0,Number(raw.free_delivery_from??legacy.free_delivery_from)||0),
+    delivery_schedule:String(raw.delivery_schedule||'').trim()
   };
   const money=n=>`${Math.round(Number(n)||0).toLocaleString('ru-RU')} ₽`;
   const style=document.createElement('style');
-  style.textContent='.global-delivery-chip,.global-delivery-product{margin-top:8px;padding:9px 11px;border-radius:10px;background:#f2f8f4;color:#315c4c;font-size:12px;font-weight:700}.global-delivery-product{margin:12px 0 0;font-size:13px}.global-delivery-product strong{color:#0a8d55}';
+  style.textContent='.global-delivery-chip,.global-delivery-product{margin-top:8px;padding:9px 11px;border-radius:10px;background:#f2f8f4;color:#315c4c;font-size:12px;font-weight:700}.global-delivery-product{margin:12px 0 0;font-size:13px;line-height:1.55}.global-delivery-product strong{color:#0a8d55}.global-delivery-chip{line-height:1.5}';
   document.head.appendChild(style);
   const value=n=>n>0?money(n):'Уточняется';
 
   function updateDeliverySection(){
     const grid=document.querySelector('#delivery .dgrid');
     if(!grid)return;
-    const signature=[delivery.delivery_price,delivery.lift_price,delivery.sofa_lift_surcharge,delivery.free_delivery_from].join(':');
-    if(grid.querySelector(`[data-global-delivery="${signature}"]`))return;
-    grid.innerHTML=`<div class="d" data-global-delivery="${signature}">Доставка<b>${value(delivery.delivery_price)}</b><small>до подъезда по г. Екатеринбург</small></div><div class="d">Подъём<b>${value(delivery.lift_price)}</b><small>базовая стоимость подъёма заказа</small></div><div class="d">Подъём дивана<b>${delivery.sofa_lift_surcharge>0?'+'+money(delivery.sofa_lift_surcharge):'Без доплаты'}</b><small>доплата к базовой стоимости подъёма дивана</small></div><div class="d">Бесплатная доставка<b>${delivery.free_delivery_from>0?'от '+money(delivery.free_delivery_from):'Не задана'}</b><small>порог бесплатной доставки</small></div><div class="d">График<b>Вторник / Пятница</b><small>плановые дни доставки</small></div>`;
+    const signature=[delivery.delivery_price,delivery.cargo_lift_price,delivery.stair_lift_price,delivery.sofa_lift_surcharge,delivery.free_delivery_from,delivery.delivery_schedule].join(':');
+    if(grid.querySelector(`[data-global-delivery="${CSS.escape(signature)}"]`))return;
+    const cards=[
+      `<div class="d" data-global-delivery="${signature.replace(/"/g,'&quot;')}">Доставка<b>${value(delivery.delivery_price)}</b><small>до подъезда по г. Екатеринбург</small></div>`,
+      `<div class="d">Грузовой лифт<b>${value(delivery.cargo_lift_price)}</b><small>подъём на этаж при наличии грузового лифта</small></div>`,
+      `<div class="d">По лестнице<b>${delivery.stair_lift_price>0?money(delivery.stair_lift_price)+' / этаж':'Уточняется'}</b><small>ручной подъём по лестнице, стоимость за один этаж</small></div>`,
+      `<div class="d">Подъём дивана<b>${delivery.sofa_lift_surcharge>0?'+'+money(delivery.sofa_lift_surcharge):'Без доплаты'}</b><small>доплата к выбранному способу подъёма дивана</small></div>`,
+      `<div class="d">График<b>${delivery.delivery_schedule||'Уточняется'}</b><small>плановые дни и время доставки</small></div>`
+    ];
+    if(delivery.free_delivery_from>0)cards.push(`<div class="d">Бесплатная доставка<b>от ${money(delivery.free_delivery_from)}</b><small>порог бесплатной доставки</small></div>`);
+    grid.innerHTML=cards.join('');
   }
 
   let furnitureMapPromise=null;
   async function furnitureMap(){
     if(furnitureMapPromise)return furnitureMapPromise;
-    furnitureMapPromise=(async()=>{try{const r=await fetch('data/furniture.json?delivery-ui=4',{cache:'force-cache'});if(!r.ok)return new Map();const d=await r.json();return new Map([...(d.beds||[]).map(x=>[String(x.id),'beds']),...(d.sofas||[]).map(x=>[String(x.id),'sofas'])])}catch{return new Map()}})();
+    furnitureMapPromise=(async()=>{try{const r=await fetch('data/furniture.json?delivery-ui=5',{cache:'force-cache'});if(!r.ok)return new Map();const d=await r.json();return new Map([...(d.beds||[]).map(x=>[String(x.id),'beds']),...(d.sofas||[]).map(x=>[String(x.id),'sofas'])])}catch{return new Map()}})();
     return furnitureMapPromise;
   }
   function customCategory(id){const row=(b.rows||[]).find(r=>r.product_key===`furniture:${id}`);return row?.payload?.category||''}
@@ -36,14 +48,21 @@
     return{
       delivery_price:hasD?Math.max(0,Number(override.deliveryPriceOverride)||0):delivery.delivery_price,
       free_delivery_from:hasF?Math.max(0,Number(override.freeDeliveryFromOverride)||0):delivery.free_delivery_from,
-      lift_price:delivery.lift_price,
-      sofa_lift_surcharge:category==='sofas'?delivery.sofa_lift_surcharge:0
+      cargo_lift_price:delivery.cargo_lift_price,
+      stair_lift_price:delivery.stair_lift_price,
+      sofa_lift_surcharge:category==='sofas'?delivery.sofa_lift_surcharge:0,
+      delivery_schedule:delivery.delivery_schedule
     };
   }
   function chipText(s){
-    const parts=[s.delivery_price>0?`Доставка ${money(s.delivery_price)}`:'Доставка — уточняется',s.lift_price>0?`подъём ${money(s.lift_price)}`:'подъём — уточняется'];
+    const parts=[
+      s.delivery_price>0?`доставка ${money(s.delivery_price)}`:'доставка — уточняется',
+      s.cargo_lift_price>0?`грузовой лифт ${money(s.cargo_lift_price)}`:'грузовой лифт — уточняется',
+      s.stair_lift_price>0?`лестница ${money(s.stair_lift_price)}/этаж`:'лестница — уточняется'
+    ];
     if(s.sofa_lift_surcharge>0)parts.push(`диван +${money(s.sofa_lift_surcharge)}`);
     if(s.free_delivery_from>0)parts.push(`бесплатно от ${money(s.free_delivery_from)}`);
+    if(s.delivery_schedule)parts.push(`график: ${s.delivery_schedule}`);
     return parts.join(' · ');
   }
   async function decorateCards(){
