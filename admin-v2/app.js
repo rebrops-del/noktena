@@ -1,4 +1,4 @@
-const API=(location.hostname.endsWith('.vercel.app')||location.hostname==='admin.noktena.ru')?'/api/noktena-admin':'https://oldtlbkrftflfthfsqdv.supabase.co/functions/v1/noktena-admin-api';
+const API='https://admin-proxy-production-65c9.up.railway.app/api/noktena-admin';
 const SESSION_KEY='nkt-adm2';
 let session=null;
 let items=[];
