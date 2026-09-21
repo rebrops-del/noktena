@@ -10,7 +10,8 @@
     stair_lift_price:Math.max(0,Number(raw.stair_lift_price)||0),
     sofa_lift_surcharge:Math.max(0,Number(raw.sofa_lift_surcharge??legacy.sofa_lift_surcharge)||0),
     free_delivery_from:Math.max(0,Number(raw.free_delivery_from??legacy.free_delivery_from)||0),
-    delivery_schedule:String(raw.delivery_schedule||'').trim()
+    delivery_schedule:String(raw.delivery_schedule||'').trim(),
+    bed_assembly_price:Math.max(0,Number(raw.bed_assembly_price)||1500)
   };
   const BADGES={
     hit:{label:'Хит продаж',className:'hit'},
@@ -44,7 +45,8 @@
       `<div class="d">Грузовой лифт<b>${value(delivery.cargo_lift_price)}</b><small>подъём на этаж при наличии грузового лифта</small></div>`,
       `<div class="d">По лестнице<b>${delivery.stair_lift_price>0?money(delivery.stair_lift_price)+' / этаж':'Уточняется'}</b><small>ручной подъём по лестнице, стоимость за один этаж</small></div>`,
       `<div class="d">Подъём дивана<b>${delivery.sofa_lift_surcharge>0?'+'+money(delivery.sofa_lift_surcharge):'Без доплаты'}</b><small>доплата к выбранному способу подъёма дивана</small></div>`,
-      `<div class="d">График<b>${delivery.delivery_schedule||'Уточняется'}</b><small>плановые дни и время доставки</small></div>`
+      `<div class="d">График<b>${delivery.delivery_schedule||'Уточняется'}</b><small>плановые дни и время доставки</small></div>`,
+      `<div class="d">Сборка кровати<b>${money(delivery.bed_assembly_price)}</b><small>стоимость сборки одной кровати</small></div>`
     ];
     if(delivery.free_delivery_from>0)cards.push(`<div class="d">Бесплатная доставка<b>от ${money(delivery.free_delivery_from)}</b><small>порог бесплатной доставки</small></div>`);
     grid.innerHTML=cards.join('');
