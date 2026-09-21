@@ -26,34 +26,47 @@ jobs:
           grep -q '600' /tmp/bootstrap.js
           grep -q '400' /tmp/bootstrap.js
 
-      - name: Wait for GitHub Pages deployment
+      - name: Wait for final Pages files
         run: |
           set -euxo pipefail
-          for i in $(seq 1 48); do
+          for i in $(seq 1 60); do
+            home=$(curl -fsSL "https://noktena.ru/?check=$GITHUB_RUN_ID" || true)
+            product=$(curl -fsSL "https://noktena.ru/product.html?check=$GITHUB_RUN_ID" || true)
             adm=$(curl -fsSL "https://noktena.ru/admin/?check=$GITHUB_RUN_ID" || true)
-            admjs=$(curl -fsSL "https://noktena.ru/admin/admin.js?check=$GITHUB_RUN_ID" || true)
-            runtime=$(curl -fsSL "https://noktena.ru/assets/catalog-runtime.js?check=$GITHUB_RUN_ID" || true)
-            delivery=$(curl -fsSL "https://noktena.ru/assets/category-settings-ui.js?check=$GITHUB_RUN_ID" || true)
-            if printf '%s' "$adm" | grep -q 'deliverySettingsOpen' && printf '%s' "$adm" | grep -q 'admin-logo' && printf '%s' "$admjs" | grep -q 'openDeliverySettings' && printf '%s' "$admjs" | grep -q 'delivery-settings-save' && printf '%s' "$runtime" | grep -q 'getDeliverySettings' && printf '%s' "$delivery" | grep -q 'global-delivery-product'; then
+            helper=$(curl -fsSL "https://noktena.ru/assets/category-settings-ui.js?check=$GITHUB_RUN_ID" || true)
+            if printf '%s' "$home" | grep -q 'category-settings-ui.js?v=20260921-delivery4' && printf '%s' "$product" | grep -q 'category-settings-ui.js?v=20260921-delivery4' && printf '%s' "$adm" | grep -q 'deliverySettingsOpen' && printf '%s' "$adm" | grep -q 'admin-logo' && printf '%s' "$helper" | grep -q 'data-global-delivery'; then
               exit 0
             fi
             sleep 5
           done
+          echo 'Final Pages files were not published in time' >&2
           exit 1
 
-      - name: Render live pages and print delivery state
+      - name: Render live admin and storefront in Chrome
         run: |
           set -euxo pipefail
           CHROME=$(command -v google-chrome || command -v google-chrome-stable || command -v chromium || command -v chromium-browser)
-          "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --virtual-time-budget=12000 --dump-dom "https://noktena.ru/admin/?verify=$GITHUB_RUN_ID" > /tmp/admin.html
+
+          "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --virtual-time-budget=15000 --dump-dom "https://noktena.ru/admin/?verify=$GITHUB_RUN_ID" > /tmp/admin.html
           grep -q 'Сервер готов' /tmp/admin.html
           grep -q 'deliverySettingsOpen' /tmp/admin.html
           grep -q 'admin-logo' /tmp/admin.html
+          grep -q 'Стоимость доставки' /tmp/admin.html
+          grep -q 'Стоимость подъёма' /tmp/admin.html
+          grep -q 'Доплата за подъём дивана' /tmp/admin.html
 
-          "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --virtual-time-budget=20000 --dump-dom "https://noktena.ru/#delivery" > /tmp/home.html
-          echo '--- HOME DELIVERY SNIPPETS ---'
-          grep -o -E '.{0,120}(Доставка|Подъём|подъём|1 500|600|400|global-delivery).{0,180}' /tmp/home.html | tail -80 || true
+          "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --virtual-time-budget=22000 --dump-dom "https://noktena.ru/#delivery" > /tmp/home.html
+          ! grep -q 'Каталог временно не загрузился' /tmp/home.html
+          grep -q 'data-global-delivery="1500:600:400:0"' /tmp/home.html
+          grep -q '1 500 ₽' /tmp/home.html
+          grep -q '600 ₽' /tmp/home.html
+          grep -q 'Подъём дивана' /tmp/home.html
+          grep -q '400 ₽' /tmp/home.html
 
-          "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --virtual-time-budget=20000 --dump-dom "https://noktena.ru/product.html?kind=furniture&id=24177" > /tmp/product.html
-          echo '--- PRODUCT DELIVERY SNIPPETS ---'
-          grep -o -E '.{0,140}(Доставка|доставка|Подъём|подъём|400|global-delivery).{0,220}' /tmp/product.html | tail -80 || true
+          "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --virtual-time-budget=22000 --dump-dom "https://noktena.ru/product.html?kind=furniture&id=24177" > /tmp/product.html
+          ! grep -q 'Каталог временно не загрузился' /tmp/product.html
+          grep -q 'global-delivery-product' /tmp/product.html
+          grep -q 'Доставка и подъём' /tmp/product.html
+          grep -q '1 500 ₽' /tmp/product.html
+          grep -q '600 ₽' /tmp/product.html
+          grep -q '400 ₽' /tmp/product.html
