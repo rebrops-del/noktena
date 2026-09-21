@@ -1,0 +1,47 @@
+name: Patch depth and promo controls
+
+on:
+  push:
+    paths:
+      - 'scripts/patch_depth_and_promo_controls.py'
+      - 'admin/admin-card-settings.js'
+      - '.github/workflows/patch-depth-and-promo.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Apply patch
+        run: python3 scripts/patch_depth_and_promo_controls.py
+
+      - name: Validate JavaScript
+        run: |
+          set -euo pipefail
+          node --check assets/catalog-v2.js
+          node --check assets/product-detail.js
+          node --check admin/admin-card-settings.js
+          grep -q 'depthBySize' assets/catalog-v2.js
+          grep -q 'furnitureDepthValue' assets/product-detail.js
+          grep -q 'admin-card-settings.js?v=1' admin/index.html
+          grep -q 'catalog-v2.js?v=20260921-depthpromo1' index.html
+          grep -q 'product-detail.js?v=20260921-depthpromo1' product.html
+
+      - name: Commit patch
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add assets/catalog-v2.js assets/product-detail.js admin/index.html index.html product.html
+          if git diff --cached --quiet; then
+            echo 'No changes needed'
+            exit 0
+          fi
+          git commit -m 'Add editable depth and price promo controls'
+          git pull --rebase origin main
+          git push origin main
