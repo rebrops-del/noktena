@@ -1,0 +1,49 @@
+name: Verify public local-only
+on:
+  push:
+    paths:
+      - '.github/workflows/verify-public-localonly.yml'
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wait until restored HTML is live
+        run: |
+          set -euxo pipefail
+          for i in $(seq 1 36); do
+            curl -sS -L --max-time 20 "https://noktena.ru/?verify=$GITHUB_RUN_ID" -o /tmp/home.html || true
+            curl -sS -L --max-time 20 "https://noktena.ru/product.html?kind=furniture&id=berhouse-24177&verify=$GITHUB_RUN_ID" -o /tmp/product.html || true
+            if grep -q 'catalog-runtime.js?v=20260921-localonly1' /tmp/home.html \
+              && grep -q 'catalog-runtime.js?v=20260921-localonly1' /tmp/product.html \
+              && ! grep -q 'supabase.co' /tmp/home.html \
+              && ! grep -q 'supabase.co' /tmp/product.html; then
+              exit 0
+            fi
+            sleep 5
+          done
+          echo 'Restored public HTML did not become live' >&2
+          exit 1
+
+      - name: Render homepage with Supabase project host blocked
+        run: |
+          set -euxo pipefail
+          CHROME=$(command -v google-chrome || command -v google-chrome-stable || command -v chromium || command -v chromium-browser)
+          "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage \
+            --host-resolver-rules='MAP oldtlbkrftflfthfsqdv.supabase.co 0.0.0.0' \
+            --virtual-time-budget=12000 --dump-dom \
+            "https://noktena.ru/?blocked=$GITHUB_RUN_ID" > /tmp/rendered-home.html
+          ! grep -q 'Каталог временно не загрузился' /tmp/rendered-home.html
+          grep -q 'product-open-card' /tmp/rendered-home.html
+          grep -q 'class="f-card' /tmp/rendered-home.html
+
+      - name: Render product page with Supabase project host blocked
+        run: |
+          set -euxo pipefail
+          CHROME=$(command -v google-chrome || command -v google-chrome-stable || command -v chromium || command -v chromium-browser)
+          "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage \
+            --host-resolver-rules='MAP oldtlbkrftflfthfsqdv.supabase.co 0.0.0.0' \
+            --virtual-time-budget=12000 --dump-dom \
+            "https://noktena.ru/product.html?kind=furniture&id=berhouse-24177&blocked=$GITHUB_RUN_ID" > /tmp/rendered-product.html
+          grep -q '24177' /tmp/rendered-product.html || grep -q 'Сидней' /tmp/rendered-product.html
+          ! grep -q 'Не удалось загрузить товар' /tmp/rendered-product.html
