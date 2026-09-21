@@ -1,0 +1,61 @@
+name: Remove delivery summary from product cards
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/remove-delivery-from-product-cards.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Remove delivery chip from all catalog cards
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          p = Path('assets/category-settings-ui.js')
+          s = p.read_text(encoding='utf-8')
+
+          old = "      await decorateCards();\n      decorateBadges();"
+          new = "      document.querySelectorAll('.global-delivery-chip').forEach(el=>el.remove());\n      decorateBadges();"
+          if old not in s:
+              raise SystemExit('decorateCards call not found')
+          s = s.replace(old, new, 1)
+
+          old_style = ".global-delivery-chip,.global-delivery-product{margin-top:8px;padding:9px 11px;border-radius:10px;background:#f2f8f4;color:#315c4c;font-size:12px;font-weight:700}"
+          new_style = ".global-delivery-chip{display:none!important}.global-delivery-product{margin-top:8px;padding:9px 11px;border-radius:10px;background:#f2f8f4;color:#315c4c;font-size:12px;font-weight:700}"
+          if old_style in s:
+              s = s.replace(old_style, new_style, 1)
+          p.write_text(s, encoding='utf-8')
+
+          p = Path('index.html')
+          html = p.read_text(encoding='utf-8')
+          import re
+          html2, n = re.subn(r'assets/category-settings-ui\.js\?v=[^"\']+', 'assets/category-settings-ui.js?v=20260921-nocarddelivery1', html, count=1)
+          if n != 1:
+              raise SystemExit('category-settings-ui script reference not found in index.html')
+          p.write_text(html2, encoding='utf-8')
+          PY
+
+      - name: Validate
+        run: |
+          node --check assets/category-settings-ui.js
+          grep -q "global-delivery-chip.*display:none" assets/category-settings-ui.js
+          grep -q "nocarddelivery1" index.html
+          ! grep -q "await decorateCards();" assets/category-settings-ui.js
+
+      - name: Commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/category-settings-ui.js index.html
+          git commit -m "Hide delivery summary on catalog cards"
+          git push
