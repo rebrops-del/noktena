@@ -1,0 +1,63 @@
+name: Verify separate delivery settings live
+on:
+  push:
+    paths:
+      - '.github/workflows/verify-separate-delivery.yml'
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify backend and public bootstrap
+        run: |
+          set -euxo pipefail
+          API='https://admin-proxy-v2-production.up.railway.app/api/noktena-admin'
+          BOOT='https://admin-proxy-v2-production.up.railway.app/catalog-bootstrap.js'
+          curl -fsS "$API?action=health" -o /tmp/health.json
+          node -e "const x=require('/tmp/health.json'); if(x.ok!==true || Number(x.version)<4) process.exit(1)"
+          curl -fsS "$BOOT?check=$GITHUB_RUN_ID" -o /tmp/bootstrap.js
+          grep -q 'deliverySettings' /tmp/bootstrap.js
+          grep -q 'delivery_price' /tmp/bootstrap.js
+          grep -q 'lift_price' /tmp/bootstrap.js
+          grep -q 'sofa_lift_surcharge' /tmp/bootstrap.js
+          grep -q '1500' /tmp/bootstrap.js
+          grep -q '600' /tmp/bootstrap.js
+          grep -q '400' /tmp/bootstrap.js
+
+      - name: Wait for GitHub Pages deployment
+        run: |
+          set -euxo pipefail
+          for i in $(seq 1 48); do
+            adm=$(curl -fsSL "https://noktena.ru/admin/?check=$GITHUB_RUN_ID" || true)
+            admjs=$(curl -fsSL "https://noktena.ru/admin/admin.js?check=$GITHUB_RUN_ID" || true)
+            runtime=$(curl -fsSL "https://noktena.ru/assets/catalog-runtime.js?check=$GITHUB_RUN_ID" || true)
+            delivery=$(curl -fsSL "https://noktena.ru/assets/category-settings-ui.js?check=$GITHUB_RUN_ID" || true)
+            if printf '%s' "$adm" | grep -q 'deliverySettingsOpen' && printf '%s' "$adm" | grep -q 'admin-logo' && printf '%s' "$admjs" | grep -q 'openDeliverySettings' && printf '%s' "$admjs" | grep -q 'delivery-settings-save' && printf '%s' "$runtime" | grep -q 'getDeliverySettings' && printf '%s' "$delivery" | grep -q 'global-delivery-product'; then
+              exit 0
+            fi
+            sleep 5
+          done
+          echo 'Updated Pages files were not published in time' >&2
+          exit 1
+
+      - name: Render live admin and storefront in Chrome
+        run: |
+          set -euxo pipefail
+          CHROME=$(command -v google-chrome || command -v google-chrome-stable || command -v chromium || command -v chromium-browser)
+          "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --virtual-time-budget=12000 --dump-dom "https://noktena.ru/admin/?verify=$GITHUB_RUN_ID" > /tmp/admin.html
+          grep -q 'Сервер готов' /tmp/admin.html
+          grep -q 'deliverySettingsOpen' /tmp/admin.html
+          grep -q 'admin-logo' /tmp/admin.html
+          grep -q 'Доставка' /tmp/admin.html
+
+          "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --virtual-time-budget=16000 --dump-dom "https://noktena.ru/#delivery" > /tmp/home.html
+          ! grep -q 'Каталог временно не загрузился' /tmp/home.html
+          grep -q '1 500 ₽' /tmp/home.html
+          grep -q '600 ₽' /tmp/home.html
+          grep -q '+400 ₽' /tmp/home.html
+
+          "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --virtual-time-budget=16000 --dump-dom "https://noktena.ru/product.html?kind=furniture&id=24177" > /tmp/product.html
+          grep -q 'global-delivery-product' /tmp/product.html
+          grep -q 'диван +400 ₽' /tmp/product.html
