@@ -1,0 +1,47 @@
+name: Fix delivery UI order
+on:
+  push:
+    paths:
+      - '.github/workflows/fix-delivery-ui-order.yml'
+permissions:
+  contents: write
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Move delivery helper to page end
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          for name in ['index.html','product.html']:
+              p=Path(name)
+              t=p.read_text(encoding='utf-8')
+              t=re.sub(r'\s*<script src="assets/category-settings-ui\.js\?v=[^"]+"></script>', '', t)
+              t=t.replace('assets/catalog-runtime.js?v=20260921-delivery3','assets/catalog-runtime.js?v=20260921-delivery4')
+              tag='<script src="assets/category-settings-ui.js?v=20260921-delivery4"></script>\n'
+              if tag not in t:
+                  t=t.replace('</body>',tag+'</body>')
+              p.write_text(t,encoding='utf-8')
+          PY
+      - name: Validate order
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          for name in ['index.html','product.html']:
+              t=Path(name).read_text(encoding='utf-8')
+              assert t.count('category-settings-ui.js?v=20260921-delivery4') == 1
+              assert t.rfind('category-settings-ui.js?v=20260921-delivery4') > t.rfind('catalog-v2.js') if name=='index.html' else t.rfind('category-settings-ui.js?v=20260921-delivery4') > t.rfind('product-detail-content-polish.js')
+          PY
+          node --check assets/category-settings-ui.js
+          node --check assets/catalog-runtime.js
+      - name: Commit changes
+        run: |
+          git config user.name 'noktena-bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add index.html product.html
+          git commit -m 'Load delivery UI after catalog rendering'
+          git push
