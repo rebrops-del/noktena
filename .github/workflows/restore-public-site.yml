@@ -1,0 +1,53 @@
+name: Restore public site
+on:
+  push:
+    paths:
+      - '.github/workflows/restore-public-site.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  restore:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Remove browser dependency on Supabase from public pages
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          remote = '<script src="https://oldtlbkrftflfthfsqdv.supabase.co/functions/v1/noktena-admin?public=1&v=20260919-sameorigin1"></script>\n'
+          config = '<script src="assets/admin-config.js?v=20260919-1"></script>\n'
+
+          for name in ['index.html', 'product.html']:
+              p = Path(name)
+              text = p.read_text(encoding='utf-8')
+              before = text
+              text = text.replace(config, '')
+              text = text.replace(remote, '')
+              text = text.replace('assets/catalog-runtime.js?v=20260921-stable1', 'assets/catalog-runtime.js?v=20260921-localonly1')
+              if text == before:
+                  raise SystemExit(f'No expected Supabase public scripts found in {name}')
+              p.write_text(text, encoding='utf-8')
+              print(f'Updated {name}')
+          PY
+
+      - name: Verify public pages contain no Supabase browser calls
+        run: |
+          set -euxo pipefail
+          ! grep -E 'supabase\.co|admin-config\.js' index.html product.html
+          grep -q 'assets/catalog-runtime.js?v=20260921-localonly1' index.html
+          grep -q 'assets/catalog-runtime.js?v=20260921-localonly1' product.html
+
+      - name: Commit restore
+        run: |
+          set -euxo pipefail
+          git config user.name 'noktena-bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add index.html product.html
+          git commit -m 'Restore public site without Supabase browser dependency'
+          git push
