@@ -1,0 +1,58 @@
+name: Verify delivery5 live
+on:
+  push:
+    paths:
+      - '.github/workflows/verify-delivery5-live.yml'
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Static checks
+        run: |
+          set -euxo pipefail
+          node --check admin/admin-enhancements.js
+          node --check assets/category-settings-ui.js
+          node --check assets/catalog-runtime.js
+          grep -q 'admin-enhancements.js?v=7' admin/index.html
+          grep -q 'globalStairLiftPrice' admin/admin-enhancements.js
+          grep -q 'globalDeliverySchedule' admin/admin-enhancements.js
+          grep -q 'Матрас Солид ZaСоня' admin/admin-enhancements.js
+          grep -q 'cargo_lift_price' assets/category-settings-ui.js
+          grep -q 'stair_lift_price' assets/category-settings-ui.js
+          grep -q 'delivery_schedule' assets/category-settings-ui.js
+      - name: Verify Railway bootstrap values
+        run: |
+          set -euxo pipefail
+          curl -fsS 'https://admin-proxy-v2-production.up.railway.app/catalog-bootstrap.js?delivery5=1' -o /tmp/bootstrap.js
+          grep -q 'settings:delivery_v2' /tmp/bootstrap.js
+          grep -q 'stair_lift_price' /tmp/bootstrap.js
+          grep -q 'cargo_lift_price' /tmp/bootstrap.js
+          grep -q 'delivery_schedule' /tmp/bootstrap.js
+          grep -q 'Вторник / Пятница' /tmp/bootstrap.js
+      - name: Wait for GitHub Pages
+        run: |
+          set -euxo pipefail
+          for i in $(seq 1 60); do
+            adm=$(curl -fsSL "https://noktena.ru/admin/?delivery5=$GITHUB_RUN_ID" || true)
+            home=$(curl -fsSL "https://noktena.ru/?delivery5=$GITHUB_RUN_ID" || true)
+            helper=$(curl -fsSL "https://noktena.ru/assets/category-settings-ui.js?delivery5=$GITHUB_RUN_ID" || true)
+            if printf '%s' "$adm" | grep -q 'admin-enhancements.js?v=7' \
+              && printf '%s' "$home" | grep -q 'category-settings-ui.js?v=20260921-delivery5' \
+              && printf '%s' "$helper" | grep -q 'stair_lift_price'; then
+              exit 0
+            fi
+            sleep 5
+          done
+          exit 1
+      - name: Render public delivery in Chrome
+        run: |
+          set -euxo pipefail
+          CHROME=$(command -v google-chrome || command -v google-chrome-stable || command -v chromium || command -v chromium-browser)
+          "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --virtual-time-budget=22000 --dump-dom "https://noktena.ru/#delivery" > /tmp/home.html
+          ! grep -q 'Каталог временно не загрузился' /tmp/home.html
+          grep -q 'Грузовой лифт' /tmp/home.html
+          grep -q 'По лестнице' /tmp/home.html
+          grep -q '300 ₽ / этаж' /tmp/home.html
+          grep -q 'Вторник / Пятница' /tmp/home.html
