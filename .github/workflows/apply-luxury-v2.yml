@@ -1,0 +1,63 @@
+name: Apply Luxury V2
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/apply-luxury-v2.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Patch storefront and admin stylesheet links
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          public = ['index.html', 'product.html', 'checkout.html']
+          for name in public:
+              p = Path(name)
+              s = p.read_text(encoding='utf-8')
+              if 'assets/atelier-v2.css' not in s:
+                  marker = '<link rel="stylesheet" href="assets/atelier-v1.css?v=20260921-3">'
+                  if marker not in s:
+                      raise SystemExit(f'{name}: atelier v1 marker not found')
+                  s = s.replace(marker, marker + '\n<link rel="stylesheet" href="assets/atelier-v2.css?v=20260921-wow1">', 1)
+                  p.write_text(s, encoding='utf-8')
+
+          p = Path('admin/index.html')
+          s = p.read_text(encoding='utf-8')
+          if './admin-luxe.css' not in s:
+              marker = '<link rel="stylesheet" href="./admin.css?v=6">'
+              if marker not in s:
+                  raise SystemExit('admin/index.html: admin css marker not found')
+              s = s.replace(marker, marker + '\n  <link rel="stylesheet" href="./admin-luxe.css?v=20260921-wow1">', 1)
+              p.write_text(s, encoding='utf-8')
+          PY
+      - name: Validate files
+        run: |
+          set -euxo pipefail
+          grep -q 'atelier-v2.css?v=20260921-wow1' index.html
+          grep -q 'atelier-v2.css?v=20260921-wow1' product.html
+          grep -q 'atelier-v2.css?v=20260921-wow1' checkout.html
+          grep -q 'admin-luxe.css?v=20260921-wow1' admin/index.html
+          grep -q '.shop-tab.is-active b{color:#fffdf8!important' assets/atelier-v2.css
+          grep -q '.card,.f-card{background:' assets/atelier-v2.css
+          grep -q '.side{background:' admin/admin-luxe.css
+      - name: Commit patch
+        run: |
+          if git diff --quiet; then
+            echo 'No changes needed'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html product.html checkout.html admin/index.html
+          git commit -m 'Load luxury v2 storefront and admin themes'
+          git push
