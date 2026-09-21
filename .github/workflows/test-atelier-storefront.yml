@@ -30,7 +30,7 @@ jobs:
       - name: Wait for GitHub Pages
         run: |
           set -euxo pipefail
-          for i in $(seq 1 45); do
+          for i in $(seq 1 60); do
             home=$(curl -sS -L --max-time 20 "https://noktena.ru/?atelier=$GITHUB_RUN_ID" || true)
             css=$(curl -sS -L --max-time 20 "https://noktena.ru/assets/atelier-v1.css?atelier=$GITHUB_RUN_ID" || true)
             js=$(curl -sS -L --max-time 20 "https://noktena.ru/assets/atelier-v1.js?atelier=$GITHUB_RUN_ID" || true)
@@ -61,3 +61,4 @@ jobs:
           "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --virtual-time-budget=7000 --window-size=1280,900 --dump-dom "https://noktena.ru/checkout.html?atelier=$GITHUB_RUN_ID" > /tmp/checkout.html
           grep -q 'Оформление заказа НОКТЕНА' /tmp/checkout.html
           grep -q 'Наличие подтвердит менеджер' /tmp/checkout.html
+# verification retry after final Atelier deployment
