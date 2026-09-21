@@ -11,6 +11,8 @@
   const rub=n=>Number.isFinite(Number(n))&&Number(n)>0?`${Math.round(Number(n)).toLocaleString('ru-RU')} ₽`:'Цена по запросу';
   const discountPercent=product=>{const raw=Number(product?.discountPercent);return Number.isFinite(raw)?Math.min(99,Math.max(0,Math.round(raw))):30;};
   const oldPrice=(n,discount=30)=>{const price=Number(n),pct=Math.min(99,Math.max(0,Number(discount)||0));return price>=5000&&pct>0?Math.round((price/(1-pct/100))/100)*100:null;};
+  const promoField=(product,key,fallback)=>Object.prototype.hasOwnProperty.call(product||{},key)?String(product?.[key]??'').trim():fallback;
+  function promoMarkup(product){const title=promoField(product,'promoLabel','Цена сентября'),subtitle=promoField(product,'promoSubtext','до 30 сентября');return title||subtitle?`<div class="f-price-promo">${title?`<b>${esc(title)}</b>`:''}${subtitle?`<span>${esc(subtitle)}</span>`:''}</div>`:'';}
 
   const ICONS={
     home:`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.8 10.6 12 3.8l8.2 6.8v9.1a.8.8 0 0 1-.8.8H4.6a.8.8 0 0 1-.8-.8v-9.1Z"/><path d="M9.3 20.5v-6.8h5.4v6.8"/></svg>`,
@@ -52,13 +54,21 @@
   function firstNumber(value){const match=String(value||'').match(/\d+/);return match?Number(match[0]):null;}
   function baseSpecEntry(product,label){const specs=product?.specs||{},wanted=specKey(label);const key=Object.keys(specs).find(k=>specKey(k)===wanted);return key?[key,specs[key]]:null;}
   function deriveFrameDimension(product,variant,label){
+    const isDepth=specKey(label)==='глубина';
+    if(isDepth){
+      const manual=Number(product?.depthBySize?.[String(variant?.size||'')]??variant?.depthOverride);
+      if(Number.isFinite(manual)&&manual>0)return `${Math.round(manual)} мм`;
+    }
     const dimension=baseSpecEntry(product,label),baseSleep=baseSpecEntry(product,'Спальное место');
     const selected=numberPair(variant?.attributes?.['Спальное место']||variant?.size),base=numberPair(baseSleep?.[1]);
     if(!dimension||!selected||!base)return dimension?.[1]||'';
     const frame=firstNumber(dimension[1]);if(!Number.isFinite(frame))return dimension[1];
-    const index=specKey(label)==='глубина'?1:0;
-    const value=Math.max(0,Math.round(frame+(selected[index]-base[index])));
+    const index=isDepth?1:0;
     const unit=/мм/i.test(String(dimension[1]))?' мм':'';
+    /* Bad supplier rows sometimes contain a depth smaller than the sleeping-place length.
+       In that case the selected sleeping-place length is a safer automatic fallback. */
+    if(isDepth&&frame<base[index])return `${selected[index]}${unit||' мм'}`;
+    const value=Math.max(0,Math.round(frame+(selected[index]-base[index])));
     return `${value}${unit}`;
   }
   function variantText(value,variant){
@@ -132,7 +142,7 @@
         ${cardDetailsMarkup(product,initial)}
         ${sizes.length?`<div class="f-option"><div class="f-option-head"><span>${product.category==='beds'?'Спальное место':'Размер'}</span><b>${sizes.length} ${sizes.length===1?'вариант':'вариантов'}</b></div><select class="f-size-select" data-card-size>${sizes.map((s,i)=>`<option value="${esc(s)}" ${i===0?'selected':''}>${esc(s)}</option>`).join('')}</select></div>`:''}
         <div class="f-card-bottom">
-          <div class="f-price-row"><div class="f-price-stack"><div class="f-price-caption">Цена выбранного варианта</div><div class="f-old-price-line" ${discount>0&&comparePrice?'':'style="display:none"'}><span class="f-old-price" data-card-old-price>${comparePrice?rub(comparePrice):''}</span><span class="f-discount-badge" data-card-discount>−${discount}%</span></div><div class="f-price" data-card-price>${rub(price)}</div></div><div class="f-price-promo"><b>Цена сентября</b><span>до 30 сентября</span></div></div>
+          <div class="f-price-row"><div class="f-price-stack"><div class="f-price-caption">Цена выбранного варианта</div><div class="f-old-price-line" ${discount>0&&comparePrice?'':'style="display:none"'}><span class="f-old-price" data-card-old-price>${comparePrice?rub(comparePrice):''}</span><span class="f-discount-badge" data-card-discount>−${discount}%</span></div><div class="f-price" data-card-price>${rub(price)}</div></div>${promoMarkup(product)}</div>
           <a class="product-more-link" href="${esc(link)}"><span>Подробнее о модели</span><span aria-hidden="true">→</span></a>
           <a class="btn max-btn" href="${MAX_LINK}" target="_blank" rel="noopener"><img class="max-icon" src="${MAX_ICON}" alt="" aria-hidden="true"><span>Получить консультацию в MAX</span></a>
         </div>

@@ -12,11 +12,34 @@
   const $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
   const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const rub=n=>Number.isFinite(Number(n))&&Number(n)>0?`${Math.round(Number(n)).toLocaleString('ru-RU')} ₽`:'Цена по запросу';
-  const oldPrice=n=>Number(n)>0?Math.round((Number(n)/0.7)/100)*100:null;
+  const discountPercent=product=>{const raw=Number(product?.discountPercent);return Number.isFinite(raw)?Math.min(99,Math.max(0,Math.round(raw))):30;};
+  const oldPrice=(n,discount=30)=>{const price=Number(n),pct=Math.min(99,Math.max(0,Number(discount)||0));return price>0&&pct>0?Math.round((price/(1-pct/100))/100)*100:null;};
+  const promoField=(product,key,fallback)=>Object.prototype.hasOwnProperty.call(product||{},key)?String(product?.[key]??'').trim():fallback;
+  const detailPromoMarkup=product=>{const title=promoField(product,'promoLabel','Цена сентября'),subtitle=promoField(product,'promoSubtext','до 30 сентября');return title||subtitle?`<div class="pd-status">${title?`<span class="pd-status-gold">${esc(title)}</span>`:''}${subtitle?`<small>${esc(subtitle)}</small>`:''}</div>`:'';};
   const uniq=list=>[...new Set((list||[]).filter(Boolean).map(v=>String(v).trim()).filter(Boolean))];
   const sizeSortValue=value=>{const nums=String(value||'').replace(/×/g,'х').match(/\d+/g)?.map(Number)||[];return [nums[0]??Number.MAX_SAFE_INTEGER,nums[1]??Number.MAX_SAFE_INTEGER,String(value||'')];};
   const sortSizes=list=>uniq(list).sort((a,b)=>{const A=sizeSortValue(a),B=sizeSortValue(b);return A[0]-B[0]||A[1]-B[1]||A[2].localeCompare(B[2],'ru');});
   const sortVariantsBySize=list=>[...(list||[])].sort((a,b)=>{const A=sizeSortValue(a?.size),B=sizeSortValue(b?.size);return A[0]-B[0]||A[1]-B[1]||A[2].localeCompare(B[2],'ru');});
+  const detailSpecKey=value=>String(value||'').trim().toLowerCase().replace(/ё/g,'е').replace(/[^a-zа-я0-9]+/g,'');
+  const detailPair=value=>{const nums=String(value||'').match(/\d+/g)?.map(Number)||[];return nums.length>=2?[nums[0],nums[1]]:null;};
+  const detailFirst=value=>{const m=String(value||'').match(/\d+/);return m?Number(m[0]):null;};
+  function furnitureDepthValue(product,variant,size){
+    const manual=Number(product?.depthBySize?.[String(size||'')]??variant?.depthOverride);
+    if(Number.isFinite(manual)&&manual>0)return `${Math.round(manual)} мм`;
+    const attrs=variant?.attributes&&typeof variant.attributes==='object'?variant.attributes:{};
+    const attrKey=Object.keys(attrs).find(k=>detailSpecKey(k)==='глубина');
+    if(attrKey&&attrs[attrKey])return String(attrs[attrKey]);
+    if(product?.category!=='beds'||!size)return '';
+    const specs=product?.specs||{};
+    const depthKey=Object.keys(specs).find(k=>detailSpecKey(k)==='глубина');
+    const sleepKey=Object.keys(specs).find(k=>detailSpecKey(k)==='спальноеместо');
+    const selected=detailPair(variant?.attributes?.['Спальное место']||size),base=detailPair(sleepKey?specs[sleepKey]:'');
+    const frame=detailFirst(depthKey?specs[depthKey]:'');
+    if(!selected||!base||!Number.isFinite(frame))return depthKey?String(specs[depthKey]||''):'';
+    const unit=/мм/i.test(String(specs[depthKey]||''))?' мм':' мм';
+    if(frame<base[1])return `${selected[1]}${unit}`;
+    return `${Math.max(0,Math.round(frame+(selected[1]-base[1])))}${unit}`;
+  }
   const params=new URLSearchParams(location.search);
   const root=$('#productRoot');
   let galleryImages=[];
@@ -75,7 +98,7 @@
           <div class="pd-tags"><span class="pd-tag">${typeLabel}</span>${product.subtype?`<span class="pd-tag neutral">${esc(product.subtype)}</span>`:''}${product.hit?'<span class="pd-tag gold">Хит продаж</span>':''}</div>
           <h1>${esc(product.title)}</h1>
           <p class="pd-subtitle">${esc(product.summary||String(product.description||'').split(/(?<=[.!?])\s+/)[0]||'Выберите подходящий вариант модели.')}</p>
-          <div class="pd-price-row"><div class="pd-price-stack"><div class="pd-price-caption">Цена выбранного варианта</div><div class="pd-old-row"><span class="pd-old-price" id="pdFurnitureOldPrice">${rub(oldPrice(price))}</span><span class="pd-discount">−30%</span></div><div class="pd-price" id="pdFurniturePrice">${rub(price)}</div></div><div class="pd-status"><span class="pd-status-gold">Цена сентября</span><small>до 30 сентября</small></div></div>
+          <div class="pd-price-row"><div class="pd-price-stack"><div class="pd-price-caption">Цена выбранного варианта</div><div class="pd-old-row" ${discountPercent(product)>0?'':'style="display:none"'}><span class="pd-old-price" id="pdFurnitureOldPrice">${oldPrice(price,discountPercent(product))?rub(oldPrice(price,discountPercent(product))):''}</span><span class="pd-discount" id="pdFurnitureDiscount">−${discountPercent(product)}%</span></div><div class="pd-price" id="pdFurniturePrice">${rub(price)}</div></div>${detailPromoMarkup(product)}</div>
           ${colors.length?`<div class="pd-choice"><div class="pd-choice-head"><label>Цвет</label><b id="pdColorName">${esc(selectedColor)}</b></div><div class="pd-colors">${colors.map((c,i)=>`<button type="button" class="pd-color ${i===0?'is-active':''}" data-pd-color="${esc(c)}">${esc(c)}</button>`).join('')}</div></div>`:''}
           ${sizes.length?`<div class="pd-choice"><div class="pd-choice-head"><label>${isBed?'Спальное место':'Размер / вариант'}</label><b>${sizes.length} вариантов</b></div><div class="pd-size-grid">${sizes.map((s,i)=>`<button type="button" class="pd-size ${i===0?'is-active':''}" data-pd-size="${esc(s)}">${esc(s)}</button>`).join('')}</div></div>`:''}
           <div class="pd-action-stack"><a class="pd-primary-btn" href="${MAX_LINK}" target="_blank" rel="noopener"><span>Уточнить наличие и оформить</span><span aria-hidden="true">→</span></a><a class="pd-max-btn" href="${MAX_LINK}" target="_blank" rel="noopener"><img src="${MAX_ICON}" alt="" aria-hidden="true"><span>Получить консультацию в MAX</span></a><div class="pd-note">Перед оформлением подтвердим актуальное наличие, выбранный цвет и комплектацию.</div></div>
@@ -88,7 +111,7 @@
   }
 
   function updateFurnitureSelection(){
-    if(!furnitureProduct)return;updateFurnitureImage();const variant=variantFor(furnitureProduct,selectedColor,selectedSize);const price=furniturePrice(furnitureProduct,variant,selectedSize);const p=$('#pdFurniturePrice'),op=$('#pdFurnitureOldPrice');if(p)p.textContent=rub(price);if(op)op.textContent=rub(oldPrice(price));
+    if(!furnitureProduct)return;updateFurnitureImage();const variant=variantFor(furnitureProduct,selectedColor,selectedSize);const price=furniturePrice(furnitureProduct,variant,selectedSize);const discount=discountPercent(furnitureProduct),compare=oldPrice(price,discount);const p=$('#pdFurniturePrice'),op=$('#pdFurnitureOldPrice'),db=$('#pdFurnitureDiscount'),oldRow=op?.closest('.pd-old-row');if(p)p.textContent=rub(price);if(op)op.textContent=compare?rub(compare):'';if(db)db.textContent=`−${discount}%`;if(oldRow)oldRow.style.display=discount>0&&compare?'':'none';
     const subtitle=$('.pd-subtitle');
     if(subtitle&&furnitureProduct.category==='beds'&&selectedSize){
       const base=String(furnitureProduct.summary||String(furnitureProduct.description||'').split(/(?<=[.!?])\s+/)[0]||'').trim();
@@ -102,6 +125,7 @@
       if(!keyEl||!valueEl)return;
       const key=normSpecKey(keyEl.textContent);
       if(furnitureProduct.category==='beds'&&selectedSize&&/спальн.*мест/.test(key)){valueEl.textContent=selectedSize;return;}
+      if(key==='глубина'){const depth=furnitureDepthValue(furnitureProduct,variant,selectedSize);if(depth){valueEl.textContent=depth;return;}}
       const attrKey=Object.keys(attrs).find(k=>normSpecKey(k)===key);
       if(attrKey&&attrs[attrKey]){valueEl.textContent=attrs[attrKey];return;}
       if(furnitureProduct.category==='beds'&&selectedSize&&(key==='размер'||key==='размеры'||key==='размер спального места'))valueEl.textContent=selectedSize;
