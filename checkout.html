@@ -6,7 +6,7 @@
 <meta name="robots" content="noindex,nofollow">
 <title>Корзина и оформление заказа — НОКТЕНА</title>
 <link rel="icon" href="/favicon.ico" sizes="any">
-<link rel="stylesheet" href="assets/cart.css?v=20260921-cart1">
+<link rel="stylesheet" href="assets/cart.css?v=20260921-cart2">
 </head>
 <body class="checkout-body">
 <div class="checkout-wrap">
@@ -44,26 +44,24 @@
 
         <label id="addressLabel">Адрес доставки<input id="orderAddress" autocomplete="street-address" placeholder="Улица, дом, квартира"></label>
 
-        <div id="liftBlock">
-          <b>Подъём</b>
-          <div class="checkout-options" style="margin-top:8px">
-            <label class="checkout-option"><input type="radio" name="liftMethod" value="none" checked><span>Без подъёма<small>Доставим до подъезда</small></span></label>
-            <label class="checkout-option"><input type="radio" name="liftMethod" value="cargo"><span>Грузовой лифт<small id="cargoOptionText"></small></span></label>
-            <label class="checkout-option"><input type="radio" name="liftMethod" value="stairs"><span>По лестнице<small id="stairsOptionText"></small></span></label>
-          </div>
+        <div id="liftHelp" class="checkout-service-note">
+          <b>Подъём настраивается отдельно для каждого товара</b>
+          <span>В корзине слева выберите способ подъёма, количество единиц и этаж. Так корректно считается заказ из нескольких товаров.</span>
         </div>
 
-        <label id="floorLabel" class="hide">Этаж<input id="orderFloor" type="number" min="1" max="50" value="1"></label>
-
-        <label id="assemblyOption" class="checkout-option hide"><input id="orderAssembly" type="checkbox"><span>Сборка кровати<small id="assemblyOptionText"></small></span></label>
+        <div id="assemblyBlock" class="hide">
+          <b>Сборка кровати</b>
+          <label id="assemblyOption" class="checkout-option" style="margin-top:8px"><input id="orderAssembly" type="checkbox"><span>Добавить сборку<small id="assemblyOptionText"></small></span></label>
+          <label id="assemblyQtyLabel" class="checkout-inline-field hide">Количество кроватей для сборки<select id="assemblyQty"></select></label>
+        </div>
 
         <label>Комментарий<textarea id="orderComment" placeholder="Пожелания по заказу, доставке или времени"></textarea></label>
         <div id="deliverySchedule" class="checkout-schedule hide"></div>
 
         <div class="summary-row"><span>Товары</span><b id="sumProducts">0 ₽</b></div>
         <div class="summary-row"><span>Доставка</span><b id="sumDelivery">0 ₽</b></div>
-        <div class="summary-row"><span>Подъём</span><b id="sumLift">0 ₽</b></div>
-        <div class="summary-row"><span>Сборка</span><b id="sumAssembly">0 ₽</b></div>
+        <div id="sumLiftRow" class="summary-row hide"><span id="sumLiftLabel">Подъём</span><b id="sumLift">0 ₽</b></div>
+        <div id="sumAssemblyRow" class="summary-row hide"><span id="sumAssemblyLabel">Сборка</span><b id="sumAssembly">0 ₽</b></div>
         <div class="summary-row total"><span>Итого</span><b id="sumTotal">0 ₽</b></div>
 
         <button id="checkoutSubmit" class="checkout-submit" type="submit">Оформить заказ</button>
@@ -73,8 +71,8 @@
   </div>
   <section id="checkoutSuccess" class="checkout-card checkout-success hide"></section>
 </div>
-<script src="https://admin-proxy-v2-production.up.railway.app/catalog-bootstrap.js?v=checkout1"></script>
-<script src="assets/cart.js?v=20260921-cart1"></script>
-<script src="assets/checkout.js?v=20260921-cart1"></script>
+<script src="https://admin-proxy-v2-production.up.railway.app/catalog-bootstrap.js?v=checkout2"></script>
+<script src="assets/cart.js?v=20260921-cart2"></script>
+<script src="assets/checkout.js?v=20260921-cart2"></script>
 </body>
 </html>
