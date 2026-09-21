@@ -1,0 +1,36 @@
+name: Switch to Railway v2
+on:
+  push:
+    paths:
+      - '.github/workflows/switch-to-railway-v2.yml'
+permissions:
+  contents: write
+jobs:
+  switch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Replace Railway proxy domain
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          old='https://admin-proxy-production-65c9.up.railway.app'
+          new='https://admin-proxy-v2-production.up.railway.app'
+          for name in ['admin/admin.js','admin-v2/app.js','index.html','product.html']:
+              p=Path(name)
+              text=p.read_text(encoding='utf-8')
+              if old not in text:
+                  raise SystemExit(f'Old proxy not found in {name}')
+              p.write_text(text.replace(old,new),encoding='utf-8')
+          PY
+          node --check admin/admin.js
+          node --check admin-v2/app.js
+      - name: Commit v2 proxy switch
+        run: |
+          git config user.name 'noktena-bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add admin/admin.js admin-v2/app.js index.html product.html
+          git commit -m 'Use Railway v2 proxy'
+          git push
