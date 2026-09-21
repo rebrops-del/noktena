@@ -1,0 +1,43 @@
+name: Apply Shop Navigation V3
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/apply-shop-nav-v3.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Load navigation v3 stylesheet
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('index.html')
+          s=p.read_text(encoding='utf-8')
+          link='<link rel="stylesheet" href="assets/shop-nav-v3.css?v=20260921-1">'
+          if link not in s:
+              marker='<link rel="stylesheet" href="assets/atelier-v2.css?v=20260921-wow1">'
+              if marker not in s:
+                  raise SystemExit('atelier v2 marker missing')
+              s=s.replace(marker,marker+'\n'+link,1)
+              p.write_text(s,encoding='utf-8')
+          PY
+      - name: Validate
+        run: |
+          grep -q 'shop-nav-v3.css?v=20260921-1' index.html
+          grep -q 'storefront navigation v3' assets/shop-nav-v3.css
+      - name: Commit
+        run: |
+          if git diff --quiet; then exit 0; fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          git commit -m 'Load redesigned store navigation'
+          git push
