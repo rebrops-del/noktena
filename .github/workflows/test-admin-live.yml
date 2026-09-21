@@ -19,6 +19,7 @@ jobs:
           set -euxo pipefail
           node --check admin/admin.js
           node --check admin/admin-enhancements.js
+          node --check admin/orders.js
           node --check assets/category-settings-ui.js
           grep -q 'admin-proxy-v2-production.up.railway.app' admin/admin.js
           grep -q 'Добавить карточку' admin/index.html
@@ -36,7 +37,7 @@ jobs:
           set -euxo pipefail
           API='https://admin-proxy-v2-production.up.railway.app/api/noktena-admin'
           curl -sS --fail --max-time 30 -H 'Origin: https://noktena.ru' "$API?action=health" -o /tmp/health.json -D /tmp/health.headers
-          node -e "const x=require('/tmp/health.json'); if(x.ok!==true || x.version!==4) { console.error(x); process.exit(1) }"
+          node -e "const x=require('/tmp/health.json'); if(x.ok!==true || Number(x.version)<6) { console.error(x); process.exit(1) }"
           grep -qi 'access-control-allow-origin:' /tmp/health.headers
 
       - name: Wait for live admin deployment
@@ -46,10 +47,13 @@ jobs:
             html=$(curl -sS -L --max-time 20 "https://noktena.ru/admin/?smoke=$GITHUB_RUN_ID" || true)
             enhance=$(curl -sS -L --max-time 20 "https://noktena.ru/admin/admin-enhancements.js?smoke=$GITHUB_RUN_ID" || true)
             badge=$(curl -sS -L --max-time 20 "https://noktena.ru/assets/category-settings-ui.js?smoke=$GITHUB_RUN_ID" || true)
-            if printf '%s' "$html" | grep -q 'admin-enhancements.js?v=8' \
+            orders=$(curl -sS -L --max-time 20 "https://noktena.ru/admin/orders.js?smoke=$GITHUB_RUN_ID" || true)
+            if printf '%s' "$html" | grep -q 'admin-enhancements.js?v=9' \
+              && printf '%s' "$html" | grep -q 'orders.js?v=2' \
               && printf '%s' "$enhance" | grep -q 'Плашка на карточке' \
               && printf '%s' "$enhance" | grep -q 'admin-mattress-thumbs' \
-              && printf '%s' "$badge" | grep -q 'product-promo-badge'; then
+              && printf '%s' "$badge" | grep -q 'product-promo-badge' \
+              && printf '%s' "$orders" | grep -q 'lift_qty'; then
               curl -sS --fail --max-time 20 "https://noktena.ru/assets/admin-mattress-thumbs/r5-c2.webp?smoke=$GITHUB_RUN_ID" -o /tmp/topper.webp
               test -s /tmp/topper.webp
               exit 0
