@@ -1,0 +1,62 @@
+name: Test live admin
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'admin/**'
+      - '.github/workflows/test-admin-live.yml'
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Static admin checks
+        run: |
+          set -euxo pipefail
+          node --check admin/admin.js
+          grep -q 'noktena-admin-api' admin/admin.js
+          grep -q 'Добавить карточку' admin/index.html
+          grep -q '...old' admin/admin.js
+          ! grep -R -E 'SUPABASE_SERVICE_ROLE_KEY|service_role' admin/index.html admin/admin.js admin/admin.css
+
+      - name: Check API
+        run: |
+          set -euxo pipefail
+          API='https://oldtlbkrftflfthfsqdv.supabase.co/functions/v1/noktena-admin-api'
+          curl -sS --fail --max-time 30 -H 'Origin: https://noktena.ru' "$API?action=health" -o /tmp/health.json -D /tmp/health.headers
+          node -e "const x=require('/tmp/health.json'); if(x.ok!==true) process.exit(1)"
+          grep -qi 'access-control-allow-origin: https://noktena.ru' /tmp/health.headers
+
+      - name: Wait for live admin deployment
+        run: |
+          set -euxo pipefail
+          for i in $(seq 1 30); do
+            html=$(curl -sS -L --max-time 20 "https://noktena.ru/admin/?smoke=$GITHUB_RUN_ID" || true)
+            js=$(curl -sS -L --max-time 20 "https://noktena.ru/admin/admin.js?smoke=$GITHUB_RUN_ID" || true)
+            css=$(curl -sS -L --max-time 20 "https://noktena.ru/admin/admin.css?smoke=$GITHUB_RUN_ID" || true)
+            if printf '%s' "$html" | grep -q 'Добавить карточку' && printf '%s' "$js" | grep -q 'noktena-admin-api' && printf '%s' "$css" | grep -q '.variant-row'; then
+              exit 0
+            fi
+            sleep 5
+          done
+          echo 'live admin deployment did not become ready' >&2
+          exit 1
+
+      - name: Render live admin in Chrome
+        run: |
+          set -euxo pipefail
+          CHROME=$(command -v google-chrome || command -v google-chrome-stable || command -v chromium || command -v chromium-browser)
+          "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --virtual-time-budget=8000 --dump-dom "https://noktena.ru/admin/?run=$GITHUB_RUN_ID" > /tmp/admin.html
+          grep -q 'Админ-панель' /tmp/admin.html
+          grep -q 'Сервер готов' /tmp/admin.html
+
+      - name: Render public storefront in Chrome
+        run: |
+          set -euxo pipefail
+          CHROME=$(command -v google-chrome || command -v google-chrome-stable || command -v chromium || command -v chromium-browser)
+          "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --virtual-time-budget=12000 --dump-dom "https://noktena.ru/?run=$GITHUB_RUN_ID" > /tmp/home.html
+          ! grep -q 'Каталог временно не загрузился' /tmp/home.html
+          grep -q 'product-open-card' /tmp/home.html
+          grep -q 'class="f-card' /tmp/home.html
