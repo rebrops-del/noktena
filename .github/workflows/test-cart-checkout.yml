@@ -1,0 +1,41 @@
+name: Test cart checkout
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/test-cart-checkout.yml'
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Static syntax
+        run: |
+          node --check assets/cart.js
+          node --check assets/checkout.js
+          node --check admin/cart-settings.js
+          node --check admin/orders.js
+      - name: Wait for live checkout
+        run: |
+          set -euxo pipefail
+          for i in $(seq 1 30); do
+            html=$(curl -sS -L --max-time 20 "https://noktena.ru/checkout.html?smoke=$GITHUB_RUN_ID" || true)
+            cart=$(curl -sS -L --max-time 20 "https://noktena.ru/assets/cart.js?smoke=$GITHUB_RUN_ID" || true)
+            if printf '%s' "$html" | grep -q 'Оформить заказ' && printf '%s' "$cart" | grep -q 'NoktenaCart'; then exit 0; fi
+            sleep 5
+          done
+          exit 1
+      - name: Check Railway API v5
+        run: |
+          set -euxo pipefail
+          curl -sS --fail --max-time 30 'https://admin-proxy-v2-production.up.railway.app/api/noktena-admin?action=health' | tee /tmp/health.json
+          node -e "const x=require('/tmp/health.json'); if(!x.ok || Number(x.version)<5) process.exit(1)"
+      - name: Create smoke order
+        run: |
+          set -euxo pipefail
+          curl -sS --fail --max-time 30 -X POST \
+            -H 'content-type: application/json' \
+            'https://admin-proxy-v2-production.up.railway.app/api/noktena-admin?action=create-order' \
+            --data '{"customer_name":"SMOKE CHECKOUT TEST","phone":"+70000000000","city":"Екатеринбург","address":"Тестовый адрес","delivery_method":"delivery","lift_method":"stairs","floor":2,"assembly_requested":true,"items":[{"kind":"furniture","category":"beds","key":"smoke-bed","name":"Тестовая кровать","size":"1600×2000","price":10000,"qty":1}]}' | tee /tmp/order.json
+          node -e "const x=require('/tmp/order.json'); if(!x.ok || !x.order?.order_no || Number(x.order.total)<=10000) process.exit(1)"
