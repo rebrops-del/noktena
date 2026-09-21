@@ -1,0 +1,33 @@
+name: Stabilize public cache
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/stabilize-public-cache.yml'
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Bump catalog cache version
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('assets/catalog-runtime.js')
+          s=p.read_text(encoding='utf-8').replace("noktena-catalog-overrides-v2","noktena-catalog-overrides-v3")
+          p.write_text(s,encoding='utf-8')
+          for name in ['index.html','product.html']:
+              p=Path(name); s=p.read_text(encoding='utf-8')
+              s=s.replace('assets/catalog-runtime.js?v=20260919-sameorigin1','assets/catalog-runtime.js?v=20260921-stable1')
+              p.write_text(s,encoding='utf-8')
+          PY
+          node --check assets/catalog-runtime.js
+      - name: Commit
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add assets/catalog-runtime.js index.html product.html
+          git commit -m 'Reset stale public catalog cache' || exit 0
+          git push
