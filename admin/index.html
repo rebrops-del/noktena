@@ -5,14 +5,14 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="robots" content="noindex,nofollow">
   <title>НОКТЕНА — ADMIN</title>
-  <link rel="stylesheet" href="./admin.css?v=5">
+  <link rel="stylesheet" href="./admin.css?v=6">
 </head>
 <body>
   <div id="toast" class="toast hide"></div>
 
   <section id="login" class="login">
     <form id="loginForm" class="box">
-      <div class="brand">НОКТЕНА</div>
+      <img class="admin-logo" src="../assets/logo-noktena-final.png?v=20260908-final2" alt="НОКТЕНА">
       <h1>Админ-панель</h1>
       <p class="muted">Цены, карточки и фотографии через единый защищённый API.</p>
       <label>E-mail<input id="email" type="email" autocomplete="username" required></label>
@@ -25,7 +25,7 @@
 
   <div id="app" class="app hide">
     <aside class="side">
-      <div><div class="brand">НОКТЕНА</div><small>ADMIN</small></div>
+      <div><img class="admin-logo" src="../assets/logo-noktena-final.png?v=20260908-final2" alt="НОКТЕНА"><small>ADMIN</small></div>
       <a href="https://noktena.ru" target="_blank" rel="noopener">Открыть сайт ↗</a>
       <div class="bottom">
         <div id="adminEmail" class="muted" style="color:#bdd1c8;margin-bottom:9px"></div>
@@ -39,7 +39,8 @@
         <div class="actions">
           <button id="reload" class="btn secondary" type="button">Обновить</button>
           <button id="bulk" class="btn secondary" type="button">Цены %</button>
-          <button id="settingsOpen" class="btn secondary" type="button">Цены и доставка</button>
+          <button id="settingsOpen" class="btn secondary" type="button">Цены</button>
+          <button id="deliverySettingsOpen" class="btn secondary" type="button">Доставка</button>
           <button id="add" class="btn primary" type="button">+ Добавить карточку</button>
         </div>
       </div>
@@ -83,8 +84,8 @@
           <label>Категория<input id="category"></label>
           <label>Базовая цена, ₽<input id="price" type="number" min="0"></label>
           <label>В наличии<select id="available"><option value="1">Да</option><option value="0">Нет</option></select></label>
-          <label>Индивидуальная доставка, ₽<input id="deliveryOverride" type="number" min="0" placeholder="Пусто = по категории"></label>
-          <label>Бесплатная доставка от, ₽<input id="freeDeliveryOverride" type="number" min="0" placeholder="Пусто = по категории"></label>
+          <label>Индивидуальная доставка, ₽<input id="deliveryOverride" type="number" min="0" placeholder="Пусто = общая настройка доставки"></label>
+          <label>Бесплатная доставка от, ₽<input id="freeDeliveryOverride" type="number" min="0" placeholder="Пусто = общая настройка доставки"></label>
         </div>
 
         <label>Краткое описание<textarea id="summary" rows="3"></textarea></label>
@@ -131,8 +132,28 @@
 
   <div id="settingsModal" class="modal hide">
     <div class="modalbox">
-      <div class="modalhead"><div><b>Цены и доставка по категориям</b><div class="muted">Настройки применяются автоматически ко всему каталогу.</div></div><button id="settingsClose" type="button" class="btn secondary">Закрыть</button></div>
+      <div class="modalhead"><div><b>Цены по категориям</b><div class="muted">Наценка или скидка задаётся отдельно для матрасов, кроватей и диванов.</div></div><button id="settingsClose" type="button" class="btn secondary">Закрыть</button></div>
       <form id="settingsForm"><div id="settingsRows" class="settings-grid"></div><div class="savebar"><span></span><div class="actions"><button id="settingsCancel" type="button" class="btn secondary">Отмена</button><button type="submit" class="btn primary">Сохранить настройки</button></div></div></form>
+    </div>
+  </div>
+
+
+  <div id="deliverySettingsModal" class="modal hide">
+    <div class="modalbox small">
+      <div class="modalhead">
+        <div><b>Доставка и подъём</b><div class="muted">Единые условия доставки для каталога. Для диванов можно добавить отдельную доплату за подъём.</div></div>
+        <button id="deliverySettingsClose" type="button" class="btn secondary">Закрыть</button>
+      </div>
+      <form id="deliverySettingsForm">
+        <div class="delivery-settings-grid">
+          <label>Стоимость доставки, ₽<input id="globalDeliveryPrice" type="number" min="0" step="1"></label>
+          <label>Стоимость подъёма, ₽<input id="globalLiftPrice" type="number" min="0" step="1"></label>
+          <label>Доплата за подъём дивана, ₽<input id="globalSofaLiftSurcharge" type="number" min="0" step="1"></label>
+          <label>Бесплатная доставка от, ₽<input id="globalFreeDeliveryFrom" type="number" min="0" step="1"></label>
+        </div>
+        <div class="notice" style="margin-top:12px">Для дивана на сайте показывается базовая стоимость подъёма и дополнительная доплата за диван. Значение 0 отключает соответствующую доплату или порог бесплатной доставки.</div>
+        <div class="savebar"><span></span><div class="actions"><button id="deliverySettingsCancel" type="button" class="btn secondary">Отмена</button><button type="submit" class="btn primary">Сохранить доставку</button></div></div>
+      </form>
     </div>
   </div>
 
@@ -161,6 +182,6 @@
     </div>
   </div>
 
-  <script src="./admin.js?v=5" defer></script>
+  <script src="./admin.js?v=6" defer></script>
 </body>
 </html>

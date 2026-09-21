@@ -6,6 +6,7 @@ let current=null;
 let draft=null;
 let originalBasePrice=0;
 let categorySettings=[];
+let deliverySettings={delivery_price:0,lift_price:0,sofa_lift_surcharge:0,free_delivery_from:0};
 
 const $=selector=>document.querySelector(selector);
 const $$=selector=>[...document.querySelectorAll(selector)];
@@ -375,9 +376,9 @@ async function bulkPrices(){
 
 function settingsLabel(category){return category==='mattress'?'Матрасы':category==='beds'?'Кровати':'Диваны'}
 function renderCategorySettings(){
-  const defaults=['mattress','beds','sofas'].map(category=>({category,price_mode:'percent',price_value:0,delivery_price:0,free_delivery_from:0}));
+  const defaults=['mattress','beds','sofas'].map(category=>({category,price_mode:'percent',price_value:0}));
   const merged=defaults.map(d=>({...d,...(categorySettings.find(x=>x.category===d.category)||{})}));
-  $('#settingsRows').innerHTML=merged.map(s=>`<section class="settings-card" data-settings-category="${s.category}"><h3>${settingsLabel(s.category)}</h3><label>Изменение цены<select data-settings-mode><option value="percent" ${s.price_mode==='percent'?'selected':''}>Процент, %</option><option value="fixed" ${s.price_mode==='fixed'?'selected':''}>Сумма, ₽</option></select></label><label>Наценка / скидка<input data-settings-value type="number" step="1" value="${Number(s.price_value)||0}"></label><label>Доставка, ₽<input data-settings-delivery type="number" min="0" value="${Number(s.delivery_price)||0}"></label><label>Бесплатная доставка от, ₽<input data-settings-free type="number" min="0" value="${Number(s.free_delivery_from)||0}"></label><div class="muted">0 в поле доставки = стоимость уточняется. 0 в «бесплатно от» = порог отключён.</div></section>`).join('');
+  $('#settingsRows').innerHTML=merged.map(s=>`<section class="settings-card" data-settings-category="${s.category}"><h3>${settingsLabel(s.category)}</h3><label>Изменение цены<select data-settings-mode><option value="percent" ${s.price_mode==='percent'?'selected':''}>Процент, %</option><option value="fixed" ${s.price_mode==='fixed'?'selected':''}>Сумма, ₽</option></select></label><label>Наценка / скидка<input data-settings-value type="number" step="1" value="${Number(s.price_value)||0}"></label><div class="muted">Положительное значение повышает цену, отрицательное — снижает.</div></section>`).join('');
 }
 async function openCategorySettings(){
   try{const data=await request('settings');categorySettings=Array.isArray(data.settings)?data.settings:[];renderCategorySettings();$('#settingsModal').classList.remove('hide')}catch(error){toast(error.message,true)}
@@ -385,8 +386,24 @@ async function openCategorySettings(){
 function closeCategorySettings(){$('#settingsModal').classList.add('hide')}
 async function saveCategorySettings(event){
   event.preventDefault();
-  const rows=$$('[data-settings-category]').map(card=>({category:card.dataset.settingsCategory,price_mode:card.querySelector('[data-settings-mode]').value,price_value:Number(card.querySelector('[data-settings-value]').value)||0,delivery_price:Math.max(0,Number(card.querySelector('[data-settings-delivery]').value)||0),free_delivery_from:Math.max(0,Number(card.querySelector('[data-settings-free]').value)||0)}));
-  try{const data=await request('settings-save',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({rows})});categorySettings=data.settings||rows;closeCategorySettings();toast('Настройки цен и доставки сохранены')}catch(error){toast(error.message,true)}
+  const rows=$$('[data-settings-category]').map(card=>({category:card.dataset.settingsCategory,price_mode:card.querySelector('[data-settings-mode]').value,price_value:Number(card.querySelector('[data-settings-value]').value)||0}));
+  try{const data=await request('settings-save',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({rows})});categorySettings=data.settings||rows;closeCategorySettings();toast('Настройки цен сохранены')}catch(error){toast(error.message,true)}
+}
+
+function fillDeliverySettings(){
+  $('#globalDeliveryPrice').value=Number(deliverySettings.delivery_price)||0;
+  $('#globalLiftPrice').value=Number(deliverySettings.lift_price)||0;
+  $('#globalSofaLiftSurcharge').value=Number(deliverySettings.sofa_lift_surcharge)||0;
+  $('#globalFreeDeliveryFrom').value=Number(deliverySettings.free_delivery_from)||0;
+}
+async function openDeliverySettings(){
+  try{const data=await request('delivery-settings');deliverySettings=data.settings||deliverySettings;fillDeliverySettings();$('#deliverySettingsModal').classList.remove('hide')}catch(error){toast(error.message,true)}
+}
+function closeDeliverySettings(){$('#deliverySettingsModal').classList.add('hide')}
+async function saveDeliverySettings(event){
+  event.preventDefault();
+  const payload={delivery_price:Math.max(0,Number($('#globalDeliveryPrice').value)||0),lift_price:Math.max(0,Number($('#globalLiftPrice').value)||0),sofa_lift_surcharge:Math.max(0,Number($('#globalSofaLiftSurcharge').value)||0),free_delivery_from:Math.max(0,Number($('#globalFreeDeliveryFrom').value)||0)};
+  try{const data=await request('delivery-settings-save',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(payload)});deliverySettings=data.settings||payload;closeDeliverySettings();toast('Настройки доставки сохранены')}catch(error){toast(error.message,true)}
 }
 
 async function start(){
@@ -437,6 +454,10 @@ $('#settingsOpen').addEventListener('click',openCategorySettings);
 $('#settingsClose').addEventListener('click',closeCategorySettings);
 $('#settingsCancel').addEventListener('click',closeCategorySettings);
 $('#settingsForm').addEventListener('submit',saveCategorySettings);
+$('#deliverySettingsOpen').addEventListener('click',openDeliverySettings);
+$('#deliverySettingsClose').addEventListener('click',closeDeliverySettings);
+$('#deliverySettingsCancel').addEventListener('click',closeDeliverySettings);
+$('#deliverySettingsForm').addEventListener('submit',saveDeliverySettings);
 $('#closeEditor').addEventListener('click',closeEditor);
 $('#cancel').addEventListener('click',closeEditor);
 $('#reset').addEventListener('click',resetOrDelete);
