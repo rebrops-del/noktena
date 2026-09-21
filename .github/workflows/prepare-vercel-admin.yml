@@ -1,0 +1,42 @@
+name: Prepare Vercel admin
+on:
+  push:
+    paths:
+      - '.github/workflows/prepare-vercel-admin.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Make admin use same-origin API on Vercel
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          old = "const API='https://oldtlbkrftflfthfsqdv.supabase.co/functions/v1/noktena-admin-api';"
+          new = "const API=(location.hostname.endsWith('.vercel.app')||location.hostname==='admin.noktena.ru')?'/api/noktena-admin':'https://oldtlbkrftflfthfsqdv.supabase.co/functions/v1/noktena-admin-api';"
+          for name in ['admin/admin.js','admin-v2/app.js']:
+              p=Path(name)
+              text=p.read_text(encoding='utf-8')
+              if old not in text:
+                  raise SystemExit(f'Expected API constant not found in {name}')
+              p.write_text(text.replace(old,new,1),encoding='utf-8')
+              print('Updated',name)
+          PY
+          node --check admin/admin.js
+          node --check admin-v2/app.js
+
+      - name: Commit admin proxy support
+        run: |
+          set -euxo pipefail
+          git config user.name 'noktena-bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add admin/admin.js admin-v2/app.js
+          git commit -m 'Use Vercel same-origin proxy for admin'
+          git push
