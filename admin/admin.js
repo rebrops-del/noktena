@@ -1,886 +1,503 @@
-(() => {
-  'use strict';
+const API='https://oldtlbkrftflfthfsqdv.supabase.co/functions/v1/noktena-admin-api';
+const SESSION_KEY='nkt-adm2';
+let session=null;
+let items=[];
+let current=null;
+let draft=null;
+let originalBasePrice=0;
 
-  const cfg = window.NOKTENA_ADMIN_CONFIG || {};
-  const $ = (s, r = document) => r.querySelector(s);
-  const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
-  const SESSION_KEY = 'noktena-admin-session-v1';
-  const DATA_FILES = ['../data/data1.json','../data/data2.json','../data/data3.json','../data/data4.json','../data/data5.json','../data/data6.json'];
-  const state = {
-    session: null,
-    baseByKey: new Map(),
-    rowsByKey: new Map(),
-    items: [],
-    editImages: [],
-    editVariants: [],
-    editColorImages: {}
-  };
+const $=selector=>document.querySelector(selector);
+const $$=selector=>[...document.querySelectorAll(selector)];
+const clone=value=>structuredClone(value);
 
-  const configured = () => Boolean(cfg.supabaseUrl && cfg.supabaseAnonKey);
-  const baseUrl = () => String(cfg.supabaseUrl || '').replace(/\/$/, '');
-  const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  const rub = n => Number(n) > 0 ? `${Math.round(Number(n)).toLocaleString('ru-RU')} ₽` : '—';
-  const deepEqual = (a, b) => JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
-  const clone = obj => JSON.parse(JSON.stringify(obj ?? {}));
-  const uniq = list => [...new Set((list || []).filter(Boolean).map(v => String(v).trim()).filter(Boolean))];
-  const keyFor = (kind, p) => kind === 'furniture' ? `furniture:${p.id}` : `mattress:${p.model}`;
+function esc(value){
+  return String(value??'').replace(/[&<>"']/g,ch=>({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[ch]));
+}
 
-  function toast(message, error = false) {
-    const el = $('#toast');
-    el.textContent = message;
-    el.classList.toggle('error', error);
-    el.classList.add('show');
-    clearTimeout(toast.timer);
-    toast.timer = setTimeout(() => el.classList.remove('show'), 2800);
-  }
+function toast(message,error=false){
+  const el=$('#toast');
+  el.textContent=message;
+  el.className='toast'+(error?' error':'');
+  window.clearTimeout(toast.timer);
+  toast.timer=window.setTimeout(()=>el.classList.add('hide'),4000);
+}
 
-  function authHeaders(extra = {}, token = null) {
-    const headers = {apikey: cfg.supabaseAnonKey, ...extra};
-    const bearer = token || state.session?.access_token;
-    if (bearer) headers.Authorization = `Bearer ${bearer}`;
-    return headers;
-  }
+function saveSession(value){
+  session=value;
+  if(value)localStorage.setItem(SESSION_KEY,JSON.stringify(value));
+  else localStorage.removeItem(SESSION_KEY);
+}
 
-  function publicAuthHeaders(extra = {}) {
-    return {apikey: cfg.supabaseAnonKey, ...extra};
-  }
+try{session=JSON.parse(localStorage.getItem(SESSION_KEY)||'null')}catch{saveSession(null)}
 
-  async function refreshSession() {
-    const refreshToken = state.session?.refresh_token;
-    if (!refreshToken) throw new Error('Нет refresh token');
-    const r = await fetch(`${baseUrl()}/auth/v1/token?grant_type=refresh_token`, {
+async function request(action,options={},auth=true,retry=true){
+  const headers={...(options.headers||{})};
+  if(auth&&session?.access_token)headers.Authorization='Bearer '+session.access_token;
+  let response=await fetch(API+'?action='+encodeURIComponent(action),{...options,headers});
+
+  if(response.status===401&&auth&&retry&&session?.refresh_token){
+    const refreshResponse=await fetch(API+'?action=refresh',{
       method:'POST',
-      headers:publicAuthHeaders({'Content-Type':'application/json'}),
-      body:JSON.stringify({refresh_token:refreshToken})
+      headers:{'content-type':'application/json'},
+      body:JSON.stringify({refresh_token:session.refresh_token})
     });
-    const data = await r.json().catch(() => ({}));
-    if (!r.ok || !data.access_token) throw new Error(data.error_description || data.msg || 'Сессия истекла');
-    state.session = data;
-    localStorage.setItem(SESSION_KEY, JSON.stringify(data));
-    return data;
+    const refreshed=await refreshResponse.json().catch(()=>({}));
+    if(!refreshResponse.ok)throw new Error(refreshed.error||'Сессия истекла');
+    saveSession(refreshed.session);
+    return request(action,options,auth,false);
   }
 
-  async function request(path, options = {}, retried = false) {
-    const r = await fetch(`${baseUrl()}${path}`, {
-      ...options,
-      headers: authHeaders(options.headers || {})
-    });
-    if (r.status === 401 && !retried && state.session?.refresh_token) {
-      try {
-        await refreshSession();
-        return request(path, options, true);
-      } catch (_) {
-        localStorage.removeItem(SESSION_KEY);
-        state.session = null;
-      }
-    }
-    if (!r.ok) {
-      const text = await r.text().catch(() => '');
-      throw new Error(text || `HTTP ${r.status}`);
-    }
-    if (r.status === 204 || options.headers?.Prefer?.includes('return=minimal')) return null;
-    const text = await r.text();
-    return text ? JSON.parse(text) : null;
-  }
+  const data=await response.json().catch(()=>({error:'Некорректный ответ сервера'}));
+  if(!response.ok)throw new Error(data.error||'Ошибка сервера');
+  return data;
+}
 
-  async function signIn(email, password) {
-    const r = await fetch(`${baseUrl()}/auth/v1/token?grant_type=password`, {
-      method: 'POST',
-      headers: publicAuthHeaders({'Content-Type':'application/json'}),
-      body: JSON.stringify({email, password})
-    });
-    const data = await r.json().catch(() => ({}));
-    if (!r.ok || !data.access_token) throw new Error(data.error_description || data.msg || data.error || 'Не удалось войти');
-    state.session = data;
-    localStorage.setItem(SESSION_KEY, JSON.stringify(data));
-    return data;
-  }
+function productName(item){
+  return item?._kind==='mattress'?(item.model||'Без названия'):(item.title||'Без названия');
+}
 
-  async function updatePassword(password) {
-    const token = state.session?.access_token;
-    if (!token) throw new Error('Сессия не найдена. Войдите заново.');
-    const r = await fetch(`${baseUrl()}/auth/v1/user`, {
-      method:'PUT',
-      headers:authHeaders({'Content-Type':'application/json'}, token),
-      body:JSON.stringify({password})
-    });
-    const data = await r.json().catch(() => ({}));
-    if (!r.ok) throw new Error(data.msg || data.message || data.error_description || data.error || 'Не удалось изменить пароль');
-    return data;
-  }
+function group(item){
+  if(item?._kind==='mattress')return 'mattress';
+  return item?.category==='sofas'?'sofas':'beds';
+}
 
-  async function sendRecovery(email) {
-    const redirectTo = `${location.origin}/admin/`;
-    const r = await fetch(`${baseUrl()}/auth/v1/recover?redirect_to=${encodeURIComponent(redirectTo)}`, {
-      method:'POST',
-      headers:publicAuthHeaders({'Content-Type':'application/json'}),
-      body:JSON.stringify({email})
-    });
-    const data = await r.json().catch(() => ({}));
-    if (!r.ok) throw new Error(data.msg || data.message || data.error_description || data.error || 'Не удалось отправить письмо');
-  }
+function basePrice(item){
+  const prices=(item?.variants||[]).map(v=>Number(v.price)).filter(n=>n>0);
+  if(Number(item?.price)>0)prices.push(Number(item.price));
+  return prices.length?Math.min(...prices):0;
+}
 
-  function adoptRecoverySession() {
-    const hash = new URLSearchParams(location.hash.replace(/^#/, ''));
-    if (hash.get('type') !== 'recovery' || !hash.get('access_token')) return false;
-    state.session = {
-      access_token: hash.get('access_token'),
-      refresh_token: hash.get('refresh_token') || '',
-      token_type: hash.get('token_type') || 'bearer',
-      expires_in: Number(hash.get('expires_in')) || 3600,
-      user: null
-    };
-    localStorage.setItem(SESSION_KEY, JSON.stringify(state.session));
-    return true;
-  }
+function money(value){
+  return (Number(value)||0).toLocaleString('ru-RU')+' ₽';
+}
 
-  function restoreSession() {
-    try {
-      const raw = JSON.parse(localStorage.getItem(SESSION_KEY) || 'null');
-      if (raw?.access_token) state.session = raw;
-    } catch (_) {}
-  }
+function categoryLabel(item){
+  const g=group(item);
+  return g==='mattress'?'Матрас':g==='sofas'?'Диван':'Кровать';
+}
 
-  async function loadBaseCatalog() {
-    const [furnitureResponse, mattressSets] = await Promise.all([
-      fetch(`../data/furniture.json?v=${Date.now()}`, {cache:'no-store'}),
-      Promise.all(DATA_FILES.map(f => fetch(`${f}?v=${Date.now()}`, {cache:'no-store'}).then(r => {
-        if (!r.ok) throw new Error(`${f}: ${r.status}`);
-        return r.json();
-      })))
-    ]);
-    if (!furnitureResponse.ok) throw new Error(`furniture.json: ${furnitureResponse.status}`);
-    const furniture = await furnitureResponse.json();
-    state.baseByKey.clear();
-
-    for (const p of [...(furniture.beds || []), ...(furniture.sofas || [])]) {
-      const key = keyFor('furniture', p);
-      state.baseByKey.set(key, {key, kind:'furniture', base:clone(p)});
-    }
-    for (const p of mattressSets.flat()) {
-      if (!p?.model) continue;
-      const key = keyFor('mattress', p);
-      if (!state.baseByKey.has(key)) state.baseByKey.set(key, {key, kind:'mattress', base:clone(p)});
-    }
-  }
-
-  async function loadOverrides() {
-    const rows = await request('/rest/v1/catalog_overrides?select=product_key,kind,source_id,payload,hidden,is_custom,updated_at&order=updated_at.desc');
-    state.rowsByKey = new Map((rows || []).map(r => [r.product_key, r]));
-  }
-
-  function rebuildItems() {
-    const items = [];
-    for (const rec of state.baseByKey.values()) {
-      const row = state.rowsByKey.get(rec.key);
-      const merged = row ? {...clone(rec.base), ...clone(row.payload || {})} : clone(rec.base);
-      items.push({...merged, _key:rec.key, _kind:rec.kind, _base:rec.base, _changed:Boolean(row), _hidden:Boolean(row?.hidden), _isCustom:false});
-    }
-    for (const row of state.rowsByKey.values()) {
-      if (!row.is_custom) continue;
-      const merged = clone(row.payload || {});
-      items.push({...merged, _key:row.product_key, _kind:row.kind, _base:{}, _changed:true, _hidden:Boolean(row.hidden), _isCustom:true});
-    }
-    state.items = items;
-  }
-
-  function itemGroup(item) {
-    if (item._kind === 'mattress') return 'mattress';
-    return item.category === 'sofas' ? 'sofas' : 'beds';
-  }
-
-  function categoryLabel(item) {
-    const group = itemGroup(item);
-    if (group === 'beds') return 'Кровать';
-    if (group === 'sofas') return 'Диван';
-    return item.category || 'Матрас';
-  }
-
-  function itemName(item) {
-    return item._kind === 'mattress' ? item.model : item.title;
-  }
-
-  function minPrice(item) {
-    const prices = (item.variants || []).map(v => Number(v?.price)).filter(n => Number.isFinite(n) && n > 0);
-    const base = Number(item.price);
-    if (Number.isFinite(base) && base > 0) prices.push(base);
-    return prices.length ? Math.min(...prices) : 0;
-  }
-
-  function imageFor(item) {
-    return Array.isArray(item.images) && item.images[0] ? item.images[0] : '';
-  }
-
-  function renderStats() {
-    const active = state.items.filter(x => !x._hidden);
-    const changed = state.items.filter(x => x._changed).length;
-    const custom = state.items.filter(x => x._isCustom).length;
-    $('#stats').innerHTML = [
-      ['Всего товаров', state.items.length],
-      ['Опубликовано', active.length],
-      ['Изменено вручную', changed],
-      ['Добавлено вручную', custom]
-    ].map(([label,value]) => `<div class="stat"><small>${label}</small><b>${value}</b></div>`).join('');
-  }
-
-  function filteredItems() {
-    const q = ($('#searchInput').value || '').trim().toLowerCase();
-    const kind = $('#kindFilter').value;
-    const status = $('#statusFilter').value;
-    return state.items.filter(item => {
-      if (q && !`${itemName(item)} ${item.description || ''} ${item.summary || item.intro || ''}`.toLowerCase().includes(q)) return false;
-      if (kind && itemGroup(item) !== kind) return false;
-      if (status === 'active' && item._hidden) return false;
-      if (status === 'hidden' && !item._hidden) return false;
-      if (status === 'changed' && !item._changed) return false;
-      return true;
-    }).sort((a,b) => itemName(a).localeCompare(itemName(b), 'ru'));
-  }
-
-  function renderTable() {
-    renderStats();
-    const rows = filteredItems();
-    $('#productRows').innerHTML = rows.length ? rows.map(item => {
-      const img = imageFor(item);
-      const source = item._isCustom ? '<span class="pill gold">Вручную</span>' : item._changed ? '<span class="pill gold">Berhouse + правки</span>' : '<span class="pill gray">Каталог</span>';
-      return `<tr>
-        <td><div class="product-cell">${img?`<img class="thumb" src="${esc(img)}" alt="" loading="lazy">`:'<div class="thumb"></div>'}<div><b>${esc(itemName(item))}</b><small>${esc(item._key)}</small></div></div></td>
-        <td>${esc(categoryLabel(item))}</td>
-        <td><b>${rub(minPrice(item))}</b></td>
-        <td>${item._hidden?'<span class="pill red">Скрыт</span>':'<span class="pill green">На сайте</span>'}</td>
-        <td>${source}</td>
-        <td><div class="row-actions"><button class="icon-btn" data-edit-key="${esc(item._key)}">Изменить</button></div></td>
-      </tr>`;
-    }).join('') : '<tr><td colspan="6" class="loading-row">Ничего не найдено</td></tr>';
-    $('#tableFooter').textContent = `Показано: ${rows.length} из ${state.items.length}`;
-  }
-
-  function specsToText(specs) {
-    return Object.entries(specs || {}).map(([k,v]) => `${k}: ${v}`).join('\n');
-  }
-
-  function textToSpecs(text) {
-    const out = {};
-    for (const line of String(text || '').split(/\n+/)) {
-      const i = line.indexOf(':');
-      if (i < 1) continue;
-      const k = line.slice(0,i).trim();
-      const v = line.slice(i+1).trim();
-      if (k && v) out[k] = v;
-    }
-    return out;
-  }
-
-  function renderImages() {
-    $('#imageGrid').innerHTML = state.editImages.length ? state.editImages.map((src,i) => `<div class="image-item"><img src="${esc(src)}" alt=""><div class="image-actions"><button type="button" data-image-main="${i}">${i===0?'Главное':'Сделать главным'}</button><button type="button" data-image-remove="${i}">Удалить</button></div></div>`).join('') : '<div class="loading-row">Фотографии не добавлены</div>';
-  }
-
-  function renderVariants() {
-    $('#variantRows').innerHTML = state.editVariants.map((v,i) => `<div class="variant-row" data-variant-index="${i}"><input data-v-size value="${esc(v.size || '')}" placeholder="1600×2000"><input data-v-color data-prev-color="${esc(v.color || '')}" value="${esc(v.color || '')}" placeholder="Цвет"><input data-v-price type="number" min="0" step="1" value="${Number(v.price)||0}"><button type="button" class="variant-remove" data-v-remove="${i}">×</button></div>`).join('');
-    renderColorImageBindings();
-  }
-
-  function currentVariantColors() {
-    return uniq($$('.variant-row').map(row => $('[data-v-color]', row)?.value || ''));
-  }
-
-  function syncColorImagesFromDom() {
-    $$('#colorImageRows [data-color-image-select]').forEach(select => {
-      const color = String(select.dataset.colorImageSelect || '').trim();
-      if (!color) return;
-      if (select.value) state.editColorImages[color] = select.value;
-      else delete state.editColorImages[color];
-    });
-  }
-
-  function colorImageLabel(src) {
-    let file = String(src || '').split(/[?#]/)[0].split('/').pop() || 'изображение';
-    try { file = decodeURIComponent(file); } catch (_) {}
-    const index = state.editImages.indexOf(src);
-    return index >= 0 ? `Фото ${index + 1} · ${file}` : `Фото цвета · ${file}`;
-  }
-
-  function renderColorImageBindings() {
-    const section = $('#colorImagesSection');
-    const mount = $('#colorImageRows');
-    if (!section || !mount) return;
-    const furniture = $('#editKind')?.value === 'furniture';
-    section.classList.toggle('hidden', !furniture);
-    if (!furniture) return;
-
-    const colors = currentVariantColors();
-    if (!colors.length) {
-      mount.innerHTML = '<div class="color-image-empty">Сначала укажите цвета в блоке «Размеры и цены».</div>';
-      return;
-    }
-
-    const candidates = uniq([...state.editImages, ...Object.values(state.editColorImages || {})]);
-    mount.innerHTML = colors.map(color => {
-      const selected = state.editColorImages[color] || '';
-      const options = [`<option value="">Без привязки</option>`, ...candidates.map(src => `<option value="${esc(src)}" ${src === selected ? 'selected' : ''}>${esc(colorImageLabel(src))}</option>`)].join('');
-      return `<div class="color-image-row">
-        <div class="color-image-preview">${selected ? `<img src="${esc(selected)}" alt="${esc(color)}">` : '<span>Нет фото</span>'}</div>
-        <div class="color-image-meta"><b>${esc(color)}</b><small>Фото при выборе этого цвета</small></div>
-        <div class="color-image-controls">
-          <select data-color-image-select="${esc(color)}">${options}</select>
-          <button type="button" class="secondary-btn" data-color-upload-trigger="${esc(color)}">+ Загрузить фото</button>
-          <input type="file" accept="image/jpeg,image/png,image/webp" data-color-upload="${esc(color)}" hidden>
-          ${selected ? `<button type="button" class="danger-link" data-color-image-remove="${esc(color)}">Удалить фото</button>` : ''}
-        </div>
-      </div>`;
-    }).join('');
-  }
-
-  function syncVariantsFromDom() {
-    state.editVariants = $$('.variant-row').map(row => ({
-      size: $('[data-v-size]', row).value.trim(),
-      color: $('[data-v-color]', row).value.trim(),
-      price: Number($('[data-v-price]', row).value) || 0,
-      available: true
-    })).filter(v => v.size || v.color || v.price);
-  }
-
-  function setEditorMode(kind) {
-    const furniture = kind === 'furniture';
-    $('#specsSection').classList.toggle('hidden', !furniture);
-    $('#colorImagesSection')?.classList.toggle('hidden', !furniture);
-    $('#editCategory').innerHTML = furniture
-      ? '<option value="beds">Кровати</option><option value="sofas">Диваны</option>'
-      : '<option value="Матрасы">Матрасы</option><option value="Подушки">Подушки</option><option value="Чехлы">Чехлы</option>';
-  }
-
-  function openEditor(key = null) {
-    let item = key ? state.items.find(x => x._key === key) : null;
-    const isNew = !item;
-    if (!item) item = {_kind:'mattress',category:'Матрасы',variants:[],images:[],available:true,hit:false,_key:'',_isCustom:true,_hidden:false};
-    $('#editKey').value = item._key || '';
-    $('#editIsCustom').value = item._isCustom ? '1' : '0';
-    $('#editorTitle').textContent = isNew ? 'Новый товар' : itemName(item);
-    $('#editKind').value = item._kind;
-    setEditorMode(item._kind);
-    $('#editCategory').value = item.category || (item._kind === 'furniture' ? 'beds' : 'Матрасы');
-    $('#editName').value = itemName(item) || '';
-    $('#editPrice').value = Number(item.price) || minPrice(item) || '';
-    $('#editPrice').dataset.originalPrice = String(Number(item.price) || minPrice(item) || 0);
-    $('#editSubtype').value = item.subtype || '';
-    $('#editSummary').value = item._kind === 'mattress' ? (item.intro || '') : (item.summary || '');
-    $('#editDescription').value = item.description || '';
-    $('#editSpecs').value = specsToText(item.specs || {});
-    $('#editAvailable').checked = item.available !== false;
-    $('#editHit').checked = Boolean(item.hit);
-    $('#editHidden').checked = Boolean(item._hidden);
-    state.editImages = [...(item.images || [])];
-    state.editVariants = clone(item.variants || []);
-    state.editColorImages = clone(item.colorImages || {});
-    renderImages();
-    renderVariants();
-    const reset = $('#resetOverrideBtn');
-    reset.classList.toggle('hidden', isNew || (!item._changed && !item._isCustom));
-    reset.textContent = item._isCustom ? 'Удалить товар' : 'Сбросить ручные изменения';
-    $('#editorModal').classList.remove('hidden');
-  }
-
-  function closeEditor() { $('#editorModal').classList.add('hidden'); }
-  function openBulk() { renderBulkPreview(); $('#bulkModal').classList.remove('hidden'); }
-  function closeBulk() { $('#bulkModal').classList.add('hidden'); }
-
-  function managedObjectFromForm(existing = null) {
-    syncVariantsFromDom();
-    syncColorImagesFromDom();
-    const kind = $('#editKind').value;
-    const category = $('#editCategory').value;
-    const name = $('#editName').value.trim();
-    const price = Number($('#editPrice').value) || 0;
-    const description = $('#editDescription').value.trim();
-    const summary = $('#editSummary').value.trim();
-    const variants = clone(state.editVariants);
-    const originalPrice = Number($('#editPrice').dataset.originalPrice) || 0;
-    const basePriceChanged = price > 0 && price !== originalPrice;
-    if (price > 0 && variants.length && (basePriceChanged || variants.every(v => !Number(v.price)))) variants.forEach(v => v.price = price);
-    if (kind === 'mattress') {
-      return {
-        model: name,
-        category,
-        intro: summary,
-        description,
-        images: [...state.editImages],
-        variants
-      };
-    }
-    const id = existing?.id || `custom-${Date.now()}`;
-    return {
-      id,
-      category,
-      title: name,
-      subtype: $('#editSubtype').value.trim(),
-      summary,
-      description,
-      price,
-      images: [...state.editImages],
-      variants,
-      sizes: uniq(variants.map(v => v.size)),
-      colors: uniq(variants.map(v => v.color)),
-      colorImages: clone(state.editColorImages),
-      specs: textToSpecs($('#editSpecs').value),
-      available: $('#editAvailable').checked,
-      hit: $('#editHit').checked
-    };
-  }
-
-  function diffPayload(base, edited, kind) {
-    const fields = kind === 'mattress'
-      ? ['model','category','intro','description','images','variants']
-      : ['category','title','subtype','summary','description','price','images','variants','sizes','colors','colorImages','specs','available','hit'];
-    const out = {};
-    for (const field of fields) if (!deepEqual(base?.[field], edited?.[field])) out[field] = clone(edited[field]);
-    return out;
-  }
-
-  function invalidatePublicCatalogCache() {
-    try {
-      for (const key of Object.keys(localStorage)) if (key.startsWith('noktena-catalog-overrides-')) localStorage.removeItem(key);
-    } catch (_) {}
-  }
-
-  async function upsertRows(rows) {
-    if (!rows.length) return;
-    await request('/rest/v1/catalog_overrides?on_conflict=product_key', {
-      method:'POST',
-      headers:{'Content-Type':'application/json',Prefer:'resolution=merge-duplicates,return=minimal'},
-      body:JSON.stringify(rows)
-    });
-    invalidatePublicCatalogCache();
-  }
-
-  async function saveEditor(e) {
-    e.preventDefault();
-    const btn = $('#saveProductBtn');
-    btn.disabled = true;
-    btn.textContent = 'Сохраняем…';
-    try {
-      const oldKey = $('#editKey').value;
-      const existingItem = oldKey ? state.items.find(x => x._key === oldKey) : null;
-      const kind = $('#editKind').value;
-      const isCustom = !oldKey || $('#editIsCustom').value === '1';
-      const edited = managedObjectFromForm(existingItem);
-      if (!itemName({...edited,_kind:kind}).trim()) throw new Error('Укажите название товара');
-      let key = oldKey;
-      if (!key) key = kind === 'furniture' ? `furniture:${edited.id}` : `mattress:custom-${Date.now()}`;
-      const baseRec = state.baseByKey.get(key);
-      const currentRow = state.rowsByKey.get(key);
-      const payload = isCustom ? edited : {...(currentRow?.payload || {}), ...diffPayload(baseRec?.base || {}, edited, kind)};
-      await upsertRows([{
-        product_key:key,
-        kind,
-        source_id:kind === 'furniture' ? String(edited.id || '').replace(/^berhouse-/,'') : edited.model,
-        payload,
-        hidden:$('#editHidden').checked,
-        is_custom:isCustom
-      }]);
-      await reloadData();
-      closeEditor();
-      toast('Карточка сохранена');
-    } catch (err) {
-      console.error(err);
-      toast(err.message || 'Не удалось сохранить карточку', true);
-    } finally {
-      btn.disabled = false;
-      btn.textContent = 'Сохранить';
-    }
-  }
-
-  async function resetCurrentOverride() {
-    const key = $('#editKey').value;
-    if (!key) return;
-    const item = state.items.find(x => x._key === key);
-    const question = item?._isCustom ? 'Удалить этот товар из каталога?' : 'Сбросить все ручные изменения этой карточки?';
-    if (!confirm(question)) return;
-    try {
-      await request(`/rest/v1/catalog_overrides?product_key=eq.${encodeURIComponent(key)}`, {method:'DELETE',headers:{Prefer:'return=minimal'}});
-      invalidatePublicCatalogCache();
-      await reloadData();
-      closeEditor();
-      toast(item?._isCustom ? 'Товар удалён' : 'Изменения сброшены');
-    } catch (err) { toast(err.message, true); }
-  }
-
-
-  const ADMIN_BRIDGE_URL = `${baseUrl()}/functions/v1/noktena-admin-bridge`;
-  const bridgePending = new Map();
-
-  window.addEventListener('message', e => {
-    const data = e.data;
-    if (!data || data.type !== 'noktena-admin-bridge' || !data.request_id) return;
-    const pending = bridgePending.get(data.request_id);
-    if (!pending) return;
-    bridgePending.delete(data.request_id);
-    clearTimeout(pending.timer);
-    try { pending.form.remove(); } catch (_) {}
-    try { pending.iframe.remove(); } catch (_) {}
-    if (data.ok) pending.resolve(data);
-    else pending.reject(new Error(data.error || 'Сервер не выполнил операцию'));
+function draw(){
+  const query=$('#q').value.trim().toLowerCase();
+  const kind=$('#kindFilter').value;
+  const status=$('#statusFilter').value;
+  const filtered=items.filter(item=>{
+    const haystack=[productName(item),item.description,item.summary,item.intro,item._key].join(' ').toLowerCase();
+    return (!query||haystack.includes(query))&&
+      (!kind||group(item)===kind)&&
+      (!status||(status==='changed'&&item._changed)||(status==='custom'&&item._isCustom));
   });
 
-  function bridgePost(fields, timeoutMs = 45000) {
-    return new Promise((resolve, reject) => {
-      if (!state.session?.access_token) return reject(new Error('Сессия администратора не найдена. Войдите заново.'));
-      const requestId = (crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`);
-      const frameName = `noktena_bridge_${requestId.replace(/[^a-z0-9]/gi,'')}`;
-      const iframe = document.createElement('iframe');
-      iframe.name = frameName;
-      iframe.hidden = true;
-      const form = document.createElement('form');
-      form.method = 'POST';
-      form.action = ADMIN_BRIDGE_URL;
-      form.target = frameName;
-      form.enctype = 'application/x-www-form-urlencoded';
-      form.style.display = 'none';
-      const all = {...fields, request_id: requestId, access_token: state.session.access_token, refresh_token: state.session.refresh_token || ''};
-      for (const [name, value] of Object.entries(all)) {
-        const input = document.createElement('textarea');
-        input.name = name;
-        input.value = String(value ?? '');
-        form.appendChild(input);
-      }
-      document.body.appendChild(iframe);
-      document.body.appendChild(form);
-      const timer = setTimeout(() => {
-        bridgePending.delete(requestId);
-        try { form.remove(); } catch (_) {}
-        try { iframe.remove(); } catch (_) {}
-        reject(new Error('Сервер не ответил на загрузку фото.'));
-      }, timeoutMs);
-      bridgePending.set(requestId, {resolve, reject, timer, form, iframe});
-      form.submit();
-    });
-  }
+  $('#count').textContent=`Показано ${filtered.length} из ${items.length}`;
+  $('#rows').innerHTML=filtered.map(item=>{
+    const image=item.images?.[0];
+    const badges=[
+      item._isCustom?'<span class="pill custom">Новая</span>':'',
+      item._changed?'<span class="pill">Изменена</span>':''
+    ].filter(Boolean).join(' ');
+    return `<tr>
+      <td><div class="prod">${image?`<img class="thumb" src="${esc(image)}" alt="">`:'<div class="thumb"></div>'}<div><b>${esc(productName(item))}</b><div class="muted">${esc(item._key)}</div></div></div></td>
+      <td>${categoryLabel(item)}</td>
+      <td><b>${money(basePrice(item))}</b></td>
+      <td>${badges||'Каталог'}</td>
+      <td><button class="btn secondary" data-edit="${esc(item._key)}">Изменить</button></td>
+    </tr>`;
+  }).join('')||'<tr><td colspan="5">Товары не найдены</td></tr>';
+}
 
-  function fileToDataUrl(blob) {
-    return new Promise((resolve, reject) => {
-      const r = new FileReader();
-      r.onload = () => resolve(String(r.result || ''));
-      r.onerror = () => reject(new Error('Не удалось прочитать изображение'));
-      r.readAsDataURL(blob);
-    });
-  }
+async function loadCatalog(){
+  $('#rows').innerHTML='<tr><td colspan="5">Загрузка…</td></tr>';
+  const data=await request('catalog');
+  items=Array.isArray(data.items)?data.items:[];
+  draw();
+}
 
-  function canvasToBlob(canvas, quality) {
-    return new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', quality));
-  }
+function readVariantRows(){
+  if(!draft)return;
+  const previous=Array.isArray(draft.variants)?draft.variants:[];
+  draft.variants=$$('.variant-row').map(row=>{
+    const index=Number(row.dataset.index);
+    const old=Number.isInteger(index)&&previous[index]?previous[index]:{};
+    const next={...old};
+    next.size=(row.querySelector('[data-size]')?.value||'').trim();
+    if(draft._kind==='furniture')next.color=(row.querySelector('[data-color]')?.value||'').trim();
+    next.price=Number(row.querySelector('[data-price]')?.value)||0;
+    next.available=!!row.querySelector('[data-available]')?.checked;
+    return next;
+  }).filter(v=>v.size||v.color||v.price);
+}
 
-  async function preparePhotoForBridge(file) {
-    if (!file || !String(file.type || '').startsWith('image/')) throw new Error('Выберите изображение JPG, PNG или WEBP.');
-    if (file.size > 25 * 1024 * 1024) throw new Error('Фото больше 25 МБ.');
-    let bitmap;
-    try { bitmap = await createImageBitmap(file); }
-    catch (_) {
-      if (file.size <= 250 * 1024) return await fileToDataUrl(file);
-      throw new Error('Не удалось обработать изображение. Сохраните его как JPG и попробуйте снова.');
+function renderImages(){
+  const images=Array.isArray(draft?.images)?draft.images:[];
+  $('#images').innerHTML=images.map((url,index)=>`<div class="image-card">
+    <img src="${esc(url)}" alt="Фото товара">
+    <div class="image-actions">
+      <button type="button" data-main-image="${index}">${index===0?'Главное ✓':'Сделать главным'}</button>
+      <button type="button" data-remove-image="${index}" style="color:#c93643">Убрать</button>
+    </div>
+  </div>`).join('')||'<div class="muted">Фотографий пока нет.</div>';
+}
+
+function renderVariants(){
+  const variants=Array.isArray(draft?.variants)?draft.variants:[];
+  $('#variants').innerHTML=variants.map((variant,index)=>draft._kind==='mattress'?`<div class="variant-row mattress" data-index="${index}">
+      <input data-size value="${esc(variant.size||'')}" placeholder="Размер">
+      <input data-price type="number" min="0" value="${Number(variant.price)||0}" placeholder="Цена">
+      <label class="check"><input data-available type="checkbox" ${variant.available===false?'':'checked'}> В наличии</label>
+      <button type="button" class="btn danger remove-variant" data-remove-variant="${index}">×</button>
+    </div>`:`<div class="variant-row" data-index="${index}">
+      <input data-size value="${esc(variant.size||'')}" placeholder="Размер">
+      <input data-color value="${esc(variant.color||'')}" placeholder="Цвет">
+      <input data-price type="number" min="0" value="${Number(variant.price)||0}" placeholder="Цена">
+      <label class="check"><input data-available type="checkbox" ${variant.available===false?'':'checked'}> В наличии</label>
+      <button type="button" class="btn danger remove-variant" data-remove-variant="${index}">×</button>
+    </div>`).join('')||'<div class="muted">Вариантов пока нет.</div>';
+  renderColors();
+}
+
+function renderColors(){
+  if(!draft||draft._kind!=='furniture'){
+    $('#colorSection').classList.add('hide');
+    return;
+  }
+  $('#colorSection').classList.remove('hide');
+  draft.colorImages=draft.colorImages&&typeof draft.colorImages==='object'?draft.colorImages:{};
+  const colors=[...new Set((draft.variants||[]).map(v=>v.color).filter(Boolean))];
+  const availableImages=[...new Set([...(draft.images||[]),...Object.values(draft.colorImages).filter(Boolean)])];
+  $('#colors').innerHTML=colors.map(color=>{
+    const selected=draft.colorImages[color]||'';
+    const options=availableImages.map(url=>`<option value="${esc(url)}" ${url===selected?'selected':''}>${url===selected?'Текущее фото':'Фото из карточки'}</option>`).join('');
+    return `<div class="color-row">
+      ${selected?`<img src="${esc(selected)}" alt="${esc(color)}">`:'<div class="thumb"></div>'}
+      <b>${esc(color)}</b>
+      <select data-color-select="${esc(color)}"><option value="">Без привязки</option>${options}</select>
+      <label class="btn secondary" style="display:inline-flex;align-items:center;cursor:pointer">+ Фото<input data-color-file="${esc(color)}" type="file" accept="image/*" hidden></label>
+      ${selected?`<button type="button" class="btn danger" data-remove-color="${esc(color)}">Удалить</button>`:''}
+    </div>`;
+  }).join('')||'<div class="muted">Добавьте цвет в вариантах товара.</div>';
+}
+
+function openEditor(key){
+  current=items.find(item=>item._key===key);
+  if(!current)return;
+  draft=clone(current);
+  originalBasePrice=Number(draft.price)||basePrice(draft);
+  $('#editorTitle').textContent=productName(draft);
+  $('#editorKey').textContent=draft._key;
+  $('#name').value=productName(draft)||'';
+  $('#category').value=draft.category||'';
+  $('#price').value=originalBasePrice||'';
+  $('#available').value=draft.available===false?'0':'1';
+  $('#summary').value=draft._kind==='mattress'?(draft.intro||''):(draft.summary||'');
+  $('#description').value=draft.description||'';
+  $('#hidden').checked=!!draft._hidden;
+  $('#reset').textContent=draft._isCustom?'Удалить карточку':'Сбросить изменения';
+  renderImages();
+  renderVariants();
+  $('#editor').classList.remove('hide');
+}
+
+function closeEditor(){
+  $('#editor').classList.add('hide');
+  current=null;
+  draft=null;
+}
+
+async function uploadPhoto(file,color=''){
+  if(!file||!draft)return;
+  const form=new FormData();
+  form.append('file',file);
+  form.append('product_key',draft._key);
+  const data=await request('upload',{method:'POST',body:form});
+  if(color){
+    draft.colorImages=draft.colorImages||{};
+    draft.colorImages[color]=data.url;
+  }else{
+    draft.images=Array.isArray(draft.images)?draft.images:[];
+    draft.images.push(data.url);
+  }
+  renderImages();
+  renderColors();
+  toast('Фото загружено');
+}
+
+function addNewVariant(){
+  readVariantRows();
+  draft.variants=Array.isArray(draft.variants)?draft.variants:[];
+  const price=Number($('#price').value)||0;
+  draft.variants.push(draft._kind==='mattress'?{size:'',price,available:true}:{size:'',color:'',price,available:true});
+  renderVariants();
+}
+
+function openNewCard(){
+  $('#newType').value='mattress';
+  $('#newName').value='';
+  $('#newModal').classList.remove('hide');
+  $('#newName').focus();
+}
+
+function closeNewCard(){
+  $('#newModal').classList.add('hide');
+}
+
+function createDraftFromNewForm(){
+  const type=$('#newType').value;
+  const name=$('#newName').value.trim();
+  if(!name)throw new Error('Укажите название карточки');
+  const uid=crypto.randomUUID();
+  if(type==='mattress'){
+    return {
+      _kind:'mattress',_key:'mattress:custom-'+uid,_isCustom:true,_changed:true,_hidden:false,
+      model:name,category:'Матрасы',description:'',intro:'',images:[],variants:[],available:true
+    };
+  }
+  return {
+    _kind:'furniture',_key:'furniture:custom-'+uid,_isCustom:true,_changed:true,_hidden:false,
+    id:'custom-'+uid,category:type,title:name,price:0,description:'',summary:'',images:[],variants:[],colors:[],sizes:[],colorImages:{},available:true
+  };
+}
+
+function openFreshDraft(item){
+  current=item;
+  draft=clone(item);
+  originalBasePrice=0;
+  $('#editorTitle').textContent=productName(draft);
+  $('#editorKey').textContent=draft._key;
+  $('#name').value=productName(draft);
+  $('#category').value=draft.category||'';
+  $('#price').value='';
+  $('#available').value='1';
+  $('#summary').value='';
+  $('#description').value='';
+  $('#hidden').checked=false;
+  $('#reset').textContent='Удалить карточку';
+  renderImages();
+  renderVariants();
+  $('#editor').classList.remove('hide');
+}
+
+async function saveEditor(event){
+  event.preventDefault();
+  if(!draft)return;
+  $('#save').disabled=true;
+  try{
+    readVariantRows();
+    const newBase=Number($('#price').value)||0;
+    if(newBase>0&&newBase!==originalBasePrice){
+      draft.variants=(draft.variants||[]).map(variant=>({...variant,price:newBase}));
     }
-    const attempts = [[1600,.78],[1400,.72],[1200,.68],[1000,.62],[850,.58]];
-    let dataUrl = '';
-    for (const [maxSide, quality] of attempts) {
-      const scale = Math.min(1, maxSide / Math.max(bitmap.width, bitmap.height));
-      const w = Math.max(1, Math.round(bitmap.width * scale));
-      const h = Math.max(1, Math.round(bitmap.height * scale));
-      const canvas = document.createElement('canvas');
-      canvas.width = w; canvas.height = h;
-      const ctx = canvas.getContext('2d', {alpha:false});
-      ctx.fillStyle = '#fff'; ctx.fillRect(0,0,w,h); ctx.drawImage(bitmap,0,0,w,h);
-      const blob = await canvasToBlob(canvas, quality);
-      if (!blob) continue;
-      dataUrl = await fileToDataUrl(blob);
-      if (dataUrl.length <= 430000) break;
+    draft.category=$('#category').value.trim();
+    draft.available=$('#available').value==='1';
+    draft.description=$('#description').value.trim();
+
+    const name=$('#name').value.trim();
+    if(!name)throw new Error('Название не может быть пустым');
+
+    if(draft._kind==='mattress'){
+      draft.model=name;
+      draft.intro=$('#summary').value.trim();
+      delete draft.price;
+    }else{
+      draft.title=name;
+      draft.summary=$('#summary').value.trim();
+      draft.price=newBase;
+      draft.sizes=[...new Set((draft.variants||[]).map(v=>v.size).filter(Boolean))];
+      draft.colors=[...new Set((draft.variants||[]).map(v=>v.color).filter(Boolean))];
     }
-    try { bitmap.close(); } catch (_) {}
-    if (!dataUrl || dataUrl.length > 480000) throw new Error('Фото слишком большое даже после оптимизации.');
-    return dataUrl;
-  }
 
-  async function uploadImages(files, color = '') {
-    if (!files?.length) return [];
-    const uploaded = [];
-    const productKey = $('#editKey').value || $('#editName').value.trim() || `new-${Date.now()}`;
-    for (const file of files) {
-      const dataUrl = await preparePhotoForBridge(file);
-      const result = await bridgePost({action:'save_image', product_key:productKey, data_url:dataUrl});
-      if (!result.url) throw new Error('Сервер не вернул адрес загруженного фото.');
-      const url = result.url;
-      if (color) state.editColorImages[color] = url;
-      else if (!state.editImages.includes(url)) state.editImages.push(url);
-      uploaded.push(url);
-      renderImages();
-      renderColorImageBindings();
-    }
-    toast(color ? `Фото для цвета «${color}» загружено` : 'Фотография загружена');
-    return uploaded;
-  }
-
-  function priceTransform(value) {
-    const n = Number(value);
-    if (!Number.isFinite(n) || n <= 0) return value;
-    const pct = (Number($('#bulkPercent').value) || 0) * Number($('#bulkSign').value || 1);
-    const step = Math.max(1, Number($('#bulkRound').value) || 1);
-    const raw = n * (1 + pct / 100);
-    const mode = $('#bulkRoundMode').value;
-    const units = raw / step;
-    const rounded = mode === 'up' ? Math.ceil(units) : mode === 'down' ? Math.floor(units) : Math.round(units);
-    return Math.max(step, rounded * step);
-  }
-
-  function bulkTargets() {
-    const scope = $('#bulkScope').value;
-    return state.items.filter(item => !item._hidden && (scope === 'all' || itemGroup(item) === scope));
-  }
-
-  function renderBulkPreview() {
-    const targets = bulkTargets();
-    const examples = targets.slice(0,5).map(item => {
-      const before = minPrice(item);
-      return `<div class="bulk-example"><span>${esc(itemName(item))}</span><span>${rub(before)}</span><b>→ ${rub(priceTransform(before))}</b></div>`;
-    }).join('');
-    $('#bulkPreview').innerHTML = `<h4>Изменится товаров: ${targets.length}</h4>${examples || '<div class="loading-row">Нет товаров по выбранному фильтру</div>'}`;
-  }
-
-  async function applyBulk() {
-    const targets = bulkTargets();
-    if (!targets.length) return toast('Нет товаров для изменения', true);
-    const pct = (Number($('#bulkPercent').value) || 0) * Number($('#bulkSign').value || 1);
-    if (!pct) return toast('Укажите процент изменения', true);
-    if (!confirm(`Изменить цены у ${targets.length} товаров на ${pct > 0 ? '+' : ''}${pct}%?`)) return;
-    const btn = $('#applyBulkBtn');
-    btn.disabled = true;
-    btn.textContent = 'Применяем…';
-    try {
-      const rows = targets.map(item => {
-        const currentRow = state.rowsByKey.get(item._key);
-        const newVariants = (item.variants || []).map(v => ({...v, price:priceTransform(v.price)}));
-        const newPrice = priceTransform(item.price || minPrice(item));
-        if (item._isCustom) {
-          const payload = {...clone(item), variants:newVariants};
-          delete payload._key;delete payload._kind;delete payload._base;delete payload._changed;delete payload._hidden;delete payload._isCustom;
-          if (item._kind === 'furniture') payload.price = newPrice;
-          return {product_key:item._key,kind:item._kind,source_id:item._kind==='furniture'?item.id:item.model,payload,hidden:false,is_custom:true};
-        }
-        const payload = {...(currentRow?.payload || {}), variants:newVariants};
-        if (item._kind === 'furniture') payload.price = newPrice;
-        return {product_key:item._key,kind:item._kind,source_id:item._kind==='furniture'?String(item.id||'').replace(/^berhouse-/,''):item.model,payload,hidden:false,is_custom:false};
-      });
-      await upsertRows(rows);
-      await reloadData();
-      closeBulk();
-      toast(`Цены изменены: ${targets.length} товаров`);
-    } catch (err) {
-      console.error(err);
-      toast(err.message || 'Не удалось изменить цены', true);
-    } finally {
-      btn.disabled = false;
-      btn.textContent = 'Применить изменения';
-    }
-  }
-
-  async function reloadData() {
-    await loadOverrides();
-    rebuildItems();
-    renderTable();
-  }
-
-  async function enterApp() {
-    $('#setupScreen').classList.add('hidden');
-    $('#loginScreen').classList.add('hidden');
-    $('#app').classList.remove('hidden');
-    $('#adminEmail').textContent = state.session?.user?.email || '';
-    try {
-      await loadBaseCatalog();
-      await reloadData();
-    } catch (err) {
-      console.error(err);
-      toast(`Ошибка загрузки каталога: ${err.message}`, true);
-    }
-  }
-
-  function bind() {
-    $('#loginForm').addEventListener('submit', async e => {
-      e.preventDefault();
-      $('#loginError').textContent = '';
-      const btn = $('#loginForm .primary-btn');
-      btn.disabled = true;
-      btn.textContent = 'Входим…';
-      try {
-        await signIn($('#loginEmail').value.trim(), $('#loginPassword').value);
-        await enterApp();
-      } catch (err) {
-        $('#loginError').textContent = err.message || 'Ошибка входа';
-      } finally {
-        btn.disabled = false;
-        btn.textContent = 'Войти';
-      }
+    await request('save',{
+      method:'POST',
+      headers:{'content-type':'application/json'},
+      body:JSON.stringify({key:draft._key,kind:draft._kind,item:draft,hidden:$('#hidden').checked,is_custom:!!draft._isCustom})
     });
-    $('#forgotPasswordBtn').addEventListener('click', async () => {
-      const email = $('#loginEmail').value.trim().toLowerCase();
-      const status = $('#recoveryStatus');
-      status.textContent = '';
-      if (!email) { status.textContent = 'Введите e-mail администратора.'; return; }
-      const btn = $('#forgotPasswordBtn');
-      btn.disabled = true;
-      btn.textContent = 'Отправляем…';
-      try {
-        await sendRecovery(email);
-        status.style.color = '#16704a';
-        status.textContent = 'Ссылка для смены пароля отправлена на e-mail.';
-      } catch (err) {
-        status.style.color = '#c93845';
-        status.textContent = err.message || 'Не удалось отправить письмо.';
-      } finally {
-        btn.disabled = false;
-        btn.textContent = 'Забыли пароль?';
-      }
-    });
+    toast('Карточка сохранена');
+    closeEditor();
+    await loadCatalog();
+  }catch(error){
+    toast(error.message,true);
+  }finally{
+    $('#save').disabled=false;
+  }
+}
 
-    $('#resetPasswordForm').addEventListener('submit', async e => {
-      e.preventDefault();
-      const pass = $('#resetPassword').value;
-      const repeat = $('#resetPasswordRepeat').value;
-      const status = $('#resetPasswordStatus');
-      status.textContent = '';
-      if (pass.length < 8) { status.textContent = 'Пароль должен содержать минимум 8 символов.'; return; }
-      if (pass !== repeat) { status.textContent = 'Пароли не совпадают.'; return; }
-      const btn = $('#resetPasswordSubmit');
-      btn.disabled = true;
-      btn.textContent = 'Сохраняем…';
-      try {
-        await updatePassword(pass);
-        localStorage.removeItem(SESSION_KEY);
-        state.session = null;
-        history.replaceState(null, '', '/admin/');
-        $('#recoveryScreen').classList.add('hidden');
-        $('#loginScreen').classList.remove('hidden');
-        $('#loginError').style.color = '#16704a';
-        $('#loginError').textContent = 'Пароль изменён. Войдите с новым паролем.';
-      } catch (err) {
-        status.textContent = err.message || 'Не удалось изменить пароль.';
-      } finally {
-        btn.disabled = false;
-        btn.textContent = 'Сохранить новый пароль';
-      }
+async function resetOrDelete(){
+  if(!current)return;
+  const isCustom=!!current._isCustom;
+  if(!current._changed&&!isCustom)return toast('У карточки нет ручных изменений',true);
+  const message=isCustom?'Удалить эту добавленную карточку?':'Сбросить все ручные изменения этой карточки?';
+  if(!confirm(message))return;
+  try{
+    await request('reset',{
+      method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({key:current._key})
     });
+    closeEditor();
+    await loadCatalog();
+    toast(isCustom?'Карточка удалена':'Изменения сброшены');
+  }catch(error){toast(error.message,true)}
+}
 
-    $('#changePasswordBtn').addEventListener('click', () => {
-      $('#changePasswordForm').reset();
-      $('#changePasswordStatus').textContent = '';
-      $('#passwordModal').classList.remove('hidden');
+async function bulkPrices(){
+  const value=prompt('Изменить все цены на %, например 10 или -5');
+  if(value===null)return;
+  const percent=Number(value);
+  if(!Number.isFinite(percent)||percent===0)return toast('Укажите ненулевой процент',true);
+  if(!confirm(`Применить ${percent}% ко всем видимым товарам каталога?`))return;
+  try{
+    const change=n=>Math.max(0,Math.round((Number(n)||0)*(1+percent/100)/100)*100);
+    const rows=items.map(item=>{
+      const changed=clone(item);
+      if(Number(changed.price)>0)changed.price=change(changed.price);
+      if(Array.isArray(changed.variants))changed.variants=changed.variants.map(variant=>({
+        ...variant,price:Number(variant.price)>0?change(variant.price):variant.price
+      }));
+      return {key:changed._key,kind:changed._kind,item:changed,hidden:false,is_custom:!!changed._isCustom};
     });
-    $$('[data-close-password]').forEach(el => el.addEventListener('click', () => $('#passwordModal').classList.add('hidden')));
-    $('#changePasswordForm').addEventListener('submit', async e => {
-      e.preventDefault();
-      const current = $('#currentPassword').value;
-      const next = $('#newPassword').value;
-      const repeat = $('#newPasswordRepeat').value;
-      const status = $('#changePasswordStatus');
-      status.textContent = '';
-      if (next.length < 8) { status.textContent = 'Новый пароль должен содержать минимум 8 символов.'; return; }
-      if (next !== repeat) { status.textContent = 'Новые пароли не совпадают.'; return; }
-      const email = state.session?.user?.email || $('#adminEmail').textContent.trim();
-      if (!email) { status.textContent = 'Не удалось определить e-mail администратора.'; return; }
-      const btn = $('#changePasswordSubmit');
-      btn.disabled = true;
-      btn.textContent = 'Сохраняем…';
-      try {
-        await signIn(email, current);
-        await updatePassword(next);
-        $('#passwordModal').classList.add('hidden');
-        toast('Пароль изменён');
-      } catch (err) {
-        status.textContent = err.message || 'Не удалось изменить пароль.';
-      } finally {
-        btn.disabled = false;
-        btn.textContent = 'Изменить пароль';
-      }
+    await request('save-many',{
+      method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({rows})
     });
+    await loadCatalog();
+    toast('Цены обновлены');
+  }catch(error){toast(error.message,true)}
+}
 
-    $('#logoutBtn').addEventListener('click', () => { localStorage.removeItem(SESSION_KEY); state.session = null; location.reload(); });
-    $('#searchInput').addEventListener('input', renderTable);
-    $('#kindFilter').addEventListener('change', renderTable);
-    $('#statusFilter').addEventListener('change', renderTable);
-    $('#addBtn').addEventListener('click', () => openEditor());
-    $('#bulkBtn').addEventListener('click', openBulk);
-    $('#bulkNav').addEventListener('click', openBulk);
-    document.addEventListener('click', e => {
-      const edit = e.target.closest('[data-edit-key]'); if (edit) openEditor(edit.dataset.editKey);
-      if (e.target.closest('[data-close-modal]')) closeEditor();
-      if (e.target.closest('[data-close-bulk]')) closeBulk();
-      const rm = e.target.closest('[data-image-remove]'); if (rm) { state.editImages.splice(Number(rm.dataset.imageRemove),1); renderImages(); renderColorImageBindings(); }
-      const main = e.target.closest('[data-image-main]'); if (main) { const i=Number(main.dataset.imageMain); if(i>0){const [src]=state.editImages.splice(i,1);state.editImages.unshift(src);renderImages();renderColorImageBindings();} }
-      const vrm = e.target.closest('[data-v-remove]'); if (vrm) { syncVariantsFromDom(); state.editVariants.splice(Number(vrm.dataset.vRemove),1); renderVariants(); }
-      const colorUpload = e.target.closest('[data-color-upload-trigger]'); if (colorUpload) { const color=colorUpload.dataset.colorUploadTrigger; const input=[...document.querySelectorAll('[data-color-upload]')].find(x=>x.dataset.colorUpload===color); if(input) input.click(); }
-      const colorRemove = e.target.closest('[data-color-image-remove]'); if (colorRemove) { const color=String(colorRemove.dataset.colorImageRemove||''); const src=state.editColorImages[color]; delete state.editColorImages[color]; if(src){ state.editImages=state.editImages.filter(x=>x!==src); for(const [c,u] of Object.entries(state.editColorImages)){ if(u===src) delete state.editColorImages[c]; } } renderImages(); renderColorImageBindings(); }
-    });
-    document.addEventListener('input', e => {
-      const input = e.target.closest('[data-v-color]');
-      if (!input) return;
-      const previous = String(input.dataset.prevColor || '').trim();
-      const next = input.value.trim();
-      if (previous && next && previous !== next && state.editColorImages[previous] && !state.editColorImages[next]) {
-        state.editColorImages[next] = state.editColorImages[previous];
-        delete state.editColorImages[previous];
-      }
-      input.dataset.prevColor = next;
-      renderColorImageBindings();
-    });
-    document.addEventListener('change', async e => {
-      const colorFile = e.target.closest('[data-color-upload]');
-      if (colorFile) {
-        const color = String(colorFile.dataset.colorUpload || '').trim();
-        const file = colorFile.files?.[0];
-        colorFile.value = '';
-        if (file) { try { await uploadImages([file], color); } catch (err) { toast(err.message || 'Не удалось загрузить фото', true); } }
-        return;
-      }
-      const select = e.target.closest('[data-color-image-select]');
-      if (!select) return;
-      const color = String(select.dataset.colorImageSelect || '').trim();
-      if (select.value) state.editColorImages[color] = select.value;
-      else delete state.editColorImages[color];
-      renderColorImageBindings();
-    });
-    $('#editorForm').addEventListener('submit', saveEditor);
-    $('#editKind').addEventListener('change', e => setEditorMode(e.target.value));
-    $('#addVariant').addEventListener('click', () => { syncVariantsFromDom(); state.editVariants.push({size:'',color:'',price:Number($('#editPrice').value)||0,available:true}); renderVariants(); });
-    $('#addImageUrl').addEventListener('click', () => { const u=$('#imageUrlInput').value.trim(); if(u){state.editImages.push(u);$('#imageUrlInput').value='';renderImages();renderColorImageBindings();} });
-    $('#imageUpload').addEventListener('change', async e => { try { await uploadImages([...e.target.files]); e.target.value=''; } catch(err){toast(err.message,true);} });
-    $('#resetOverrideBtn').addEventListener('click', resetCurrentOverride);
-    ['bulkScope','bulkSign','bulkPercent','bulkRound','bulkRoundMode'].forEach(id => $('#'+id).addEventListener(id==='bulkPercent'?'input':'change', renderBulkPreview));
-    $('#applyBulkBtn').addEventListener('click', applyBulk);
+async function start(){
+  try{
+    $('#login').classList.add('hide');
+    $('#app').classList.remove('hide');
+    $('#adminEmail').textContent=session?.user?.email||'';
+    await loadCatalog();
+  }catch(error){
+    toast(error.message,true);
+    saveSession(null);
+    $('#app').classList.add('hide');
+    $('#login').classList.remove('hide');
+  }
+}
+
+async function health(){
+  try{
+    const data=await request('health',{},false);
+    $('#apiStatus').textContent=data.ok?'Сервер готов':'Сервер недоступен';
+    $('#apiStatus').style.color=data.ok?'#087345':'#b82e3b';
+  }catch(error){
+    $('#apiStatus').textContent='Сервер недоступен: '+error.message;
+    $('#apiStatus').style.color='#b82e3b';
+  }
+}
+
+$('#loginForm').addEventListener('submit',async event=>{
+  event.preventDefault();
+  $('#loginError').textContent='';
+  $('#loginBtn').disabled=true;
+  try{
+    const data=await request('login',{
+      method:'POST',headers:{'content-type':'application/json'},
+      body:JSON.stringify({email:$('#email').value.trim(),password:$('#password').value})
+    },false);
+    saveSession(data.session);
+    await start();
+  }catch(error){$('#loginError').textContent=error.message}
+  finally{$('#loginBtn').disabled=false}
+});
+
+$('#logout').addEventListener('click',()=>{saveSession(null);location.reload()});
+$('#reload').addEventListener('click',()=>loadCatalog().catch(error=>toast(error.message,true)));
+$('#add').addEventListener('click',openNewCard);
+$('#bulk').addEventListener('click',bulkPrices);
+$('#closeEditor').addEventListener('click',closeEditor);
+$('#cancel').addEventListener('click',closeEditor);
+$('#reset').addEventListener('click',resetOrDelete);
+$('#editorForm').addEventListener('submit',saveEditor);
+$('#addVariant').addEventListener('click',addNewVariant);
+$('#closeNew').addEventListener('click',closeNewCard);
+$('#cancelNew').addEventListener('click',closeNewCard);
+
+['q','kindFilter','statusFilter'].forEach(id=>$('#'+id).addEventListener(id==='q'?'input':'change',draw));
+
+$('#newForm').addEventListener('submit',event=>{
+  event.preventDefault();
+  try{
+    const item=createDraftFromNewForm();
+    closeNewCard();
+    openFreshDraft(item);
+  }catch(error){toast(error.message,true)}
+});
+
+$('#photo').addEventListener('change',async event=>{
+  const file=event.target.files?.[0];
+  if(file)try{await uploadPhoto(file)}catch(error){toast(error.message,true)}
+  event.target.value='';
+});
+
+$('#addUrl').addEventListener('click',()=>{
+  const url=$('#photoUrl').value.trim();
+  if(!url)return;
+  try{new URL(url)}catch{return toast('Некорректная ссылка',true)}
+  draft.images=Array.isArray(draft.images)?draft.images:[];
+  draft.images.push(url);
+  $('#photoUrl').value='';
+  renderImages();
+  renderColors();
+});
+
+$('#variants').addEventListener('input',event=>{
+  if(event.target.matches('[data-color]')){
+    readVariantRows();
+    renderColors();
+  }
+});
+
+$('#variants').addEventListener('change',event=>{
+  if(event.target.matches('[data-available]'))readVariantRows();
+});
+
+document.addEventListener('click',event=>{
+  const editButton=event.target.closest('[data-edit]');
+  if(editButton){openEditor(editButton.dataset.edit);return}
+
+  const removeImage=event.target.closest('[data-remove-image]');
+  if(removeImage&&draft){
+    const index=Number(removeImage.dataset.removeImage);
+    const url=draft.images?.[index];
+    draft.images.splice(index,1);
+    for(const [color,image] of Object.entries(draft.colorImages||{}))if(image===url)delete draft.colorImages[color];
+    renderImages();renderColors();return;
   }
 
-  async function init() {
-    bind();
-    if (!configured()) {
-      $('#setupScreen').classList.remove('hidden');
-      return;
-    }
-    if (adoptRecoverySession()) {
-      $('#loginScreen').classList.add('hidden');
-      $('#recoveryScreen').classList.remove('hidden');
-      return;
-    }
-    restoreSession();
-    if (!state.session) {
-      $('#loginScreen').classList.remove('hidden');
-      return;
-    }
-    try {
-      if (state.session.refresh_token) await refreshSession();
-      await enterApp();
-    } catch (err) {
-      console.error(err);
-      localStorage.removeItem(SESSION_KEY);
-      state.session = null;
-      $('#app').classList.add('hidden');
-      $('#loginScreen').classList.remove('hidden');
-      $('#loginError').textContent = 'Сессия истекла. Войдите снова.';
-    }
+  const mainImage=event.target.closest('[data-main-image]');
+  if(mainImage&&draft){
+    const index=Number(mainImage.dataset.mainImage);
+    if(index>0){const [url]=draft.images.splice(index,1);draft.images.unshift(url);renderImages();renderColors()}
+    return;
   }
 
-  init();
-})();
+  const removeVariant=event.target.closest('[data-remove-variant]');
+  if(removeVariant&&draft){
+    readVariantRows();
+    draft.variants.splice(Number(removeVariant.dataset.removeVariant),1);
+    renderVariants();return;
+  }
+
+  const removeColor=event.target.closest('[data-remove-color]');
+  if(removeColor&&draft){delete draft.colorImages[removeColor.dataset.removeColor];renderColors()}
+});
+
+document.addEventListener('change',async event=>{
+  const select=event.target.closest('[data-color-select]');
+  if(select&&draft){
+    draft.colorImages=draft.colorImages||{};
+    if(select.value)draft.colorImages[select.dataset.colorSelect]=select.value;
+    else delete draft.colorImages[select.dataset.colorSelect];
+    renderColors();return;
+  }
+
+  const input=event.target.closest('[data-color-file]');
+  if(input&&input.files?.[0]&&draft){
+    try{await uploadPhoto(input.files[0],input.dataset.colorFile)}catch(error){toast(error.message,true)}
+    input.value='';
+  }
+});
+
+health();
+if(session)start();
