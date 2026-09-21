@@ -56,6 +56,16 @@ jobs:
           grep -q 'Доплата за подъём дивана' /tmp/admin.html
 
           "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --virtual-time-budget=22000 --dump-dom "https://noktena.ru/#delivery" > /tmp/home.html
+          "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --virtual-time-budget=22000 --dump-dom "https://noktena.ru/product.html?kind=furniture&id=24177" > /tmp/product.html
+
+          python3 - <<'PY'
+          from pathlib import Path
+          for name in ('/tmp/home.html','/tmp/product.html'):
+              p=Path(name)
+              s=p.read_text(encoding='utf-8').replace('\u00a0',' ').replace('\u202f',' ')
+              p.write_text(s,encoding='utf-8')
+          PY
+
           ! grep -q 'Каталог временно не загрузился' /tmp/home.html
           grep -q 'data-global-delivery="1500:600:400:0"' /tmp/home.html
           grep -q '1 500 ₽' /tmp/home.html
@@ -63,7 +73,6 @@ jobs:
           grep -q 'Подъём дивана' /tmp/home.html
           grep -q '400 ₽' /tmp/home.html
 
-          "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --virtual-time-budget=22000 --dump-dom "https://noktena.ru/product.html?kind=furniture&id=24177" > /tmp/product.html
           ! grep -q 'Каталог временно не загрузился' /tmp/product.html
           grep -q 'global-delivery-product' /tmp/product.html
           grep -q 'Доставка и подъём' /tmp/product.html
