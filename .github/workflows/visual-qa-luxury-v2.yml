@@ -1,0 +1,48 @@
+name: Visual QA Luxury V2
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/visual-qa-luxury-v2.yml'
+
+jobs:
+  visual:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wait for deployed v2 theme
+        run: |
+          set -euxo pipefail
+          for i in $(seq 1 60); do
+            home=$(curl -sS -L --max-time 20 "https://noktena.ru/?qa=$GITHUB_RUN_ID" || true)
+            css=$(curl -sS -L --max-time 20 "https://noktena.ru/assets/atelier-v2.css?qa=$GITHUB_RUN_ID" || true)
+            admin=$(curl -sS -L --max-time 20 "https://noktena.ru/admin/?qa=$GITHUB_RUN_ID" || true)
+            if printf '%s' "$home" | grep -q 'atelier-v2.css?v=20260921-wow1' \
+              && printf '%s' "$css" | grep -q 'warm luxury refinement' \
+              && printf '%s' "$admin" | grep -q 'admin-luxe.css?v=20260921-wow1'; then
+              exit 0
+            fi
+            sleep 5
+          done
+          echo 'Luxury v2 deployment not ready' >&2
+          exit 1
+      - name: Capture desktop screenshots
+        run: |
+          set -euxo pipefail
+          CHROME=$(command -v google-chrome || command -v google-chrome-stable || command -v chromium || command -v chromium-browser)
+          "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --hide-scrollbars --virtual-time-budget=14000 --window-size=1600,1100 --screenshot=/tmp/home.png "https://noktena.ru/#home"
+          "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --hide-scrollbars --virtual-time-budget=14000 --window-size=1600,1100 --screenshot=/tmp/mattresses.png "https://noktena.ru/#mattresses"
+          "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --hide-scrollbars --virtual-time-budget=9000 --window-size=1600,1100 --screenshot=/tmp/admin.png "https://noktena.ru/admin/"
+      - name: Capture mobile screenshot
+        run: |
+          set -euxo pipefail
+          CHROME=$(command -v google-chrome || command -v google-chrome-stable || command -v chromium || command -v chromium-browser)
+          "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --hide-scrollbars --virtual-time-budget=14000 --window-size=430,932 --screenshot=/tmp/home-mobile.png "https://noktena.ru/#home"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: luxury-v2-screenshots
+          path: |
+            /tmp/home.png
+            /tmp/mattresses.png
+            /tmp/admin.png
+            /tmp/home-mobile.png
+          retention-days: 3
