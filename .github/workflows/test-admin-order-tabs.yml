@@ -1,0 +1,44 @@
+name: Test admin order tabs
+on:
+  push:
+    paths:
+      - '.github/workflows/test-admin-order-tabs.yml'
+  workflow_dispatch:
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Static checks
+        run: |
+          set -euxo pipefail
+          node --check admin/orders.js
+          grep -q 'adminCatalogPane' admin/orders.js
+          grep -q 'adminOrdersPane' admin/orders.js
+          grep -q 'data-order-delete' admin/orders.js
+          grep -q "api('delete-order'" admin/orders.js
+          grep -q 'orders.js?v=3' admin/index.html
+          node --check railway-admin/server.js
+          grep -q 'noktena-order-delete' railway-admin/server.js
+      - name: Wait for live UI and delete route
+        run: |
+          set -euxo pipefail
+          for i in $(seq 1 60); do
+            html=$(curl -fsSL "https://noktena.ru/admin/?tabs=$GITHUB_RUN_ID" || true)
+            js=$(curl -fsSL "https://noktena.ru/admin/orders.js?tabs=$GITHUB_RUN_ID" || true)
+            code=$(curl -sS -o /tmp/delete.json -w '%{http_code}' -X POST 'https://admin-proxy-v2-production.up.railway.app/api/noktena-admin?action=delete-order' -H 'content-type: application/json' --data '{"id":"00000000-0000-0000-0000-000000000000"}' || true)
+            if printf '%s' "$html" | grep -q 'orders.js?v=3' && printf '%s' "$js" | grep -q 'adminCatalogPane' && [ "$code" = '401' ] && grep -q 'AUTH_EXPIRED' /tmp/delete.json; then exit 0; fi
+            sleep 5
+          done
+          cat /tmp/delete.json || true
+          exit 1
+      - name: Render tabs in Chrome
+        run: |
+          set -euxo pipefail
+          CHROME=$(command -v google-chrome || command -v google-chrome-stable || command -v chromium || command -v chromium-browser)
+          "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --virtual-time-budget=7000 --dump-dom "https://noktena.ru/admin/?tabs=$GITHUB_RUN_ID" > /tmp/admin.html
+          grep -q 'id="catalogTab"' /tmp/admin.html
+          grep -q 'id="ordersTab"' /tmp/admin.html
+          grep -q 'Каталог' /tmp/admin.html
+          grep -q 'Заказы' /tmp/admin.html
