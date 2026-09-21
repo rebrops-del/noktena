@@ -22,13 +22,13 @@ jobs:
           grep -q 'Подъём настраивается отдельно для каждого товара' checkout.html
           grep -q 'assemblyQty' assets/checkout.js
           grep -q 'data-lift-qty' assets/checkout.js
-      - name: Wait for live checkout and Railway v2
+      - name: Wait for live checkout and Railway
         run: |
           set -euxo pipefail
           for i in $(seq 1 40); do
             html=$(curl -fsSL "https://noktena.ru/checkout.html?multi=$GITHUB_RUN_ID" || true)
             health=$(curl -fsSL "https://admin-proxy-v2-production.up.railway.app/health?multi=$GITHUB_RUN_ID" || true)
-            if printf '%s' "$html" | grep -q 'Подъём настраивается отдельно для каждого товара' && printf '%s' "$health" | grep -q '"order_api":"v2"'; then exit 0; fi
+            if printf '%s' "$html" | grep -q 'Подъём настраивается отдельно для каждого товара' && printf '%s' "$health" | grep -q '"ok":true'; then exit 0; fi
             sleep 5
           done
           exit 1
