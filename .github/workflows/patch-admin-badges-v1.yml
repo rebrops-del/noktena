@@ -1,0 +1,41 @@
+name: Patch admin badges v1
+
+on:
+  push:
+    paths:
+      - '.github/workflows/patch-admin-badges-v1.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Bump asset versions
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('admin/index.html')
+          s=p.read_text()
+          s=s.replace('./admin-enhancements.js?v=7','./admin-enhancements.js?v=8')
+          p.write_text(s)
+
+          p=Path('index.html')
+          s=p.read_text()
+          import re
+          s=re.sub(r'assets/category-settings-ui\.js\?v=[^"\']+', 'assets/category-settings-ui.js?v=20260921-badges1', s)
+          p.write_text(s)
+          PY
+      - name: Commit version bumps
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add admin/index.html index.html
+          if git diff --cached --quiet; then
+            echo 'No version changes'
+            exit 0
+          fi
+          git commit -m 'Bump admin and badge asset versions'
+          git push
