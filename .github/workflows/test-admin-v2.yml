@@ -1,0 +1,67 @@
+name: Test admin v2
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'admin-v2/**'
+      - '.github/workflows/test-admin-v2.yml'
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Static checks
+        run: |
+          set -euxo pipefail
+          test -s admin-v2/index.html
+          test -s admin-v2/app.js
+          test -s admin-v2/styles.css
+          node --check admin-v2/app.js
+          grep -q 'noktena-admin-api' admin-v2/app.js
+          grep -q 'Добавить карточку' admin-v2/index.html
+          grep -q '...old' admin-v2/app.js
+          ! grep -R -E 'SUPABASE_SERVICE_ROLE_KEY|service_role' admin-v2
+
+      - name: Check API health and CORS
+        run: |
+          set -euxo pipefail
+          API='https://oldtlbkrftflfthfsqdv.supabase.co/functions/v1/noktena-admin-api'
+          curl -sS --fail --max-time 30 -H 'Origin: https://noktena.ru' "$API?action=health" -o /tmp/health.json -D /tmp/health.headers
+          node -e "const x=require('/tmp/health.json'); if(x.ok!==true) process.exit(1)"
+          grep -qi 'access-control-allow-origin: https://noktena.ru' /tmp/health.headers
+          curl -sS -o /tmp/options.body -D /tmp/options.headers -X OPTIONS -H 'Origin: https://noktena.ru' "$API?action=catalog"
+          grep -q '204' /tmp/options.headers
+          grep -qi 'access-control-allow-origin: https://noktena.ru' /tmp/options.headers
+
+      - name: Check protected catalog
+        run: |
+          set -euxo pipefail
+          API='https://oldtlbkrftflfthfsqdv.supabase.co/functions/v1/noktena-admin-api'
+          code=$(curl -sS --max-time 30 -o /tmp/catalog.json -w '%{http_code}' -H 'Origin: https://noktena.ru' "$API?action=catalog")
+          test "$code" = '401'
+
+      - name: Wait for staging deployment
+        run: |
+          set -euxo pipefail
+          for i in $(seq 1 24); do
+            html=$(curl -sS -L --max-time 20 "https://noktena.ru/admin-v2/?smoke=$GITHUB_RUN_ID" || true)
+            js=$(curl -sS -L --max-time 20 "https://noktena.ru/admin-v2/app.js?smoke=$GITHUB_RUN_ID" || true)
+            css=$(curl -sS -L --max-time 20 "https://noktena.ru/admin-v2/styles.css?smoke=$GITHUB_RUN_ID" || true)
+            if printf '%s' "$html" | grep -q 'Добавить карточку' && printf '%s' "$js" | grep -q 'noktena-admin-api' && printf '%s' "$css" | grep -q '.variant-row'; then
+              exit 0
+            fi
+            sleep 5
+          done
+          echo 'admin-v2 deployment did not become ready' >&2
+          exit 1
+
+      - name: Render staging in Chrome
+        run: |
+          set -euxo pipefail
+          CHROME=$(command -v google-chrome || command -v google-chrome-stable || command -v chromium || command -v chromium-browser)
+          "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --virtual-time-budget=8000 --dump-dom "https://noktena.ru/admin-v2/?run=$GITHUB_RUN_ID" > /tmp/admin.html
+          grep -q 'Админ-панель' /tmp/admin.html
+          grep -q 'Сервер готов' /tmp/admin.html
+          ! grep -q 'SUPABASE_SERVICE_ROLE_KEY' /tmp/admin.html
