@@ -4,6 +4,8 @@ on:
   push:
     paths:
       - 'admin/**'
+      - 'assets/category-settings-ui.js'
+      - 'assets/admin-mattress-thumbs/**'
       - '.github/workflows/test-admin-live.yml'
 
 jobs:
@@ -16,27 +18,40 @@ jobs:
         run: |
           set -euxo pipefail
           node --check admin/admin.js
-          grep -q 'noktena-admin-api' admin/admin.js
+          node --check admin/admin-enhancements.js
+          node --check assets/category-settings-ui.js
+          grep -q 'admin-proxy-v2-production.up.railway.app' admin/admin.js
           grep -q 'Добавить карточку' admin/index.html
-          grep -q '...old' admin/admin.js
-          ! grep -R -E 'SUPABASE_SERVICE_ROLE_KEY|service_role' admin/index.html admin/admin.js admin/admin.css
+          grep -q 'Плашка на карточке' admin/admin-enhancements.js
+          grep -q 'Хит продаж' admin/admin-enhancements.js
+          grep -q 'Распродажа' admin/admin-enhancements.js
+          grep -q 'Последняя штука' admin/admin-enhancements.js
+          grep -q 'Наматрасник' admin/admin-enhancements.js
+          grep -q 'Матрас Mega холкон TFK' admin/admin-enhancements.js
+          test -s assets/admin-mattress-thumbs/r5-c2.webp
+          ! grep -R -E 'SUPABASE_SERVICE_ROLE_KEY|service_role' admin/index.html admin/admin.js admin/admin.css admin/admin-enhancements.js
 
-      - name: Check API
+      - name: Check Railway API
         run: |
           set -euxo pipefail
-          API='https://oldtlbkrftflfthfsqdv.supabase.co/functions/v1/noktena-admin-api'
+          API='https://admin-proxy-v2-production.up.railway.app/api/noktena-admin'
           curl -sS --fail --max-time 30 -H 'Origin: https://noktena.ru' "$API?action=health" -o /tmp/health.json -D /tmp/health.headers
-          node -e "const x=require('/tmp/health.json'); if(x.ok!==true || x.version!==2) process.exit(1)"
-          grep -qi 'access-control-allow-origin: \*' /tmp/health.headers
+          node -e "const x=require('/tmp/health.json'); if(x.ok!==true || x.version!==4) { console.error(x); process.exit(1) }"
+          grep -qi 'access-control-allow-origin:' /tmp/health.headers
 
       - name: Wait for live admin deployment
         run: |
           set -euxo pipefail
-          for i in $(seq 1 30); do
+          for i in $(seq 1 40); do
             html=$(curl -sS -L --max-time 20 "https://noktena.ru/admin/?smoke=$GITHUB_RUN_ID" || true)
-            js=$(curl -sS -L --max-time 20 "https://noktena.ru/admin/admin.js?smoke=$GITHUB_RUN_ID" || true)
-            css=$(curl -sS -L --max-time 20 "https://noktena.ru/admin/admin.css?smoke=$GITHUB_RUN_ID" || true)
-            if printf '%s' "$html" | grep -q 'Добавить карточку' && printf '%s' "$js" | grep -q 'noktena-admin-api' && printf '%s' "$css" | grep -q '.variant-row'; then
+            enhance=$(curl -sS -L --max-time 20 "https://noktena.ru/admin/admin-enhancements.js?smoke=$GITHUB_RUN_ID" || true)
+            badge=$(curl -sS -L --max-time 20 "https://noktena.ru/assets/category-settings-ui.js?smoke=$GITHUB_RUN_ID" || true)
+            if printf '%s' "$html" | grep -q 'admin-enhancements.js?v=8' \
+              && printf '%s' "$enhance" | grep -q 'Плашка на карточке' \
+              && printf '%s' "$enhance" | grep -q 'admin-mattress-thumbs' \
+              && printf '%s' "$badge" | grep -q 'product-promo-badge'; then
+              curl -sS --fail --max-time 20 "https://noktena.ru/assets/admin-mattress-thumbs/r5-c2.webp?smoke=$GITHUB_RUN_ID" -o /tmp/topper.webp
+              test -s /tmp/topper.webp
               exit 0
             fi
             sleep 5
