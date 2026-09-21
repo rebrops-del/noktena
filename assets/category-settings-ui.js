@@ -12,9 +12,25 @@
     free_delivery_from:Math.max(0,Number(raw.free_delivery_from??legacy.free_delivery_from)||0),
     delivery_schedule:String(raw.delivery_schedule||'').trim()
   };
+  const BADGES={
+    hit:{label:'Хит продаж',className:'hit'},
+    sale:{label:'Распродажа',className:'sale'},
+    last:{label:'Последняя штука',className:'last'},
+    new:{label:'Новинка',className:'new'}
+  };
   const money=n=>`${Math.round(Number(n)||0).toLocaleString('ru-RU')} ₽`;
   const style=document.createElement('style');
-  style.textContent='.global-delivery-chip,.global-delivery-product{margin-top:8px;padding:9px 11px;border-radius:10px;background:#f2f8f4;color:#315c4c;font-size:12px;font-weight:700}.global-delivery-product{margin:12px 0 0;font-size:13px;line-height:1.55}.global-delivery-product strong{color:#0a8d55}.global-delivery-chip{line-height:1.5}';
+  style.textContent=`
+    .global-delivery-chip,.global-delivery-product{margin-top:8px;padding:9px 11px;border-radius:10px;background:#f2f8f4;color:#315c4c;font-size:12px;font-weight:700}
+    .global-delivery-product{margin:12px 0 0;font-size:13px;line-height:1.55}.global-delivery-product strong{color:#0a8d55}.global-delivery-chip{line-height:1.5}
+    .product-promo-badge{display:inline-flex;align-items:center;justify-content:center;min-height:24px;padding:5px 10px;border-radius:999px;font-size:10px;font-weight:900;letter-spacing:.035em;text-transform:uppercase;white-space:nowrap;box-shadow:0 5px 14px rgba(0,0,0,.08)}
+    .product-promo-badge.hit{background:#e5323d;color:#fff}
+    .product-promo-badge.sale{background:#f3a52a;color:#fff}
+    .product-promo-badge.last{background:#9f4a31;color:#fff}
+    .product-promo-badge.new{background:#0a8d55;color:#fff}
+    .card .product-promo-badge{align-self:start}
+    .pd-product-badge{margin:0 0 10px}
+  `;
   document.head.appendChild(style);
   const value=n=>n>0?money(n):'Уточняется';
 
@@ -81,6 +97,69 @@
       if(target){const el=document.createElement('div');el.className='global-delivery-chip';el.textContent=chipText(s);target.prepend(el);card.dataset.deliveryDecorated='1'}
     });
   }
+
+  function badgeState(kind,key){
+    const override=rowOverride(kind,key);
+    if(!override||!Object.prototype.hasOwnProperty.call(override,'badge'))return null;
+    const badge=String(override.badge||'');
+    if(badge==='none'||badge==='')return {type:'none'};
+    return BADGES[badge]?{type:badge,...BADGES[badge]}:{type:'none'};
+  }
+  function cardIdentity(card){
+    const link=card.getAttribute('data-product-link')||card.querySelector('a[href*="product.html"]')?.getAttribute('href')||'';
+    try{
+      const u=new URL(link,location.href),p=u.searchParams,kind=p.get('kind')||'';
+      if(kind==='mattress')return{kind,key:p.get('model')||''};
+      if(kind==='furniture')return{kind,key:p.get('id')||''};
+    }catch{}
+    return null;
+  }
+  function renderBadge(card,state){
+    if(!state)return;
+    card.querySelectorAll('.product-promo-badge').forEach(x=>x.remove());
+    if(card.matches('.card'))card.querySelectorAll('.hit-badge').forEach(x=>x.remove());
+    if(card.matches('.f-card'))card.querySelectorAll('.f-card-overlay-tags .hit').forEach(x=>x.remove());
+    if(state.type==='none')return;
+    const el=document.createElement(card.matches('.f-card')?'span':'div');
+    el.className=`product-promo-badge ${state.className}`;
+    el.textContent=state.label;
+    if(card.matches('.f-card')){
+      const container=card.querySelector('.f-card-overlay-tags');
+      if(container)container.appendChild(el);
+    }else{
+      const top=card.querySelector('.cardtop');
+      if(top)top.prepend(el);
+    }
+  }
+  function decorateBadges(){
+    document.querySelectorAll('.product-open-card:not([data-badge-decorated])').forEach(card=>{
+      const id=cardIdentity(card);if(!id)return;
+      const state=badgeState(id.kind,id.key);
+      if(state)renderBadge(card,state);
+      card.dataset.badgeDecorated='1';
+    });
+  }
+  function decorateProductDetail(){
+    const p=new URLSearchParams(location.search),kind=p.get('kind')||'';
+    const key=kind==='mattress'?(p.get('model')||''):kind==='furniture'?(p.get('id')||''):'';
+    if(!kind||!key)return;
+    const state=badgeState(kind,key);if(!state||state.type==='none')return;
+    const inject=()=>{
+      if(document.querySelector('.pd-product-badge'))return true;
+      const title=document.querySelector('.pd-info-card h1,.pd-title,h1');
+      if(!title)return false;
+      const el=document.createElement('div');
+      el.className=`product-promo-badge ${state.className} pd-product-badge`;
+      el.textContent=state.label;
+      title.insertAdjacentElement('beforebegin',el);
+      return true;
+    };
+    if(inject())return;
+    const mo=new MutationObserver(()=>{if(inject())mo.disconnect()});
+    mo.observe(document.body,{childList:true,subtree:true});
+    setTimeout(()=>mo.disconnect(),12000);
+  }
+
   async function addProductDelivery(){
     const p=new URLSearchParams(location.search),kind=p.get('kind');if(!kind)return;
     let category='',key='';
@@ -107,10 +186,12 @@
       refreshQueued=false;
       updateDeliverySection();
       await decorateCards();
+      decorateBadges();
     },0);
   }
   refresh();
   addProductDelivery();
+  decorateProductDetail();
   const observer=new MutationObserver(refresh);
   observer.observe(document.body,{childList:true,subtree:true});
 })();
