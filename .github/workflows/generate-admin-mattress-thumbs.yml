@@ -1,0 +1,49 @@
+name: Generate admin mattress thumbnails
+
+on:
+  push:
+    paths:
+      - '.github/workflows/generate-admin-mattress-thumbs.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Pillow
+        run: python -m pip install --quiet pillow
+      - name: Split high-resolution mattress sprite rows
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image, ImageOps, ImageEnhance
+
+          out = Path('assets/admin-mattress-thumbs')
+          out.mkdir(parents=True, exist_ok=True)
+          for row in range(1, 6):
+              src = Path(f'assets/product-row-{row}.webp')
+              im = Image.open(src).convert('RGB')
+              w, h = im.size
+              tile_w = w // 5
+              for col in range(1, 6):
+                  left = (col - 1) * tile_w
+                  right = w if col == 5 else col * tile_w
+                  tile = im.crop((left, 0, right, h))
+                  tile = ImageOps.autocontrast(tile, cutoff=0.3)
+                  tile = ImageEnhance.Sharpness(tile).enhance(1.08)
+                  tile.save(out / f'r{row}-c{col}.webp', 'WEBP', quality=94, method=6)
+          PY
+      - name: Commit generated thumbnails
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add assets/admin-mattress-thumbs
+          if git diff --cached --quiet; then
+            echo 'No thumbnail changes'
+            exit 0
+          fi
+          git commit -m 'Generate sharp admin mattress thumbnails'
+          git push
