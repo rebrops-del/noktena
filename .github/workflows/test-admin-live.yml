@@ -26,8 +26,8 @@ jobs:
           set -euxo pipefail
           API='https://oldtlbkrftflfthfsqdv.supabase.co/functions/v1/noktena-admin-api'
           curl -sS --fail --max-time 30 -H 'Origin: https://noktena.ru' "$API?action=health" -o /tmp/health.json -D /tmp/health.headers
-          node -e "const x=require('/tmp/health.json'); if(x.ok!==true) process.exit(1)"
-          grep -qi 'access-control-allow-origin: https://noktena.ru' /tmp/health.headers
+          node -e "const x=require('/tmp/health.json'); if(x.ok!==true || x.version!==2) process.exit(1)"
+          grep -qi 'access-control-allow-origin: \*' /tmp/health.headers
 
       - name: Wait for live admin deployment
         run: |
