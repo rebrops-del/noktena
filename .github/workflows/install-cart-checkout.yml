@@ -1,0 +1,62 @@
+name: Install cart checkout
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/install-cart-checkout.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Wire cart and admin order scripts
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          def patch_page(path, css_href, js_src):
+              p=Path(path); s=p.read_text()
+              if 'assets/cart.css' not in s:
+                  s=s.replace('</head>',f'<link rel="stylesheet" href="{css_href}">\n</head>')
+              if 'assets/cart.js' not in s:
+                  s=s.replace('</body>',f'<script src="{js_src}"></script>\n</body>')
+              p.write_text(s)
+
+          patch_page('index.html','assets/cart.css?v=20260921-cart1','assets/cart.js?v=20260921-cart1')
+          patch_page('product.html','assets/cart.css?v=20260921-cart1','assets/cart.js?v=20260921-cart1')
+
+          p=Path('admin/index.html'); s=p.read_text()
+          if './cart-settings.js' not in s:
+              s=s.replace('</body>','  <script src="./cart-settings.js?v=1" defer></script>\n  <script src="./orders.js?v=1" defer></script>\n</body>')
+          p.write_text(s)
+
+          p=Path('assets/category-settings-ui.js'); s=p.read_text()
+          old="delivery_schedule:String(raw.delivery_schedule||'').trim()\n  };"
+          new="delivery_schedule:String(raw.delivery_schedule||'').trim(),\n    bed_assembly_price:Math.max(0,Number(raw.bed_assembly_price)||1500)\n  };"
+          if 'bed_assembly_price' not in s and old in s:
+              s=s.replace(old,new)
+          marker="`<div class=\"d\">График<b>${delivery.delivery_schedule||'Уточняется'}</b><small>плановые дни и время доставки</small></div>`"
+          if 'Сборка кровати' not in s and marker in s:
+              s=s.replace(marker,marker+",\n      `<div class=\"d\">Сборка кровати<b>${money(delivery.bed_assembly_price)}</b><small>стоимость сборки одной кровати</small></div>`")
+          p.write_text(s)
+          PY
+          node --check assets/cart.js
+          node --check assets/checkout.js
+          node --check admin/cart-settings.js
+          node --check admin/orders.js
+          node --check assets/category-settings-ui.js
+          grep -q 'assets/cart.js' index.html
+          grep -q 'assets/cart.js' product.html
+          grep -q 'cart-settings.js' admin/index.html
+          grep -q 'orders.js' admin/index.html
+      - name: Commit
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add index.html product.html admin/index.html assets/category-settings-ui.js
+          git diff --cached --quiet || git commit -m 'Enable cart checkout assembly and orders'
+          git push
