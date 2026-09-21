@@ -1,0 +1,164 @@
+name: Separate delivery settings and admin logo
+on:
+  push:
+    paths:
+      - '.github/workflows/separate-delivery-settings.yml'
+permissions:
+  contents: write
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Patch admin interface
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+
+          p=Path('admin/index.html')
+          t=p.read_text(encoding='utf-8')
+          logo='<img class="admin-logo" src="../assets/logo-noktena-final.png?v=20260908-final2" alt="НОКТЕНА">'
+          t=t.replace('<div class="brand">НОКТЕНА</div>',logo)
+          t=t.replace('<button id="settingsOpen" class="btn secondary" type="button">Цены и доставка</button>', '<button id="settingsOpen" class="btn secondary" type="button">Цены</button>\n          <button id="deliverySettingsOpen" class="btn secondary" type="button">Доставка</button>')
+          t=t.replace('<div class="modalhead"><div><b>Цены и доставка по категориям</b><div class="muted">Настройки применяются автоматически ко всему каталогу.</div></div><button id="settingsClose" type="button" class="btn secondary">Закрыть</button></div>', '<div class="modalhead"><div><b>Цены по категориям</b><div class="muted">Наценка или скидка задаётся отдельно для матрасов, кроватей и диванов.</div></div><button id="settingsClose" type="button" class="btn secondary">Закрыть</button></div>')
+          t=t.replace('Пусто = по категории','Пусто = общая настройка доставки')
+          if 'id="deliverySettingsModal"' not in t:
+              modal='''\n  <div id="deliverySettingsModal" class="modal hide">\n    <div class="modalbox small">\n      <div class="modalhead">\n        <div><b>Доставка и подъём</b><div class="muted">Единые условия доставки для каталога. Для диванов можно добавить отдельную доплату за подъём.</div></div>\n        <button id="deliverySettingsClose" type="button" class="btn secondary">Закрыть</button>\n      </div>\n      <form id="deliverySettingsForm">\n        <div class="delivery-settings-grid">\n          <label>Стоимость доставки, ₽<input id="globalDeliveryPrice" type="number" min="0" step="1"></label>\n          <label>Стоимость подъёма, ₽<input id="globalLiftPrice" type="number" min="0" step="1"></label>\n          <label>Доплата за подъём дивана, ₽<input id="globalSofaLiftSurcharge" type="number" min="0" step="1"></label>\n          <label>Бесплатная доставка от, ₽<input id="globalFreeDeliveryFrom" type="number" min="0" step="1"></label>\n        </div>\n        <div class="notice" style="margin-top:12px">Для дивана на сайте показывается базовая стоимость подъёма и дополнительная доплата за диван. Значение 0 отключает соответствующую доплату или порог бесплатной доставки.</div>\n        <div class="savebar"><span></span><div class="actions"><button id="deliverySettingsCancel" type="button" class="btn secondary">Отмена</button><button type="submit" class="btn primary">Сохранить доставку</button></div></div>\n      </form>\n    </div>\n  </div>\n\n'''
+              t=t.replace('  <div id="newModal" class="modal hide">',modal+'  <div id="newModal" class="modal hide">')
+          t=t.replace('./admin.css?v=5','./admin.css?v=6').replace('./admin.js?v=5','./admin.js?v=6')
+          p.write_text(t,encoding='utf-8')
+
+          p=Path('admin/admin.js')
+          t=p.read_text(encoding='utf-8')
+          if 'let deliverySettings=' not in t:
+              t=t.replace('let categorySettings=[];','let categorySettings=[];\nlet deliverySettings={delivery_price:0,lift_price:0,sofa_lift_surcharge:0,free_delivery_from:0};')
+          block=r'''function settingsLabel(category){return category==='mattress'?'Матрасы':category==='beds'?'Кровати':'Диваны'}
+function renderCategorySettings(){
+  const defaults=['mattress','beds','sofas'].map(category=>({category,price_mode:'percent',price_value:0}));
+  const merged=defaults.map(d=>({...d,...(categorySettings.find(x=>x.category===d.category)||{})}));
+  $('#settingsRows').innerHTML=merged.map(s=>`<section class="settings-card" data-settings-category="${s.category}"><h3>${settingsLabel(s.category)}</h3><label>Изменение цены<select data-settings-mode><option value="percent" ${s.price_mode==='percent'?'selected':''}>Процент, %</option><option value="fixed" ${s.price_mode==='fixed'?'selected':''}>Сумма, ₽</option></select></label><label>Наценка / скидка<input data-settings-value type="number" step="1" value="${Number(s.price_value)||0}"></label><div class="muted">Положительное значение повышает цену, отрицательное — снижает.</div></section>`).join('');
+}
+async function openCategorySettings(){
+  try{const data=await request('settings');categorySettings=Array.isArray(data.settings)?data.settings:[];renderCategorySettings();$('#settingsModal').classList.remove('hide')}catch(error){toast(error.message,true)}
+}
+function closeCategorySettings(){$('#settingsModal').classList.add('hide')}
+async function saveCategorySettings(event){
+  event.preventDefault();
+  const rows=$$('[data-settings-category]').map(card=>({category:card.dataset.settingsCategory,price_mode:card.querySelector('[data-settings-mode]').value,price_value:Number(card.querySelector('[data-settings-value]').value)||0}));
+  try{const data=await request('settings-save',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({rows})});categorySettings=data.settings||rows;closeCategorySettings();toast('Настройки цен сохранены')}catch(error){toast(error.message,true)}
+}
+
+function fillDeliverySettings(){
+  $('#globalDeliveryPrice').value=Number(deliverySettings.delivery_price)||0;
+  $('#globalLiftPrice').value=Number(deliverySettings.lift_price)||0;
+  $('#globalSofaLiftSurcharge').value=Number(deliverySettings.sofa_lift_surcharge)||0;
+  $('#globalFreeDeliveryFrom').value=Number(deliverySettings.free_delivery_from)||0;
+}
+async function openDeliverySettings(){
+  try{const data=await request('delivery-settings');deliverySettings=data.settings||deliverySettings;fillDeliverySettings();$('#deliverySettingsModal').classList.remove('hide')}catch(error){toast(error.message,true)}
+}
+function closeDeliverySettings(){$('#deliverySettingsModal').classList.add('hide')}
+async function saveDeliverySettings(event){
+  event.preventDefault();
+  const payload={delivery_price:Math.max(0,Number($('#globalDeliveryPrice').value)||0),lift_price:Math.max(0,Number($('#globalLiftPrice').value)||0),sofa_lift_surcharge:Math.max(0,Number($('#globalSofaLiftSurcharge').value)||0),free_delivery_from:Math.max(0,Number($('#globalFreeDeliveryFrom').value)||0)};
+  try{const data=await request('delivery-settings-save',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(payload)});deliverySettings=data.settings||payload;closeDeliverySettings();toast('Настройки доставки сохранены')}catch(error){toast(error.message,true)}
+}
+'''
+          pattern=r"function settingsLabel\(category\).*?(?=async function start\(\))"
+          t2,n=re.subn(pattern,block+'\n',t,flags=re.S)
+          if n!=1:
+              raise SystemExit(f'category settings block replace count={n}')
+          t=t2
+          marker="$('#settingsForm').addEventListener('submit',saveCategorySettings);"
+          extra="""$('#deliverySettingsOpen').addEventListener('click',openDeliverySettings);\n$('#deliverySettingsClose').addEventListener('click',closeDeliverySettings);\n$('#deliverySettingsCancel').addEventListener('click',closeDeliverySettings);\n$('#deliverySettingsForm').addEventListener('submit',saveDeliverySettings);"""
+          if "$('#deliverySettingsOpen')" not in t:
+              t=t.replace(marker,marker+'\n'+extra)
+          p.write_text(t,encoding='utf-8')
+
+          p=Path('admin/admin.css')
+          t=p.read_text(encoding='utf-8')
+          if '.admin-logo{' not in t:
+              t+='''\n.admin-logo{display:block;width:min(210px,100%);height:auto;object-fit:contain}.login .admin-logo{margin:0 0 18px}.side .admin-logo{width:175px;background:#fff;border-radius:14px;padding:8px 12px}.delivery-settings-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:18px}@media(max-width:700px){.delivery-settings-grid{grid-template-columns:1fr}}\n'''
+          p.write_text(t,encoding='utf-8')
+
+          for name in ['index.html','product.html']:
+              p=Path(name); t=p.read_text(encoding='utf-8')
+              t=re.sub(r'<script src="assets/catalog-runtime\.js\?v=[^"]+"></script>(?:\s*<script src="assets/category-settings-ui\.js\?v=[^"]+"></script>)?', '<script src="assets/catalog-runtime.js?v=20260921-delivery3"></script>\n<script src="assets/category-settings-ui.js?v=20260921-delivery3"></script>', t)
+              p.write_text(t,encoding='utf-8')
+          PY
+
+      - name: Update catalog runtime
+        run: |
+          cat > assets/catalog-runtime.js <<'JS'
+          (() => {
+            'use strict';
+            const cfg=window.NOKTENA_ADMIN_CONFIG||{};
+            const configured=()=>Boolean(cfg.supabaseUrl&&cfg.supabaseAnonKey);
+            const CACHE_KEY='noktena-catalog-overrides-v5';
+            const MAX_INITIAL_WAIT_MS=900;
+            let rowsPromise=null;
+            const headers=()=>({apikey:cfg.supabaseAnonKey,Accept:'application/json'});
+            const productKey=(kind,product)=>kind==='furniture'?`furniture:${product?.id||''}`:`mattress:${product?.model||''}`;
+            const bootstrap=()=>window.NOKTENA_CATALOG_BOOTSTRAP||{};
+            const settingsList=()=>Array.isArray(bootstrap().categorySettings)?bootstrap().categorySettings:[];
+            const getCategorySettings=()=>settingsList().map(x=>({...x,price_value:Number(x.price_value)||0}));
+            const settingFor=category=>getCategorySettings().find(x=>x.category===category)||{category,price_mode:'percent',price_value:0};
+            const getDeliverySettings=()=>{const d=bootstrap().deliverySettings||{};return{delivery_price:Math.max(0,Number(d.delivery_price)||0),lift_price:Math.max(0,Number(d.lift_price)||0),sofa_lift_surcharge:Math.max(0,Number(d.sofa_lift_surcharge)||0),free_delivery_from:Math.max(0,Number(d.free_delivery_from)||0)}};
+            function readCache(){try{const parsed=JSON.parse(localStorage.getItem(CACHE_KEY)||'null');return Array.isArray(parsed?.rows)?parsed.rows:[]}catch{return[]}}
+            function writeCache(rows){try{localStorage.setItem(CACHE_KEY,JSON.stringify({rows,savedAt:Date.now()}))}catch{}}
+            function resolveCatalogImageTokens(rows,assets){const assetMap=new Map((assets||[]).map(row=>[`asset:${row.id}`,row.data_url]));const resolveOne=value=>assetMap.get(String(value||''))||value;return(rows||[]).map(row=>{if(!row?.payload||typeof row.payload!=='object')return row;const payload={...row.payload};if(Array.isArray(payload.images))payload.images=payload.images.map(resolveOne);if(payload.colorImages&&typeof payload.colorImages==='object')payload.colorImages=Object.fromEntries(Object.entries(payload.colorImages).map(([color,value])=>[color,resolveOne(value)]));return{...row,payload}})}
+            async function fetchRows(){const b=bootstrap();if(Array.isArray(b.rows)){if(!rowsPromise){const resolved=resolveCatalogImageTokens(b.rows,Array.isArray(b.assets)?b.assets:[]);writeCache(resolved);rowsPromise=Promise.resolve(resolved)}return rowsPromise}if(!configured())return[];if(!rowsPromise){const cached=readCache(),root=cfg.supabaseUrl.replace(/\/$/,'');const network=Promise.all([fetch(`${root}/rest/v1/catalog_overrides?select=product_key,kind,payload,hidden,is_custom,updated_at`,{headers:headers(),cache:'no-store'}),fetch(`${root}/rest/v1/catalog_images?select=id,data_url`,{headers:headers(),cache:'no-store'})]).then(async([a,b])=>{if(!a.ok)throw new Error(`Supabase catalog HTTP ${a.status}`);if(!b.ok)throw new Error(`Supabase images HTTP ${b.status}`);const[rows,assets]=await Promise.all([a.json(),b.json()]);const resolved=resolveCatalogImageTokens(rows,assets);writeCache(resolved);return resolved}).catch(err=>{console.warn('NOKTENA catalog overrides unavailable; using cached/base catalog.',err);return cached});rowsPromise=cached.length?Promise.resolve(cached):Promise.race([network,new Promise(resolve=>setTimeout(()=>resolve([]),MAX_INITIAL_WAIT_MS))])}return rowsPromise}
+            function applyRows(baseItems,kind,rows){const relevant=rows.filter(r=>r.kind===kind),byKey=new Map(relevant.filter(r=>!r.is_custom).map(r=>[r.product_key,r])),merged=[];for(const base of baseItems||[]){const row=byKey.get(productKey(kind,base));if(row?.hidden)continue;merged.push(row?{...base,...(row.payload||{})}:base)}for(const row of relevant.filter(r=>r.is_custom&&!r.hidden))if(row.payload&&typeof row.payload==='object')merged.push({...row.payload});return merged}
+            function priceAdjusted(value,setting){const n=Number(value);if(!Number.isFinite(n)||n<=0)return value;const change=setting.price_mode==='fixed'?n+Number(setting.price_value||0):n*(1+Number(setting.price_value||0)/100);return Math.max(0,Math.round(change/100)*100)}
+            function applyCategory(item,category){const setting=settingFor(category),delivery=getDeliverySettings(),out={...item};if(!out.skipCategoryPriceAdjustment){if(Number(out.price)>0)out.price=priceAdjusted(out.price,setting);if(Array.isArray(out.variants))out.variants=out.variants.map(v=>({...v,price:Number(v?.price)>0?priceAdjusted(v.price,setting):v?.price}))}const hasDelivery=Object.prototype.hasOwnProperty.call(out,'deliveryPriceOverride')&&out.deliveryPriceOverride!==''&&out.deliveryPriceOverride!=null;const hasFree=Object.prototype.hasOwnProperty.call(out,'freeDeliveryFromOverride')&&out.freeDeliveryFromOverride!==''&&out.freeDeliveryFromOverride!=null;out.deliveryPrice=hasDelivery?Math.max(0,Number(out.deliveryPriceOverride)||0):delivery.delivery_price;out.freeDeliveryFrom=hasFree?Math.max(0,Number(out.freeDeliveryFromOverride)||0):delivery.free_delivery_from;out.liftPrice=delivery.lift_price;out.sofaLiftSurcharge=category==='sofas'?delivery.sofa_lift_surcharge:0;out.categoryPriceMode=setting.price_mode;out.categoryPriceValue=Number(setting.price_value)||0;return out}
+            async function mergeFurniture(data){const rows=await fetchRows(),base=[...(data?.beds||[]),...(data?.sofas||[])],items=applyRows(base,'furniture',rows);return{...data,beds:items.filter(p=>p.category==='beds').map(p=>applyCategory(p,'beds')),sofas:items.filter(p=>p.category==='sofas').map(p=>applyCategory(p,'sofas'))}}
+            async function mergeMattresses(items){const rows=await fetchRows();return applyRows(items||[],'mattress',rows).map(p=>applyCategory(p,'mattress'))}
+            function resetCache(){rowsPromise=null;try{localStorage.removeItem(CACHE_KEY)}catch{}}
+            window.NoktenaCatalog=Object.freeze({configured,productKey,mergeFurniture,mergeMattresses,resetCache,getCategorySettings,settingFor,getDeliverySettings});
+          })();
+          JS
+
+      - name: Update delivery display helper
+        run: |
+          cat > assets/category-settings-ui.js <<'JS'
+          (()=>{
+            'use strict';
+            const b=window.NOKTENA_CATALOG_BOOTSTRAP||{};
+            const raw=b.deliverySettings||{};
+            const delivery={delivery_price:Math.max(0,Number(raw.delivery_price)||0),lift_price:Math.max(0,Number(raw.lift_price)||0),sofa_lift_surcharge:Math.max(0,Number(raw.sofa_lift_surcharge)||0),free_delivery_from:Math.max(0,Number(raw.free_delivery_from)||0)};
+            const money=n=>`${Math.round(Number(n)||0).toLocaleString('ru-RU')} ₽`;
+            const style=document.createElement('style');style.textContent='.global-delivery-chip,.global-delivery-product{margin-top:8px;padding:9px 11px;border-radius:10px;background:#f2f8f4;color:#315c4c;font-size:12px;font-weight:700}.global-delivery-product{margin:12px 0 0;font-size:13px}.global-delivery-product strong{color:#0a8d55}';document.head.appendChild(style);
+            const value=n=>n>0?money(n):'Уточняется';
+            function updateDeliverySection(){const grid=document.querySelector('#delivery .dgrid');if(!grid)return;grid.innerHTML=`<div class="d">Доставка<b>${value(delivery.delivery_price)}</b><small>до подъезда по г. Екатеринбург</small></div><div class="d">Подъём<b>${value(delivery.lift_price)}</b><small>базовая стоимость подъёма заказа</small></div><div class="d">Подъём дивана<b>${delivery.sofa_lift_surcharge>0?'+'+money(delivery.sofa_lift_surcharge):'Без доплаты'}</b><small>доплата к базовой стоимости подъёма дивана</small></div><div class="d">Бесплатная доставка<b>${delivery.free_delivery_from>0?'от '+money(delivery.free_delivery_from):'Не задана'}</b><small>порог бесплатной доставки</small></div><div class="d">График<b>Вторник / Пятница</b><small>плановые дни доставки</small></div>`}
+            async function furnitureMap(){try{const r=await fetch('data/furniture.json?delivery-ui=2',{cache:'force-cache'});if(!r.ok)return new Map();const d=await r.json();return new Map([...(d.beds||[]).map(x=>[String(x.id),'beds']),...(d.sofas||[]).map(x=>[String(x.id),'sofas'])])}catch{return new Map()}}
+            function customCategory(id){const row=(b.rows||[]).find(r=>r.product_key===`furniture:${id}`);return row?.payload?.category||''}
+            function rowOverride(kind,key){const pk=kind==='mattress'?`mattress:${key}`:`furniture:${key}`;return(b.rows||[]).find(r=>r.product_key===pk)?.payload||null}
+            function effective(category,override){const hasD=override&&Object.prototype.hasOwnProperty.call(override,'deliveryPriceOverride')&&override.deliveryPriceOverride!==''&&override.deliveryPriceOverride!=null;const hasF=override&&Object.prototype.hasOwnProperty.call(override,'freeDeliveryFromOverride')&&override.freeDeliveryFromOverride!==''&&override.freeDeliveryFromOverride!=null;return{delivery_price:hasD?Math.max(0,Number(override.deliveryPriceOverride)||0):delivery.delivery_price,free_delivery_from:hasF?Math.max(0,Number(override.freeDeliveryFromOverride)||0):delivery.free_delivery_from,lift_price:delivery.lift_price,sofa_lift_surcharge:category==='sofas'?delivery.sofa_lift_surcharge:0}}
+            function chipText(s){const parts=[s.delivery_price>0?`Доставка ${money(s.delivery_price)}`:'Доставка — уточняется',s.lift_price>0?`подъём ${money(s.lift_price)}`:'подъём — уточняется'];if(s.sofa_lift_surcharge>0)parts.push(`диван +${money(s.sofa_lift_surcharge)}`);if(s.free_delivery_from>0)parts.push(`бесплатно от ${money(s.free_delivery_from)}`);return parts.join(' · ')}
+            async function decorateCards(){const fmap=await furnitureMap();document.querySelectorAll('.product-open-card:not([data-delivery-decorated])').forEach(card=>{const link=card.getAttribute('data-product-link')||card.querySelector('a[href*="product.html"]')?.getAttribute('href')||'';let category='',key='',kind='';try{const u=new URL(link,location.href),p=u.searchParams;kind=p.get('kind')||'';if(kind==='mattress'){category='mattress';key=p.get('model')||''}else if(kind==='furniture'){key=p.get('id')||'';category=customCategory(key)||fmap.get(key)||''}}catch{}if(!category)return;const s=effective(category,rowOverride(kind,key)),target=card.querySelector('.cardbottom,.f-card-bottom,.body,.f-card-body');if(target){const el=document.createElement('div');el.className='global-delivery-chip';el.textContent=chipText(s);target.prepend(el);card.dataset.deliveryDecorated='1'}})}
+            async function addProductDelivery(){const p=new URLSearchParams(location.search),kind=p.get('kind');if(!kind)return;let category='',key='';if(kind==='mattress'){category='mattress';key=p.get('model')||''}else if(kind==='furniture'){key=p.get('id')||'';category=customCategory(key);if(!category)category=(await furnitureMap()).get(key)||''}if(!category)return;const s=effective(category,rowOverride(kind,key));const inject=()=>{const price=document.querySelector('.pd-info-card .pd-price-row');if(!price||document.querySelector('.global-delivery-product'))return false;const el=document.createElement('div');el.className='global-delivery-product';el.innerHTML=`<strong>Доставка и подъём:</strong> ${chipText(s)}`;price.insertAdjacentElement('afterend',el);return true};if(inject())return;const mo=new MutationObserver(()=>{if(inject())mo.disconnect()});mo.observe(document.getElementById('productRoot')||document.body,{childList:true,subtree:true});setTimeout(()=>mo.disconnect(),10000)}
+            updateDeliverySection();decorateCards();addProductDelivery();const observer=new MutationObserver(()=>decorateCards());observer.observe(document.body,{childList:true,subtree:true});
+          })();
+          JS
+
+      - name: Validate JavaScript
+        run: |
+          node --check admin/admin.js
+          node --check assets/catalog-runtime.js
+          node --check assets/category-settings-ui.js
+          grep -q 'deliverySettingsOpen' admin/index.html
+          grep -q 'admin-logo' admin/index.html
+          grep -q 'category-settings-ui.js?v=20260921-delivery3' index.html
+          grep -q 'category-settings-ui.js?v=20260921-delivery3' product.html
+
+      - name: Commit changes
+        run: |
+          git config user.name 'noktena-bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add admin/index.html admin/admin.js admin/admin.css assets/catalog-runtime.js assets/category-settings-ui.js index.html product.html
+          git commit -m 'Separate delivery settings and add admin logo'
+          git push
