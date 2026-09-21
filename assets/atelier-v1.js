@@ -81,6 +81,13 @@
     });
   }
 
+  function arrangeHome(){
+    const signature=$('#atelierSignature'),hits=$('#homeHits'),journal=$('#atelierJournal'),about=$('#about');
+    if(signature&&hits)signature.insertAdjacentElement('afterend',hits);
+    if(hits&&journal)hits.insertAdjacentElement('afterend',journal);
+    if(journal&&about)journal.insertAdjacentElement('afterend',about);
+  }
+
   function checkoutPolish(){
     if(!document.body.classList.contains('checkout-body'))return;
     const grid=$('#checkoutApp');
@@ -105,7 +112,7 @@
 
   function boot(){
     document.body.classList.add('atelier-ready');
-    if($('.hero')){addHeroPanel();addSignature();addJournal();addConcierge();upgradeFooter();bindArticles()}
+    if($('.hero')){addHeroPanel();addSignature();addJournal();addConcierge();arrangeHome();upgradeFooter();bindArticles()}
     checkoutPolish();productPolish();
     requestAnimationFrame(reveal);
   }
