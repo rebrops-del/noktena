@@ -1,0 +1,47 @@
+name: Switch to Railway proxy
+on:
+  push:
+    paths:
+      - '.github/workflows/switch-to-railway.yml'
+permissions:
+  contents: write
+jobs:
+  switch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Switch admin API and public bootstrap to Railway
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          railway='https://admin-proxy-production-65c9.up.railway.app'
+          for name in ['admin/admin.js','admin-v2/app.js']:
+              p=Path(name)
+              text=p.read_text(encoding='utf-8')
+              lines=text.splitlines()
+              lines[0]=f"const API='{railway}/api/noktena-admin';"
+              p.write_text('\n'.join(lines)+'\n',encoding='utf-8')
+          tag=f'<script src="{railway}/catalog-bootstrap.js?v=20260921-railway1"></script>\n'
+          marker='<script src="assets/catalog-runtime.js?v=20260921-localonly1"></script>'
+          for name in ['index.html','product.html']:
+              p=Path(name)
+              text=p.read_text(encoding='utf-8')
+              text=text.replace(tag,'')
+              if marker not in text:
+                  raise SystemExit(f'Marker missing in {name}')
+              text=text.replace(marker,tag+marker,1)
+              p.write_text(text,encoding='utf-8')
+          PY
+          node --check admin/admin.js
+          node --check admin-v2/app.js
+          grep -q 'admin-proxy-production-65c9.up.railway.app/api/noktena-admin' admin/admin.js
+          grep -q 'admin-proxy-production-65c9.up.railway.app/catalog-bootstrap.js' index.html
+      - name: Commit Railway switch
+        run: |
+          git config user.name 'noktena-bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add admin/admin.js admin-v2/app.js index.html product.html
+          git commit -m 'Route admin and catalog updates through Railway'
+          git push
