@@ -3,6 +3,30 @@
   const API_URL='https://admin-proxy-v2-production.up.railway.app/api/noktena-admin';
   const BOOT_URL='https://admin-proxy-v2-production.up.railway.app/catalog-bootstrap.js';
   const DELIVERY_KEY='settings:delivery_v2';
+
+  /* Products intentionally hidden from the public storefront must not clutter ADMIN. */
+  const REMOVED_FROM_STOREFRONT=new Set([
+    'Матрас Mega холкон TFK',
+    'Матрас Mega холкон-кокос TFK',
+    'Матрас MEGA Бикокос ППУ 10 ECO',
+    'Матрас Стандарт Детский',
+    'Подушка Обнимашки'
+  ]);
+
+  const DEFAULT_HIT_MODELS=new Set([
+    'Матрас Mega холкон-кокос TFK Gray Night',
+    'Матрас Mega кокос 30 TFK',
+    'Матрас Imperial Suite холкон-кокос Gray Night',
+    'Матрас Барселона ZAСоня Gray Night'
+  ]);
+
+  const BADGES={
+    hit:'Хит продаж',
+    sale:'Распродажа',
+    last:'Последняя штука',
+    new:'Новинка'
+  };
+
   const PHOTO_POS={
     'Матрас Imperial Suite кокос Gray Night':[0,0],
     'Матрас Imperial Suite латекс-кокос Gray Night':[1,0],
@@ -36,34 +60,140 @@
     .side>div:first-child{display:flex;flex-direction:column;align-items:flex-start;gap:14px;margin-bottom:12px}
     .side>div:first-child small{display:block;margin:0;padding-left:2px;font-size:12px;font-weight:800;letter-spacing:.14em;opacity:.82}
     .side>a{display:inline-block;margin-top:4px}
-    .admin-mattress-thumb{width:58px;height:46px;border-radius:8px;background-repeat:no-repeat;background-size:500% 100%;background-position:calc(var(--col) * 25%) 0;background-color:#eef3f0;flex:0 0 58px}
+    .admin-mattress-thumb,.mattress-thumb-hi{width:96px!important;height:72px!important;border-radius:11px!important;object-fit:cover!important;background:#f4f6f5!important;box-shadow:0 2px 10px rgba(18,61,50,.08);border:1px solid rgba(18,61,50,.08);flex:0 0 96px!important;image-rendering:auto}
+    .prod:has(.admin-mattress-thumb),.prod:has(.mattress-thumb-hi){gap:13px}
     .delivery-schedule-label{grid-column:1/-1}
     .delivery-schedule-label textarea{min-height:84px;resize:vertical}
+    .admin-badge-pill{display:inline-flex;align-items:center;margin-left:6px;padding:4px 8px;border-radius:999px;font-size:11px;font-weight:900;white-space:nowrap}
+    .admin-badge-pill.hit{background:#fff0f1;color:#c82735}
+    .admin-badge-pill.sale{background:#fff4dd;color:#9a6411}
+    .admin-badge-pill.last{background:#fff0e8;color:#b14c24}
+    .admin-badge-pill.new{background:#e9f7ef;color:#087345}
+    #productBadge{font-weight:700}
   `;
   document.head.appendChild(style);
 
-  function fixMattressThumbs(){
-    document.querySelectorAll('#rows tr').forEach(row=>{
-      const key=row.querySelector('.muted')?.textContent?.trim()||'';
-      if(!key.startsWith('mattress:'))return;
-      if(row.querySelector('img.thumb,.admin-mattress-thumb'))return;
-      const model=key.slice('mattress:'.length),pos=PHOTO_POS[model];
-      if(!pos)return;
-      const blank=row.querySelector('.thumb');
-      if(!blank)return;
-      const el=document.createElement('div');
-      el.className='admin-mattress-thumb';
-      el.style.setProperty('--col',String(pos[0]));
-      el.style.backgroundImage=`url('../assets/product-row-${pos[1]+1}.webp?v=20260905-photos2')`;
-      blank.replaceWith(el);
+  function isPublicAdminItem(item){
+    return !(item?._kind==='mattress'&&REMOVED_FROM_STOREFRONT.has(String(item.model||'')));
+  }
+
+  function defaultBadgeFor(item){
+    if(!item)return '';
+    if(item.hit===true)return 'hit';
+    if(item._kind==='mattress'){
+      if(DEFAULT_HIT_MODELS.has(String(item.model||'')))return 'hit';
+      if(/^хит(ы)? продаж$/i.test(String(item.category||'').trim()))return 'hit';
+    }
+    return '';
+  }
+
+  function effectiveBadge(item){
+    if(!item)return '';
+    if(Object.prototype.hasOwnProperty.call(item,'badge'))return item.badge==='none'?'':String(item.badge||'');
+    return defaultBadgeFor(item);
+  }
+
+  function ensureBadgeField(){
+    const grid=document.querySelector('#editorForm .grid2');
+    if(!grid||document.getElementById('productBadge'))return;
+    const label=document.createElement('label');
+    label.innerHTML='Плашка на карточке<select id="productBadge"><option value="">Без плашки</option><option value="hit">Хит продаж</option><option value="sale">Распродажа</option><option value="last">Последняя штука</option><option value="new">Новинка</option></select>';
+    const available=document.getElementById('available')?.closest('label');
+    if(available?.nextSibling)grid.insertBefore(label,available.nextSibling);else grid.appendChild(label);
+    label.querySelector('select')?.addEventListener('change',event=>{
+      if(typeof draft==='undefined'||!draft)return;
+      draft.badge=event.target.value||'none';
     });
   }
 
-  const rows=document.getElementById('rows');
-  if(rows){
-    new MutationObserver(fixMattressThumbs).observe(rows,{childList:true,subtree:true});
-    fixMattressThumbs();
+  function syncBadgeField(){
+    ensureBadgeField();
+    const select=document.getElementById('productBadge');
+    if(!select||typeof draft==='undefined'||!draft)return;
+    select.value=effectiveBadge(draft);
   }
+
+  function mattressThumbUrl(model){
+    const pos=PHOTO_POS[model];
+    if(!pos)return '';
+    return `../assets/admin-mattress-thumbs/r${pos[1]+1}-c${pos[0]+1}.webp?v=20260921-1`;
+  }
+
+  function enhanceAdminRows(){
+    document.querySelectorAll('#rows tr').forEach(row=>{
+      const key=row.querySelector('.muted')?.textContent?.trim()||'';
+      if(!key)return;
+      let item=null;
+      try{if(typeof items!=='undefined')item=items.find(x=>x._key===key)||null}catch{}
+
+      if(key.startsWith('mattress:')){
+        const model=key.slice('mattress:'.length);
+        const existing=row.querySelector('img.thumb');
+        if(existing){
+          existing.classList.add('mattress-thumb-hi');
+          existing.loading='lazy';
+          existing.decoding='async';
+        }else if(!row.querySelector('.admin-mattress-thumb')){
+          const url=mattressThumbUrl(model),blank=row.querySelector('.thumb');
+          if(url&&blank){
+            const img=document.createElement('img');
+            img.className='admin-mattress-thumb';
+            img.src=url;
+            img.alt=model;
+            img.loading='lazy';
+            img.decoding='async';
+            img.addEventListener('error',()=>{
+              const pos=PHOTO_POS[model];
+              if(!pos)return;
+              const fallback=document.createElement('div');
+              fallback.className='admin-mattress-thumb';
+              fallback.style.backgroundImage=`url('../assets/product-row-${pos[1]+1}.webp?v=20260905-photos2')`;
+              fallback.style.backgroundRepeat='no-repeat';
+              fallback.style.backgroundSize='500% 100%';
+              fallback.style.backgroundPosition=`${pos[0]*25}% 0`;
+              img.replaceWith(fallback);
+            },{once:true});
+            blank.replaceWith(img);
+          }
+        }
+      }
+
+      const badge=effectiveBadge(item);
+      if(badge&&BADGES[badge]){
+        const statusCell=row.children[3];
+        if(statusCell&&!statusCell.querySelector('.admin-badge-pill')){
+          const pill=document.createElement('span');
+          pill.className=`admin-badge-pill ${badge}`;
+          pill.textContent=BADGES[badge];
+          statusCell.appendChild(pill);
+        }
+      }
+    });
+  }
+
+  /* Keep ADMIN aligned with the public catalog. */
+  try{
+    const coreDraw=draw;
+    draw=function(){
+      items=items.filter(isPublicAdminItem);
+      const result=coreDraw();
+      enhanceAdminRows();
+      return result;
+    };
+  }catch{}
+
+  const rows=document.getElementById('rows');
+  if(rows)new MutationObserver(enhanceAdminRows).observe(rows,{childList:true,subtree:true});
+
+  const editor=document.getElementById('editor');
+  ensureBadgeField();
+  if(editor)new MutationObserver(()=>{if(!editor.classList.contains('hide'))syncBadgeField()}).observe(editor,{attributes:true,attributeFilter:['class']});
+
+  document.getElementById('editorForm')?.addEventListener('submit',()=>{
+    if(typeof draft==='undefined'||!draft)return;
+    const select=document.getElementById('productBadge');
+    if(select)draft.badge=select.value||'none';
+  },true);
 
   function ensureDeliveryFields(){
     const grid=document.querySelector('#deliverySettingsForm .delivery-settings-grid');
@@ -178,4 +308,6 @@
       if(typeof toast==='function')toast(error.message,true);else alert(error.message);
     }finally{if(submit)submit.disabled=false}
   },true);
+
+  enhanceAdminRows();
 })();
