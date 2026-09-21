@@ -1,0 +1,48 @@
+name: Apply Atelier storefront
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'assets/atelier-v1.css'
+      - 'assets/atelier-v1.js'
+      - '.github/workflows/apply-atelier-v1.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Add Atelier assets to storefront pages
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          pages=['index.html','product.html','checkout.html']
+          css='<link rel="stylesheet" href="assets/atelier-v1.css?v=20260921-1">'
+          js='<script src="assets/atelier-v1.js?v=20260921-1"></script>'
+          for name in pages:
+              p=Path(name)
+              s=p.read_text()
+              if 'assets/atelier-v1.css' not in s:
+                  s=s.replace('</head>',css+'\n</head>',1)
+              if 'assets/atelier-v1.js' not in s:
+                  s=s.replace('</body>',js+'\n</body>',1)
+              p.write_text(s)
+          PY
+          node --check assets/atelier-v1.js
+          grep -q 'atelier-v1.css' index.html
+          grep -q 'atelier-v1.js' index.html
+          grep -q 'atelier-v1.css' product.html
+          grep -q 'atelier-v1.css' checkout.html
+      - name: Commit rollout
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html product.html checkout.html
+          git diff --cached --quiet && exit 0
+          git commit -m 'Apply Atelier premium storefront design'
+          git push
