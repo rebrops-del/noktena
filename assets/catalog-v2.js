@@ -9,7 +9,8 @@
   const $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
   const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const rub=n=>Number.isFinite(Number(n))&&Number(n)>0?`${Math.round(Number(n)).toLocaleString('ru-RU')} ₽`:'Цена по запросу';
-  const oldPrice=n=>Number(n)>=5000?Math.round((Number(n)/0.7)/100)*100:null;
+  const discountPercent=product=>{const raw=Number(product?.discountPercent);return Number.isFinite(raw)?Math.min(99,Math.max(0,Math.round(raw))):30;};
+  const oldPrice=(n,discount=30)=>{const price=Number(n),pct=Math.min(99,Math.max(0,Number(discount)||0));return price>=5000&&pct>0?Math.round((price/(1-pct/100))/100)*100:null;};
 
   const ICONS={
     home:`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.8 10.6 12 3.8l8.2 6.8v9.1a.8.8 0 0 1-.8.8H4.6a.8.8 0 0 1-.8-.8v-9.1Z"/><path d="M9.3 20.5v-6.8h5.4v6.8"/></svg>`,
@@ -69,7 +70,7 @@
 
   function cardMarkup(product){
     const imgs=uniq(product.images);const quick=chooseSpecs(product);const category=product.category==='beds'?'Кровать':'Диван';const link=detailUrl(product);
-    const sizes=sortSizes(product.sizes?.length?product.sizes:(product.variants||[]).map(v=>v.size));const initial=preferredVariant(product,'',sizes[0]||'');const price=furniturePrice(product,initial,sizes[0]||'');const first=imgs[0]||'assets/hero-noktena-final.png?v=20260908-final2';
+    const sizes=sortSizes(product.sizes?.length?product.sizes:(product.variants||[]).map(v=>v.size));const initial=preferredVariant(product,'',sizes[0]||'');const price=furniturePrice(product,initial,sizes[0]||'');const discount=discountPercent(product);const comparePrice=oldPrice(price,discount);const first=imgs[0]||'assets/hero-noktena-final.png?v=20260908-final2';
     state.gallery.set(product.id,0);
     return `<article class="f-card product-open-card" data-product-id="${esc(product.id)}" data-product-link="${esc(link)}" data-selected-size="${esc(sizes[0]||'')}">
       <div class="f-gallery" data-gallery-id="${esc(product.id)}">
@@ -87,7 +88,7 @@
         ${cardDetailsMarkup(product)}
         ${sizes.length?`<div class="f-option"><div class="f-option-head"><span>${product.category==='beds'?'Спальное место':'Размер'}</span><b>${sizes.length} ${sizes.length===1?'вариант':'вариантов'}</b></div><select class="f-size-select" data-card-size>${sizes.map((s,i)=>`<option value="${esc(s)}" ${i===0?'selected':''}>${esc(s)}</option>`).join('')}</select></div>`:''}
         <div class="f-card-bottom">
-          <div class="f-price-row"><div class="f-price-stack"><div class="f-price-caption">Цена выбранного варианта</div><div class="f-old-price-line"><span class="f-old-price" data-card-old-price>${rub(oldPrice(price))}</span><span class="f-discount-badge">−30%</span></div><div class="f-price" data-card-price>${rub(price)}</div></div><div class="f-price-promo"><b>Цена сентября</b><span>до 30 сентября</span></div></div>
+          <div class="f-price-row"><div class="f-price-stack"><div class="f-price-caption">Цена выбранного варианта</div><div class="f-old-price-line" ${discount>0&&comparePrice?'':'style="display:none"'}><span class="f-old-price" data-card-old-price>${comparePrice?rub(comparePrice):''}</span><span class="f-discount-badge" data-card-discount>−${discount}%</span></div><div class="f-price" data-card-price>${rub(price)}</div></div><div class="f-price-promo"><b>Цена сентября</b><span>до 30 сентября</span></div></div>
           <a class="product-more-link" href="${esc(link)}"><span>Подробнее о модели</span><span aria-hidden="true">→</span></a>
           <a class="btn max-btn" href="${MAX_LINK}" target="_blank" rel="noopener"><img class="max-icon" src="${MAX_ICON}" alt="" aria-hidden="true"><span>Получить консультацию в MAX</span></a>
         </div>
@@ -96,7 +97,7 @@
   }
 
   function productById(id){return [...state.data.beds,...state.data.sofas].find(x=>x.id===id);}
-  function updateCardVariant(card){const product=productById(card?.dataset.productId);if(!product)return;const size=card.dataset.selectedSize||'';const variant=preferredVariant(product,'',size);const price=furniturePrice(product,variant,size);const el=$('[data-card-price]',card),old=$('[data-card-old-price]',card);if(el)el.textContent=rub(price);if(old)old.textContent=rub(oldPrice(price));}
+  function updateCardVariant(card){const product=productById(card?.dataset.productId);if(!product)return;const size=card.dataset.selectedSize||'';const variant=preferredVariant(product,'',size);const price=furniturePrice(product,variant,size);const discount=discountPercent(product),comparePrice=oldPrice(price,discount);const el=$('[data-card-price]',card),old=$('[data-card-old-price]',card),badge=$('[data-card-discount]',card),line=old?.closest('.f-old-price-line');if(el)el.textContent=rub(price);if(old)old.textContent=comparePrice?rub(comparePrice):'';if(badge)badge.textContent=`−${discount}%`;if(line)line.style.display=discount>0&&comparePrice?'':'none';}
   function setGallery(id,delta){const product=productById(id);if(!product)return;const imgs=uniq(product.images);if(imgs.length<2)return;const current=state.gallery.get(id)||0;const next=(current+delta+imgs.length)%imgs.length;const g=document.querySelector(`[data-gallery-id="${CSS.escape(id)}"]`);if(!g)return;const img=$('img',g);if(!img)return;const preload=new Image();preload.onload=()=>{state.gallery.set(id,next);img.classList.add('is-changing');setTimeout(()=>{img.src=imgs[next];img.classList.remove('is-changing')},90);const counter=$('.f-gallery-count',g);if(counter)counter.textContent=`${next+1} / ${imgs.length}`;};preload.src=imgs[next];}
   function filtered(view){let items=[...(state.data[view]||[])];const q=(state.query[view]||'').trim().toLowerCase();if(q)items=items.filter(p=>`${p.title} ${p.subtype||''} ${p.description||''} ${JSON.stringify(p.specs||{})}`.toLowerCase().includes(q));if(view==='sofas'&&state.subtype)items=items.filter(p=>p.subtype===state.subtype);const sort=state.sort[view];items.sort((a,b)=>{if(sort==='price-desc')return (b.price||-1)-(a.price||-1);if(sort==='name')return String(a.title).localeCompare(String(b.title),'ru');return (a.price??Number.MAX_SAFE_INTEGER)-(b.price??Number.MAX_SAFE_INTEGER);});return items;}
   function paginationMarkup(view,total,page){const pages=Math.max(1,Math.ceil(total/PAGE_SIZE));if(pages<=1)return'';const nums=[];const from=Math.max(1,page-2),to=Math.min(pages,page+2);if(from>1)nums.push(1);if(from>2)nums.push('…');for(let i=from;i<=to;i++)nums.push(i);if(to<pages-1)nums.push('…');if(to<pages)nums.push(pages);return `<div class="f-pagination" aria-label="Страницы каталога"><button class="f-page" data-page-view="${view}" data-page="${page-1}" ${page<=1?'disabled':''}>←</button>${nums.map(n=>n==='…'?'<span class="f-page f-page-gap">…</span>':`<button class="f-page ${n===page?'is-active':''}" data-page-view="${view}" data-page="${n}">${n}</button>`).join('')}<button class="f-page" data-page-view="${view}" data-page="${page+1}" ${page>=pages?'disabled':''}>→</button></div>`;}
