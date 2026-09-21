@@ -17,6 +17,10 @@ const SMTP_USER=process.env.SMTP_USER||'';
 const SMTP_PASS=process.env.SMTP_PASS||'';
 const ORDER_EMAIL_TO=process.env.ORDER_EMAIL_TO||'noktena@mail.ru';
 const ORDER_EMAIL_FROM=process.env.ORDER_EMAIL_FROM||SMTP_USER||'noktena@mail.ru';
+const MAX_BOT_TOKEN=process.env.MAX_BOT_TOKEN||'';
+const MAX_CHAT_ID=process.env.MAX_CHAT_ID||'';
+const MAX_USER_ID=process.env.MAX_USER_ID||'';
+const MAX_API='https://platform-api2.max.ru';
 let mailer=null;
 
 function applyCors(req,res){const origin=req.headers.origin||'';res.setHeader('Access-Control-Allow-Origin',ALLOWED_ORIGINS.has(origin)?origin:'*');res.setHeader('Vary','Origin');res.setHeader('Access-Control-Allow-Methods','GET,POST,OPTIONS');res.setHeader('Access-Control-Allow-Headers','authorization,content-type,apikey,x-client-info');res.setHeader('Access-Control-Max-Age','86400');res.setHeader('Cache-Control','no-store')}
@@ -33,9 +37,30 @@ function rewriteValue(req,value){
 function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function money(v){return `${Math.round(Number(v)||0).toLocaleString('ru-RU')} ₽`;}
 function mailReady(){return !!(SMTP_HOST&&SMTP_USER&&SMTP_PASS&&ORDER_EMAIL_TO);}
+function maxReady(){return !!(MAX_BOT_TOKEN&&(MAX_CHAT_ID||MAX_USER_ID));}
 function transporter(){if(!mailer)mailer=nodemailer.createTransport({host:SMTP_HOST,port:SMTP_PORT,secure:SMTP_SECURE,auth:{user:SMTP_USER,pass:SMTP_PASS}});return mailer;}
 function liftLabel(method,floor,qty){const count=Number(qty)||0;if(!count||method==='none')return 'Без подъёма';if(method==='cargo')return `Грузовой лифт × ${count}`;if(method==='stairs')return `По лестнице × ${count}${floor?`, этаж ${floor}`:''}`;if(method==='mixed')return `Несколько способов, ${count} ед.`;return 'Без подъёма';}
 function deliveryLabel(method){return method==='pickup'?'Самовывоз':'Доставка';}
+function maxOrderText(orderRequest,orderResult){
+  const items=Array.isArray(orderRequest?.items)?orderRequest.items:[];
+  const orderNo=orderResult?.order_no||'—';
+  const liftCount=Number(orderResult?.lift_count)||items.reduce((n,x)=>n+(Number(x.lift_qty)||0),0);
+  const assemblyQty=Number(orderResult?.assembly_qty)||Number(orderRequest?.assembly_qty)||0;
+  const lines=[`🛒 НОВЫЙ ЗАКАЗ №${orderNo}`,'',`👤 ${orderRequest?.customer_name||'—'}`,`📞 ${orderRequest?.phone||'—'}`];
+  if(orderRequest?.email)lines.push(`✉️ ${orderRequest.email}`);
+  if(orderRequest?.delivery_method==='pickup')lines.push('📦 Самовывоз');
+  else{lines.push('🚚 Доставка');const address=[orderRequest?.city,orderRequest?.address].filter(Boolean).join(', ');if(address)lines.push(`📍 ${address}`)}
+  lines.push('','Товары:');
+  items.forEach((item,index)=>{const qty=Math.max(1,Number(item.qty)||1);let line=`${index+1}. ${item.name||'Товар'} × ${qty} — ${money((Number(item.price)||0)*qty)}`;if(item.size)line+=`\n   Размер: ${item.size}`;if(item.color)line+=`\n   Цвет: ${item.color}`;if(Number(item.lift_qty)>0)line+=`\n   Подъём: ${liftLabel(item.lift_method,item.lift_floor,item.lift_qty)}`;lines.push(line)});
+  lines.push('');if(liftCount)lines.push(`⬆️ Подъём: ${liftCount} ед.`);if(assemblyQty)lines.push(`🔧 Сборка кровати: ${assemblyQty} шт.`);if(orderRequest?.comment)lines.push(`💬 Комментарий: ${orderRequest.comment}`);lines.push('',`💰 ИТОГО: ${money(orderResult?.total)}`,'https://noktena.ru/admin/?tab=orders');
+  return lines.join('\n').slice(0,4000);
+}
+async function notifyOrderByMax(orderRequest,orderResult){
+  if(!maxReady()){console.warn('MAX notification skipped: MAX is not configured');return {sent:false,reason:'MAX_NOT_CONFIGURED'}}
+  try{const url=new URL(MAX_API+'/messages');if(MAX_CHAT_ID)url.searchParams.set('chat_id',MAX_CHAT_ID);else url.searchParams.set('user_id',MAX_USER_ID);url.searchParams.set('disable_link_preview','true');const r=await fetch(url,{method:'POST',headers:{Authorization:MAX_BOT_TOKEN,'Content-Type':'application/json'},body:JSON.stringify({text:maxOrderText(orderRequest,orderResult)})});const data=await r.json().catch(()=>({}));if(!r.ok)throw new Error(data?.message||data?.error||`MAX_HTTP_${r.status}`);console.log('MAX order notification sent');return {sent:true}}
+  catch(error){console.error('MAX order notification failed',error);return {sent:false,reason:error instanceof Error?error.message:String(error)}}
+}
+
 async function notifyOrderByEmail(orderRequest,orderResult){
   if(!mailReady()){console.warn('Order email skipped: SMTP is not configured');return {sent:false,reason:'SMTP_NOT_CONFIGURED'};}
   try{
@@ -52,7 +77,7 @@ const server=http.createServer(async(req,res)=>{
   applyCors(req,res);
   if(req.method==='OPTIONS'){res.statusCode=204;return res.end()}
   const incoming=new URL(req.url||'/','http://localhost');
-  if(incoming.pathname==='/health')return sendJson(res,200,{ok:true,service:'noktena-admin-proxy',mail_configured:mailReady(),order_api:'v2'});
+  if(incoming.pathname==='/health')return sendJson(res,200,{ok:true,service:'noktena-admin-proxy',mail_configured:mailReady(),max_configured:maxReady(),order_api:'v2'});
 
   if(incoming.pathname==='/asset'){
     try{
@@ -91,7 +116,7 @@ const server=http.createServer(async(req,res)=>{
     const raw=Buffer.from(await upstream.arrayBuffer());
     res.statusCode=upstream.status;res.setHeader('Content-Type',contentType);res.setHeader('X-Noktena-Proxy','railway');
     if(contentType.includes('application/json')){
-      try{const data=rewriteValue(req,JSON.parse(raw.toString('utf8')));if(upstream.ok&&orderRequest&&data?.order)data.email_notification=await notifyOrderByEmail(orderRequest,data.order);return res.end(JSON.stringify(data))}catch{}
+      try{const data=rewriteValue(req,JSON.parse(raw.toString('utf8')));if(upstream.ok&&orderRequest&&data?.order){data.email_notification=await notifyOrderByEmail(orderRequest,data.order);data.max_notification=await notifyOrderByMax(orderRequest,data.order)}return res.end(JSON.stringify(data))}catch{}
     }
     return res.end(raw);
   }catch(error){return sendJson(res,502,{ok:false,error:'UPSTREAM_UNAVAILABLE',message:error instanceof Error?error.message:String(error)})}
