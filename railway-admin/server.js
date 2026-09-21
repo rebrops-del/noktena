@@ -5,6 +5,7 @@ const PORT = Number(process.env.PORT || 3000);
 const PROJECT = 'https://oldtlbkrftflfthfsqdv.supabase.co';
 const ADMIN_API = PROJECT + '/functions/v1/noktena-admin-api';
 const ORDER_API = PROJECT + '/functions/v1/noktena-order-api';
+const DELETE_ORDER_API = PROJECT + '/functions/v1/noktena-order-delete';
 const PUBLIC_BOOTSTRAP = PROJECT + '/functions/v1/noktena-admin?public=1';
 const STORAGE_PREFIX = PROJECT + '/storage/v1/object/public/';
 const ALLOWED_ORIGINS = new Set(['https://noktena.ru','https://www.noktena.ru']);
@@ -80,8 +81,8 @@ const server=http.createServer(async(req,res)=>{
   if(incoming.pathname!=='/api/noktena-admin')return sendJson(res,404,{ok:false,error:'NOT_FOUND'});
   if(!['GET','POST'].includes(req.method||''))return sendJson(res,405,{ok:false,error:'METHOD_NOT_ALLOWED'});
   try{
-    const action=incoming.searchParams.get('action')||'',isOrder=req.method==='POST'&&action==='create-order';
-    const upstreamUrl=new URL(isOrder?ORDER_API:ADMIN_API);if(!isOrder)for(const [key,value] of incoming.searchParams)upstreamUrl.searchParams.append(key,value);
+    const action=incoming.searchParams.get('action')||'',isOrder=req.method==='POST'&&action==='create-order',isDelete=req.method==='POST'&&action==='delete-order';
+    const upstreamUrl=new URL(isOrder?ORDER_API:isDelete?DELETE_ORDER_API:ADMIN_API);if(!isOrder&&!isDelete)for(const [key,value] of incoming.searchParams)upstreamUrl.searchParams.append(key,value);
     const headers={};for(const name of ['authorization','content-type','apikey','x-client-info']){const value=req.headers[name];if(value)headers[name]=Array.isArray(value)?value.join(','):value}
     const body=req.method==='POST'?await readBody(req):undefined;
     let orderRequest=null;if(isOrder&&body){try{orderRequest=JSON.parse(body.toString('utf8'))}catch{}}
