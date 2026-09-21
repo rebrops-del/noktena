@@ -1,0 +1,33 @@
+name: Diagnose furniture variant attributes
+
+on:
+  push:
+    paths:
+      - '.github/workflows/diagnose-variant-attrs.yml'
+  workflow_dispatch:
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Print multi-size bed attributes
+        run: |
+          python3 - <<'PY'
+          import json
+          data=json.load(open('data/furniture.json',encoding='utf-8'))
+          shown=0
+          for p in data.get('beds',[]):
+              sizes=[]
+              for v in p.get('variants',[]):
+                  s=v.get('size')
+                  if s and s not in sizes:sizes.append(s)
+              if len(sizes)<2:continue
+              print('PRODUCT',p.get('id'),p.get('title'))
+              print('BASE_SPECS',json.dumps(p.get('specs',{}),ensure_ascii=False))
+              for v in p.get('variants',[])[:12]:
+                  print('VARIANT',json.dumps({'size':v.get('size'),'price':v.get('price'),'attributes':v.get('attributes',{})},ensure_ascii=False))
+              print('---')
+              shown+=1
+              if shown>=3:break
+          PY
