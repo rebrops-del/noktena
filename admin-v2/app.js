@@ -1,4 +1,4 @@
-const API='https://admin-proxy-production-65c9.up.railway.app/api/noktena-admin';
+const API='https://admin-proxy-v2-production.up.railway.app/api/noktena-admin';
 const SESSION_KEY='nkt-adm2';
 let session=null;
 let items=[];
