@@ -1,0 +1,50 @@
+name: Refine Atelier home
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/refine-atelier-home.yml'
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Refine home composition
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('assets/atelier-v1.js')
+          s=p.read_text()
+          marker="  function checkoutPolish(){"
+          insert='''  function arrangeHome(){\n    const signature=$(\'#atelierSignature\'),hits=$(\'#homeHits\'),journal=$(\'#atelierJournal\'),about=$(\'#about\');\n    if(signature&&hits)signature.insertAdjacentElement(\'afterend\',hits);\n    if(hits&&journal)hits.insertAdjacentElement(\'afterend\',journal);\n    if(journal&&about)journal.insertAdjacentElement(\'afterend\',about);\n  }\n\n'''
+          if marker not in s: raise SystemExit('JS marker not found')
+          if 'function arrangeHome()' not in s:
+              s=s.replace(marker,insert+marker,1)
+          old="if($('.hero')){addHeroPanel();addSignature();addJournal();addConcierge();upgradeFooter();bindArticles()}"
+          new="if($('.hero')){addHeroPanel();addSignature();addJournal();addConcierge();arrangeHome();upgradeFooter();bindArticles()}"
+          if old not in s: raise SystemExit('boot marker not found')
+          s=s.replace(old,new,1)
+          p.write_text(s)
+
+          p=Path('assets/atelier-v1.css')
+          s=p.read_text()
+          marker='/* Concierge CTA and footer */'
+          insert='''/* Keep the home conversion path focused: the richer concierge replaces the legacy CTA only on home. */\nbody[data-shop-view="home"] .cta{display:none!important}\n.cta{border-radius:28px!important;background:linear-gradient(135deg,#143d32,#0b2b23)!important;box-shadow:0 24px 70px rgba(12,43,34,.15)!important;padding:30px!important;color:#fff!important}\n.cta h2{color:#fff!important;font-size:31px!important;letter-spacing:-.035em!important}.cta p{color:#cbd7d2!important;line-height:1.65!important}.cta .max-btn{background:#fff!important;border-color:#fff!important;border-radius:14px!important}\n\n'''
+          if marker not in s: raise SystemExit('CSS marker not found')
+          if 'legacy CTA only on home' not in s:
+              s=s.replace(marker,insert+marker,1)
+          p.write_text(s)
+          PY
+          node --check assets/atelier-v1.js
+      - name: Commit
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add assets/atelier-v1.js assets/atelier-v1.css
+          git diff --cached --quiet && exit 0
+          git commit -m 'Refine Atelier home conversion flow'
+          git push
