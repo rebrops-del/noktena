@@ -1,0 +1,42 @@
+name: Patch order delete proxy route
+on:
+  push:
+    paths:
+      - '.github/workflows/patch-order-delete-route.yml'
+  workflow_dispatch:
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Route delete-order to protected Edge Function
+        run: |
+          set -euxo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('railway-admin/server.js')
+          s=p.read_text()
+          old="const ADMIN_API = PROJECT + '/functions/v1/noktena-admin-api';\nconst ORDER_API = PROJECT + '/functions/v1/noktena-order-api';"
+          new="const ADMIN_API = PROJECT + '/functions/v1/noktena-admin-api';\nconst ORDER_API = PROJECT + '/functions/v1/noktena-order-api';\nconst DELETE_ORDER_API = PROJECT + '/functions/v1/noktena-order-delete';"
+          if old not in s and 'DELETE_ORDER_API' not in s: raise SystemExit('API constants pattern not found')
+          s=s.replace(old,new)
+          old2="const action=incoming.searchParams.get('action')||'',isOrder=req.method==='POST'&&action==='create-order';\n    const upstreamUrl=new URL(isOrder?ORDER_API:ADMIN_API);if(!isOrder)for(const [key,value] of incoming.searchParams)upstreamUrl.searchParams.append(key,value);"
+          new2="const action=incoming.searchParams.get('action')||'',isOrder=req.method==='POST'&&action==='create-order',isDelete=req.method==='POST'&&action==='delete-order';\n    const upstreamUrl=new URL(isOrder?ORDER_API:isDelete?DELETE_ORDER_API:ADMIN_API);if(!isOrder&&!isDelete)for(const [key,value] of incoming.searchParams)upstreamUrl.searchParams.append(key,value);"
+          if old2 not in s and 'isDelete' not in s: raise SystemExit('routing pattern not found')
+          s=s.replace(old2,new2)
+          p.write_text(s)
+          PY
+          node --check railway-admin/server.js
+          grep -q 'noktena-order-delete' railway-admin/server.js
+          grep -q "action==='delete-order'" railway-admin/server.js
+      - name: Commit
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add railway-admin/server.js
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'Route order deletion through protected API'
+          git push
