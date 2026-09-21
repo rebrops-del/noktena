@@ -1,0 +1,40 @@
+name: Verify Railway live
+on:
+  push:
+    paths:
+      - '.github/workflows/verify-railway-live.yml'
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify Railway proxy
+        run: |
+          set -euxo pipefail
+          BASE='https://admin-proxy-v2-production.up.railway.app'
+          curl -fsS --max-time 30 "$BASE/health" | grep -q '"ok":true'
+          curl -fsS --max-time 30 "$BASE/api/noktena-admin?action=health" | grep -q '"ok":true'
+          curl -fsS --max-time 30 "$BASE/catalog-bootstrap.js" -o /tmp/bootstrap.js
+          grep -q 'NOKTENA_CATALOG_BOOTSTRAP' /tmp/bootstrap.js
+      - name: Wait for GitHub Pages
+        run: |
+          set -euxo pipefail
+          for i in $(seq 1 30); do
+            a=$(curl -fsSL --max-time 20 "https://noktena.ru/admin/admin.js?v=$GITHUB_RUN_ID" || true)
+            h=$(curl -fsSL --max-time 20 "https://noktena.ru/?v=$GITHUB_RUN_ID" || true)
+            if printf '%s' "$a" | grep -q 'admin-proxy-v2-production.up.railway.app' && printf '%s' "$h" | grep -q 'admin-proxy-v2-production.up.railway.app/catalog-bootstrap.js'; then exit 0; fi
+            sleep 5
+          done
+          exit 1
+      - name: Render admin and storefront
+        run: |
+          set -euxo pipefail
+          CHROME=$(command -v google-chrome || command -v google-chrome-stable || command -v chromium || command -v chromium-browser)
+          "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --virtual-time-budget=10000 --dump-dom "https://noktena.ru/admin/?verify=$GITHUB_RUN_ID" > /tmp/admin.html
+          grep -q 'Сервер готов' /tmp/admin.html
+          "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --virtual-time-budget=12000 --dump-dom "https://noktena.ru/?verify=$GITHUB_RUN_ID" > /tmp/home.html
+          ! grep -q 'Каталог временно не загрузился' /tmp/home.html
+          grep -q 'product-open-card' /tmp/home.html
+          grep -q 'class="f-card' /tmp/home.html
