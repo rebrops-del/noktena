@@ -3,7 +3,7 @@
 
   const cfg = window.NOKTENA_ADMIN_CONFIG || {};
   const configured = () => Boolean(cfg.supabaseUrl && cfg.supabaseAnonKey);
-  const CACHE_KEY = 'noktena-catalog-overrides-v2';
+  const CACHE_KEY = 'noktena-catalog-overrides-v3';
   const MAX_INITIAL_WAIT_MS = 900;
   let rowsPromise = null;
 
