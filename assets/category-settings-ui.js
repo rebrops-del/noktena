@@ -21,7 +21,7 @@
   const money=n=>`${Math.round(Number(n)||0).toLocaleString('ru-RU')} ₽`;
   const style=document.createElement('style');
   style.textContent=`
-    .global-delivery-chip,.global-delivery-product{margin-top:8px;padding:9px 11px;border-radius:10px;background:#f2f8f4;color:#315c4c;font-size:12px;font-weight:700}
+    .global-delivery-chip{display:none!important}.global-delivery-product{margin-top:8px;padding:9px 11px;border-radius:10px;background:#f2f8f4;color:#315c4c;font-size:12px;font-weight:700}
     .global-delivery-product{margin:12px 0 0;font-size:13px;line-height:1.55}.global-delivery-product strong{color:#0a8d55}.global-delivery-chip{line-height:1.5}
     .product-promo-badge{display:inline-flex;align-items:center;justify-content:center;min-height:24px;padding:5px 10px;border-radius:999px;font-size:10px;font-weight:900;letter-spacing:.035em;text-transform:uppercase;white-space:nowrap;box-shadow:0 5px 14px rgba(0,0,0,.08)}
     .product-promo-badge.hit{background:#e5323d;color:#fff}
@@ -185,7 +185,7 @@
     setTimeout(async()=>{
       refreshQueued=false;
       updateDeliverySection();
-      await decorateCards();
+      document.querySelectorAll('.global-delivery-chip').forEach(el=>el.remove());
       decorateBadges();
     },0);
   }
