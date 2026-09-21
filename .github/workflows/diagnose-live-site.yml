@@ -8,6 +8,7 @@ jobs:
   diagnose:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
       - name: Check homepage
         run: |
           set -euxo pipefail
@@ -35,6 +36,42 @@ jobs:
           head -30 /tmp/edge.headers
           wc -c /tmp/edge.js
           grep -q 'NOKTENA_CATALOG_BOOTSTRAP' /tmp/edge.js
+      - name: Check JavaScript syntax
+        run: |
+          set -euxo pipefail
+          node --check assets/catalog-runtime.js
+          node --check assets/catalog-v2.js
+          node --check assets/product-detail.js
+          node --check assets/mattress-pagination.js
+          python - <<'PY'
+          from pathlib import Path
+          import re, subprocess
+          for name in ['index.html','product.html']:
+              text=Path(name).read_text(encoding='utf-8')
+              blocks=re.findall(r'<script(?![^>]*\bsrc=)[^>]*>(.*?)</script>',text,re.S|re.I)
+              for i,b in enumerate(blocks):
+                  p=Path(f'/tmp/{name}-{i}.js'); p.write_text(b,encoding='utf-8')
+                  subprocess.run(['node','--check',str(p)],check=True)
+                  print(name,'inline',i,'OK')
+          PY
+      - name: Render homepage in Chrome
+        run: |
+          set -euxo pipefail
+          CHROME=$(command -v google-chrome || command -v google-chrome-stable || command -v chromium || command -v chromium-browser)
+          echo "$CHROME"
+          "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --virtual-time-budget=12000 --dump-dom https://noktena.ru/ > /tmp/rendered.html
+          wc -c /tmp/rendered.html
+          ! grep -q 'Каталог временно не загрузился' /tmp/rendered.html
+          echo "Mattress cards: $(grep -o 'article class="card product-open-card"' /tmp/rendered.html | wc -l)"
+          echo "Furniture cards: $(grep -o 'class="f-card' /tmp/rendered.html | wc -l)"
+          grep -q 'product-open-card' /tmp/rendered.html
+      - name: Render product page in Chrome
+        run: |
+          set -euxo pipefail
+          CHROME=$(command -v google-chrome || command -v google-chrome-stable || command -v chromium || command -v chromium-browser)
+          "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --virtual-time-budget=12000 --dump-dom 'https://noktena.ru/product.html?kind=furniture&id=berhouse-24177' > /tmp/rendered-product.html
+          wc -c /tmp/rendered-product.html
+          grep -q 'Сидней' /tmp/rendered-product.html || grep -q '24177' /tmp/rendered-product.html
       - name: Show script references
         run: |
           grep -o '<script[^>]*src="[^"]*"' /tmp/home.html | tail -20 || true
