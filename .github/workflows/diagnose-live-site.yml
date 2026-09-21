@@ -1,0 +1,40 @@
+name: Diagnose live site
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/diagnose-live-site.yml'
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check homepage
+        run: |
+          set -euxo pipefail
+          curl -L --max-time 30 -D /tmp/home.headers -o /tmp/home.html https://noktena.ru/
+          head -40 /tmp/home.headers
+          wc -c /tmp/home.html
+          grep -q 'НОКТЕНА' /tmp/home.html
+      - name: Check catalog JSON
+        run: |
+          set -euxo pipefail
+          for f in data/data1.json data/data6.json data/furniture.json; do
+            curl -L --fail --max-time 30 -o /tmp/x.json "https://noktena.ru/$f"
+            node -e "JSON.parse(require('fs').readFileSync('/tmp/x.json','utf8')); console.log('$f JSON OK')"
+          done
+      - name: Check product page
+        run: |
+          set -euxo pipefail
+          curl -L --fail --max-time 30 -o /tmp/product.html 'https://noktena.ru/product.html?kind=furniture&id=berhouse-24177'
+          wc -c /tmp/product.html
+          grep -q 'product-detail' /tmp/product.html
+      - name: Check public Supabase bootstrap
+        run: |
+          set -euxo pipefail
+          curl -L --fail --max-time 30 -D /tmp/edge.headers -o /tmp/edge.js 'https://oldtlbkrftflfthfsqdv.supabase.co/functions/v1/noktena-admin?public=1'
+          head -30 /tmp/edge.headers
+          wc -c /tmp/edge.js
+          grep -q 'NOKTENA_CATALOG_BOOTSTRAP' /tmp/edge.js
+      - name: Show script references
+        run: |
+          grep -o '<script[^>]*src="[^"]*"' /tmp/home.html | tail -20 || true
