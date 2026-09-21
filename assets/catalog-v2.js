@@ -47,10 +47,30 @@
   function sortSizes(list){return uniq(list).sort((a,b)=>{const A=sizeSortValue(a),B=sizeSortValue(b);return A[0]-B[0]||A[1]-B[1]||A[2].localeCompare(B[2],'ru');});}
   function shortText(product){const t=String(product.summary||product.description||'').replace(/\s+/g,' ').trim();return t.length>180?`${t.slice(0,177).trim()}…`:t;}
   function publicSpec([k,v]){return k&&v&&!/производител|артикул|sku/i.test(k);}
-  function chooseSpecs(product){
-    const entries=Object.entries(product.specs||{}).filter(publicSpec);
-    const preferred=['Спальное место','Кроватное основание','Механизм трансформации','Бельевой ящик','Подъёмный механизм','Наполнение','Материал обивки','Материал фасада','Количество спальных мест'];
-    const out=[];for(const p of preferred){const e=entries.find(([k])=>k.toLowerCase()===p.toLowerCase());if(e&&!out.some(x=>x[0]===e[0]))out.push(e);if(out.length>=3)break;}for(const e of entries){if(out.length>=3)break;if(!out.some(x=>x[0]===e[0]))out.push(e);}return out;
+  function specKey(value){return String(value||'').toLowerCase().replace(/ё/g,'е').replace(/[^a-zа-я0-9]+/g,'');}
+  function variantSpecMap(product,variant){
+    const out={...(product?.specs||{})};
+    const attrs=variant?.attributes&&typeof variant.attributes==='object'?variant.attributes:{};
+    for(const [key,value] of Object.entries(attrs))if(key&&value!==''&&value!=null)out[key]=value;
+    if(variant?.size){
+      const sleepKey=Object.keys(out).find(k=>specKey(k)==='спальноеместо');
+      const attrSleepKey=Object.keys(attrs).find(k=>specKey(k)==='спальноеместо');
+      if(product?.category==='beds'||sleepKey||attrSleepKey)out[sleepKey||attrSleepKey||'Спальное место']=attrs[attrSleepKey]||variant.size;
+      const sizeKey=Object.keys(out).find(k=>specKey(k)==='размер');
+      const attrSizeKey=Object.keys(attrs).find(k=>specKey(k)==='размер');
+      if(sizeKey&&!attrSizeKey)out[sizeKey]=variant.size;
+    }
+    return out;
+  }
+  function specValueFor(product,variant,label){
+    const specs=variantSpecMap(product,variant),wanted=specKey(label);
+    const key=Object.keys(specs).find(k=>specKey(k)===wanted);
+    return key?specs[key]:'';
+  }
+  function chooseSpecs(product,variant=null){
+    const entries=Object.entries(variantSpecMap(product,variant)).filter(publicSpec);
+    const preferred=['Спальное место','Глубина','Ширина','Кроватное основание','Механизм трансформации','Бельевой ящик','Подъёмный механизм','Наполнение','Материал обивки','Материал фасада','Количество спальных мест'];
+    const out=[];for(const p of preferred){const e=entries.find(([k])=>specKey(k)===specKey(p));if(e&&!out.some(x=>x[0]===e[0]))out.push(e);if(out.length>=3)break;}for(const e of entries){if(out.length>=3)break;if(!out.some(x=>x[0]===e[0]))out.push(e);}return out;
   }
   function swatchCss(name){
     const n=String(name||'').toLowerCase().replace(/ё/g,'е');
@@ -63,14 +83,14 @@
   function furniturePrice(product,variant,size=''){const direct=validFurniturePrice(variant?.price);if(direct)return direct;const vars=Array.isArray(product?.variants)?product.variants:[];const same=vars.map(v=>String(v?.size||'')===String(size||'')?validFurniturePrice(v?.price):null).filter(Boolean);if(same.length)return Math.min(...same);const base=validFurniturePrice(product?.price);if(base)return base;const all=vars.map(v=>validFurniturePrice(v?.price)).filter(Boolean);return all.length?Math.min(...all):null;}
   function colorImageFor(product,color){if(!color)return '';const map=product?.colorImages||{};if(map[color])return map[color];const wanted=colorKey(color);const key=Object.keys(map).find(k=>colorKey(k)===wanted);return key?map[key]:'';}
   function updateCardImage(card,product,color){const src=colorImageFor(product,color);if(!src)return;const img=$('.f-gallery img',card);if(!img||img.getAttribute('src')===src)return;const preload=new Image();preload.onload=()=>{img.classList.add('is-changing');setTimeout(()=>{img.src=src;img.classList.remove('is-changing')},90);};preload.onerror=()=>{};preload.src=src;}
-  function cardDetailsMarkup(product){
-    const entries=Object.entries(product.specs||{}).filter(publicSpec);const description=String(product.description||'').trim();if(!entries.length&&!description)return '';
-    return `<details class="f-card-details"><summary><span>Описание и характеристики</span><span class="f-card-details-plus">+</span></summary><div class="f-card-details-body">${description?`<p>${esc(description)}</p>`:''}${entries.length?`<dl>${entries.map(([k,v])=>`<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>`:''}<a href="${esc(detailUrl(product))}" class="f-card-details-link">Все характеристики →</a></div></details>`;
+  function cardDetailsMarkup(product,variant=null){
+    const entries=Object.entries(variantSpecMap(product,variant)).filter(publicSpec);const description=String(product.description||'').trim();if(!entries.length&&!description)return '';
+    return `<details class="f-card-details"><summary><span>Описание и характеристики</span><span class="f-card-details-plus">+</span></summary><div class="f-card-details-body">${description?`<p>${esc(description)}</p>`:''}${entries.length?`<dl>${entries.map(([k,v])=>`<div data-detail-spec-key="${esc(k)}"><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>`:''}<a href="${esc(detailUrl(product))}" class="f-card-details-link">Все характеристики →</a></div></details>`;
   }
 
   function cardMarkup(product){
-    const imgs=uniq(product.images);const quick=chooseSpecs(product);const category=product.category==='beds'?'Кровать':'Диван';const link=detailUrl(product);
-    const sizes=sortSizes(product.sizes?.length?product.sizes:(product.variants||[]).map(v=>v.size));const initial=preferredVariant(product,'',sizes[0]||'');const price=furniturePrice(product,initial,sizes[0]||'');const discount=discountPercent(product);const comparePrice=oldPrice(price,discount);const first=imgs[0]||'assets/hero-noktena-final.png?v=20260908-final2';
+    const imgs=uniq(product.images);const category=product.category==='beds'?'Кровать':'Диван';const link=detailUrl(product);
+    const sizes=sortSizes(product.sizes?.length?product.sizes:(product.variants||[]).map(v=>v.size));const initial=preferredVariant(product,'',sizes[0]||'');const quick=chooseSpecs(product,initial);const price=furniturePrice(product,initial,sizes[0]||'');const discount=discountPercent(product);const comparePrice=oldPrice(price,discount);const first=imgs[0]||'assets/hero-noktena-final.png?v=20260908-final2';
     state.gallery.set(product.id,0);
     return `<article class="f-card product-open-card" data-product-id="${esc(product.id)}" data-product-link="${esc(link)}" data-selected-size="${esc(sizes[0]||'')}">
       <div class="f-gallery" data-gallery-id="${esc(product.id)}">
@@ -84,8 +104,8 @@
         <div class="f-card-eyebrow">${product.subtype?esc(product.subtype):'Каталог мебели'}${product.available?' · в наличии':''}</div>
         <h3 title="${esc(product.title)}">${esc(product.title)}</h3>
         ${shortText(product)?`<p class="f-card-summary">${esc(shortText(product))}</p>`:''}
-        ${quick.length?`<div class="f-premium-specs">${quick.map(([k,v])=>`<div><span>${esc(k)}</span><b>${esc(v)}</b></div>`).join('')}</div>`:''}
-        ${cardDetailsMarkup(product)}
+        ${quick.length?`<div class="f-premium-specs">${quick.map(([k,v])=>`<div data-spec-key="${esc(k)}"><span>${esc(k)}</span><b>${esc(v)}</b></div>`).join('')}</div>`:''}
+        ${cardDetailsMarkup(product,initial)}
         ${sizes.length?`<div class="f-option"><div class="f-option-head"><span>${product.category==='beds'?'Спальное место':'Размер'}</span><b>${sizes.length} ${sizes.length===1?'вариант':'вариантов'}</b></div><select class="f-size-select" data-card-size>${sizes.map((s,i)=>`<option value="${esc(s)}" ${i===0?'selected':''}>${esc(s)}</option>`).join('')}</select></div>`:''}
         <div class="f-card-bottom">
           <div class="f-price-row"><div class="f-price-stack"><div class="f-price-caption">Цена выбранного варианта</div><div class="f-old-price-line" ${discount>0&&comparePrice?'':'style="display:none"'}><span class="f-old-price" data-card-old-price>${comparePrice?rub(comparePrice):''}</span><span class="f-discount-badge" data-card-discount>−${discount}%</span></div><div class="f-price" data-card-price>${rub(price)}</div></div><div class="f-price-promo"><b>Цена сентября</b><span>до 30 сентября</span></div></div>
@@ -97,7 +117,8 @@
   }
 
   function productById(id){return [...state.data.beds,...state.data.sofas].find(x=>x.id===id);}
-  function updateCardVariant(card){const product=productById(card?.dataset.productId);if(!product)return;const size=card.dataset.selectedSize||'';const variant=preferredVariant(product,'',size);const price=furniturePrice(product,variant,size);const discount=discountPercent(product),comparePrice=oldPrice(price,discount);const el=$('[data-card-price]',card),old=$('[data-card-old-price]',card),badge=$('[data-card-discount]',card),line=old?.closest('.f-old-price-line');if(el)el.textContent=rub(price);if(old)old.textContent=comparePrice?rub(comparePrice):'';if(badge)badge.textContent=`−${discount}%`;if(line)line.style.display=discount>0&&comparePrice?'':'none';}
+  function updateCardSpecs(card,product,variant){if(!card||!product)return;card.querySelectorAll('[data-spec-key]').forEach(row=>{const value=specValueFor(product,variant,row.dataset.specKey);const target=row.querySelector('b');if(target&&value!==''&&value!=null)target.textContent=String(value);});card.querySelectorAll('[data-detail-spec-key]').forEach(row=>{const value=specValueFor(product,variant,row.dataset.detailSpecKey);const target=row.querySelector('dd');if(target&&value!==''&&value!=null)target.textContent=String(value);});}
+  function updateCardVariant(card){const product=productById(card?.dataset.productId);if(!product)return;const size=card.dataset.selectedSize||'';const variant=preferredVariant(product,'',size);const price=furniturePrice(product,variant,size);const discount=discountPercent(product),comparePrice=oldPrice(price,discount);const el=$('[data-card-price]',card),old=$('[data-card-old-price]',card),badge=$('[data-card-discount]',card),line=old?.closest('.f-old-price-line');if(el)el.textContent=rub(price);if(old)old.textContent=comparePrice?rub(comparePrice):'';if(badge)badge.textContent=`−${discount}%`;if(line)line.style.display=discount>0&&comparePrice?'':'none';updateCardSpecs(card,product,variant);}
   function setGallery(id,delta){const product=productById(id);if(!product)return;const imgs=uniq(product.images);if(imgs.length<2)return;const current=state.gallery.get(id)||0;const next=(current+delta+imgs.length)%imgs.length;const g=document.querySelector(`[data-gallery-id="${CSS.escape(id)}"]`);if(!g)return;const img=$('img',g);if(!img)return;const preload=new Image();preload.onload=()=>{state.gallery.set(id,next);img.classList.add('is-changing');setTimeout(()=>{img.src=imgs[next];img.classList.remove('is-changing')},90);const counter=$('.f-gallery-count',g);if(counter)counter.textContent=`${next+1} / ${imgs.length}`;};preload.src=imgs[next];}
   function filtered(view){let items=[...(state.data[view]||[])];const q=(state.query[view]||'').trim().toLowerCase();if(q)items=items.filter(p=>`${p.title} ${p.subtype||''} ${p.description||''} ${JSON.stringify(p.specs||{})}`.toLowerCase().includes(q));if(view==='sofas'&&state.subtype)items=items.filter(p=>p.subtype===state.subtype);const sort=state.sort[view];items.sort((a,b)=>{if(sort==='price-desc')return (b.price||-1)-(a.price||-1);if(sort==='name')return String(a.title).localeCompare(String(b.title),'ru');return (a.price??Number.MAX_SAFE_INTEGER)-(b.price??Number.MAX_SAFE_INTEGER);});return items;}
   function paginationMarkup(view,total,page){const pages=Math.max(1,Math.ceil(total/PAGE_SIZE));if(pages<=1)return'';const nums=[];const from=Math.max(1,page-2),to=Math.min(pages,page+2);if(from>1)nums.push(1);if(from>2)nums.push('…');for(let i=from;i<=to;i++)nums.push(i);if(to<pages-1)nums.push('…');if(to<pages)nums.push(pages);return `<div class="f-pagination" aria-label="Страницы каталога"><button class="f-page" data-page-view="${view}" data-page="${page-1}" ${page<=1?'disabled':''}>←</button>${nums.map(n=>n==='…'?'<span class="f-page f-page-gap">…</span>':`<button class="f-page ${n===page?'is-active':''}" data-page-view="${view}" data-page="${n}">${n}</button>`).join('')}<button class="f-page" data-page-view="${view}" data-page="${page+1}" ${page>=pages?'disabled':''}>→</button></div>`;}
