@@ -139,7 +139,7 @@
           const revenue=money(order.total||requestBody?.total||items.reduce((s,x)=>s+x.price*x.quantity,0));
           const orderId=String(order.order_no||order.id||Date.now());
           ecommerce('purchase',items,{id:orderId,revenue});
-          goal('PURCHASE',{order_id:orderId,revenue,currency:CURRENCY,items_count:items.reduce((s,x)=>s+x.quantity,0)});
+          goal('PURCHASE',{order_id:orderId,order_price:revenue,revenue,currency:CURRENCY,items_count:items.reduce((s,x)=>s+x.quantity,0)});
         }
       }catch{}
     }
