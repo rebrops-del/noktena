@@ -1,0 +1,31 @@
+(()=>{
+  'use strict';
+  const API='https://admin-proxy-v2-production.up.railway.app/api/noktena-admin';
+  const BOOT='https://admin-proxy-v2-production.up.railway.app/catalog-bootstrap.js';
+  const KEY='settings:promo_global_v1';
+  const TOPPER_IMAGE='/assets/admin-mattress-thumbs/r5-c2.webp?v=20260922-topper3';
+  const normalize=v=>String(v||'').toLowerCase().replace(/[«»„“”"']/g,'').replace(/ё/g,'е').replace(/\s+/g,' ').trim();
+  const isTopperName=v=>normalize(v).includes('наматрасник')&&normalize(v).includes('непромокаемый чехол');
+  const getSession=()=>{try{return JSON.parse(localStorage.getItem('nkt-adm2')||'null')}catch{return null}};
+  async function api(action,options={}){const s=getSession(),headers={...(options.headers||{})};if(s?.access_token)headers.Authorization='Bearer '+s.access_token;const r=await fetch(API+'?action='+encodeURIComponent(action),{...options,headers});const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||'Ошибка сервера');return d;}
+  async function loadBootstrap(){const text=await fetch(BOOT+'?promo='+Date.now(),{cache:'no-store'}).then(r=>r.text());const marker='window.NOKTENA_CATALOG_BOOTSTRAP=';const p=text.indexOf(marker);if(p<0)return{};return JSON.parse(text.slice(p+marker.length).trim().replace(/;+\s*$/,''));}
+  function currentSettings(b){const row=(b.rows||[]).find(r=>r.product_key===KEY);const p=row?.payload||{};return{enabled:p.enabled===true,title:Object.prototype.hasOwnProperty.call(p,'title')?String(p.title??''):'Цена сентября',subtitle:Object.prototype.hasOwnProperty.call(p,'subtitle')?String(p.subtitle??''):'до 30 сентября'};}
+  function toastMsg(msg,error=false){if(typeof toast==='function')toast(msg,error);else alert(msg)}
+
+  function buildModal(){
+    if(document.getElementById('globalPromoModal'))return;
+    const modal=document.createElement('div');modal.id='globalPromoModal';modal.className='modal hide';
+    modal.innerHTML=`<div class="modalbox small"><div class="modalhead"><div><b>Ценовая плашка для всех товаров</b><div class="muted">Одна настройка сразу для матрасов, кроватей и диванов.</div></div><button id="globalPromoClose" type="button" class="btn secondary">Закрыть</button></div><form id="globalPromoForm"><label class="check" style="margin:8px 0 16px"><input id="globalPromoEnabled" type="checkbox"> Использовать эту плашку сразу для всех товаров</label><div class="grid2"><label>Текст плашки<input id="globalPromoTitle" maxlength="60" placeholder="Цена сентября"></label><label>Подпись под плашкой<input id="globalPromoSubtitle" maxlength="80" placeholder="до 30 сентября"></label></div><div class="notice" style="margin-top:12px">Когда настройка включена, она имеет приоритет над индивидуальной ценовой плашкой товара. Отключите её, чтобы снова использовать настройки каждой карточки отдельно.</div><div class="savebar"><span></span><div class="actions"><button id="globalPromoCancel" type="button" class="btn secondary">Отмена</button><button type="submit" class="btn primary">Сохранить для всех товаров</button></div></div></form></div>`;
+    document.body.appendChild(modal);
+    const close=()=>modal.classList.add('hide');
+    document.getElementById('globalPromoClose').addEventListener('click',close);document.getElementById('globalPromoCancel').addEventListener('click',close);
+    document.getElementById('globalPromoForm').addEventListener('submit',async e=>{e.preventDefault();const btn=e.submitter;if(btn)btn.disabled=true;try{const payload={promoGlobalV1:true,enabled:document.getElementById('globalPromoEnabled').checked,title:document.getElementById('globalPromoTitle').value.trim(),subtitle:document.getElementById('globalPromoSubtitle').value.trim()};await api('save',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({key:KEY,kind:'mattress',item:payload,hidden:false,is_custom:false})});close();toastMsg('Ценовая плашка для всех товаров сохранена');}catch(err){toastMsg(err.message,true)}finally{if(btn)btn.disabled=false}});
+  }
+  function addButton(){const actions=document.querySelector('.main .top .actions');if(!actions||document.getElementById('globalPromoOpen'))return;const btn=document.createElement('button');btn.id='globalPromoOpen';btn.type='button';btn.className='btn secondary';btn.textContent='Ценовая плашка';const delivery=document.getElementById('deliverySettingsOpen');actions.insertBefore(btn,delivery||document.getElementById('add')||null);btn.addEventListener('click',async()=>{buildModal();try{const s=currentSettings(await loadBootstrap());document.getElementById('globalPromoEnabled').checked=s.enabled;document.getElementById('globalPromoTitle').value=s.title;document.getElementById('globalPromoSubtitle').value=s.subtitle;document.getElementById('globalPromoModal').classList.remove('hide');}catch(err){toastMsg(err.message,true)}});}
+
+  function fixTopperRows(){document.querySelectorAll('#rows tr').forEach(row=>{const key=row.querySelector('.muted')?.textContent||'';if(!isTopperName(key))return;const cell=row.querySelector('.prod');if(!cell)return;let img=cell.querySelector('img.thumb,.admin-mattress-thumb,.mattress-thumb-hi');if(!img){const blank=cell.querySelector('.thumb');img=document.createElement('img');img.className='thumb admin-mattress-thumb';if(blank)blank.replaceWith(img);else cell.prepend(img);}if(img.tagName==='IMG'){img.src=TOPPER_IMAGE;img.alt='Наматрасник «Непромокаемый чехол»';img.loading='lazy';img.decoding='async';}});}
+  function syncTopperEditor(){try{if(typeof draft==='undefined'||!draft||draft._kind!=='mattress'||!isTopperName(draft.model))return;draft.images=Array.isArray(draft.images)?draft.images:[];if(!draft.images.length){draft.images=[TOPPER_IMAGE];if(typeof renderImages==='function')renderImages();}}catch{}}
+
+  function init(){addButton();buildModal();fixTopperRows();const rows=document.getElementById('rows');if(rows)new MutationObserver(fixTopperRows).observe(rows,{childList:true,subtree:true});const editor=document.getElementById('editor');if(editor)new MutationObserver(()=>{if(!editor.classList.contains('hide'))setTimeout(syncTopperEditor,0)}).observe(editor,{attributes:true,attributeFilter:['class']});}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
+})();
