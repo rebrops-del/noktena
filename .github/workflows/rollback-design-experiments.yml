@@ -1,0 +1,66 @@
+name: Roll back visual experiments
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/rollback-design-experiments.yml'
+permissions:
+  contents: write
+jobs:
+  rollback:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Restore last stable pre-redesign shells
+        run: |
+          set -euxo pipefail
+          BASE=fe3d2121707cd1e1c64d39c2c19997b7ebfb53c6
+          git show "$BASE:index.html" > index.html
+          git show "$BASE:product.html" > product.html
+          git show "$BASE:checkout.html" > checkout.html
+          git show "$BASE:admin/index.html" > admin/index.html
+
+          cat > assets/post-rollback-fixes.css <<'CSS'
+          /* Preserve only explicit storefront requirements after visual rollback. */
+          .hit-badge,
+          .f-card-overlay-tags .hit,
+          .product-promo-badge.hit,
+          .pd-product-badge.hit{
+            background:#ef3340!important;
+            border-color:#ef3340!important;
+            color:#fff!important;
+          }
+          .pd-primary-btn{display:none!important}
+          CSS
+
+          python - <<'PY'
+          from pathlib import Path
+          for name in ['index.html','product.html']:
+              p=Path(name)
+              s=p.read_text(encoding='utf-8')
+              marker='</head>'
+              s=s.replace(marker,'<link rel="stylesheet" href="assets/post-rollback-fixes.css?v=20260922-rollback1">\n'+marker,1)
+              p.write_text(s,encoding='utf-8')
+          PY
+      - name: Validate rollback
+        run: |
+          set -euxo pipefail
+          ! grep -q 'atelier-v1.css' index.html
+          ! grep -q 'atelier-v2.css' index.html
+          ! grep -q 'storefront-v4.css' index.html
+          ! grep -q 'storefront-premium-v5.css' index.html
+          ! grep -q 'storefront-premium-v5-refine.css' index.html
+          ! grep -q 'admin-luxe.css' admin/index.html
+          grep -q 'post-rollback-fixes.css' index.html
+          grep -q 'post-rollback-fixes.css' product.html
+          grep -q 'pd-primary-btn{display:none' assets/post-rollback-fixes.css
+      - name: Commit rollback
+        run: |
+          if git diff --quiet; then exit 0; fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html product.html checkout.html admin/index.html assets/post-rollback-fixes.css
+          git commit -m 'Roll back unsuccessful visual redesigns'
+          git push
