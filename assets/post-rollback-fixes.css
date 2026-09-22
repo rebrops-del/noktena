@@ -1,4 +1,4 @@
-/* Preserve only explicit storefront requirements after visual rollback. */
+/* Preserve explicit storefront requirements after visual rollback. */
 .hit-badge,
 .f-card-overlay-tags .hit,
 .product-promo-badge.hit,
@@ -8,3 +8,256 @@
   color:#fff!important;
 }
 .pd-primary-btn{display:none!important}
+
+/* Catalog cards: keep the storefront deliberately simple.
+   Photo + bestseller badge + title + size selector + price + actions. */
+.card .tag,
+.card .firmness,
+.card .spec,
+.f-card .f-card-eyebrow,
+.f-card .f-card-summary,
+.f-card .f-premium-specs,
+.f-card .f-card-details,
+.f-card-overlay-tags span:not(.hit){
+  display:none!important;
+}
+
+/* Remove the empty layout reservations left by the hidden blocks. */
+.card .cardtop{
+  display:block!important;
+  height:auto!important;
+  min-height:0!important;
+  max-height:none!important;
+  grid-template-rows:none!important;
+  margin:0!important;
+}
+.card .cardtop .hit-badge{margin:0 0 14px!important}
+.card .body,
+.f-card .f-card-body{
+  padding:20px!important;
+  gap:15px!important;
+}
+.card .body h3,
+.f-card h3{
+  height:52px!important;
+  min-height:52px!important;
+  max-height:52px!important;
+  margin:0!important;
+  display:-webkit-box!important;
+  -webkit-box-orient:vertical!important;
+  -webkit-line-clamp:2!important;
+  overflow:hidden!important;
+  line-height:1.22!important;
+}
+
+/* Keep size selection clear and visually identical across product types. */
+.card .variantbox,
+.f-card .f-option{
+  width:100%!important;
+  height:auto!important;
+  min-height:0!important;
+  max-height:none!important;
+  display:grid!important;
+  gap:8px!important;
+  margin:0!important;
+  padding:0!important;
+}
+.card .variantbox .label,
+.f-card .f-option-head{
+  min-height:16px!important;
+  height:auto!important;
+  margin:0!important;
+}
+.card .variantbox .label,
+.f-card .f-option-head span{
+  color:#77746e!important;
+  font-size:9px!important;
+  line-height:1.2!important;
+  font-weight:700!important;
+  letter-spacing:.09em!important;
+  text-transform:uppercase!important;
+}
+.f-card .f-option-head{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  gap:12px!important;
+}
+.f-card .f-option-head b{
+  color:#8c8a84!important;
+  font-size:9px!important;
+  font-weight:600!important;
+}
+.card .size-select,
+.f-card .f-size-select{
+  width:100%!important;
+  max-width:none!important;
+  height:46px!important;
+  min-height:46px!important;
+  max-height:46px!important;
+  padding:0 42px 0 14px!important;
+  border:1px solid #ddd7ce!important;
+  border-radius:12px!important;
+  background:#fff!important;
+  color:#30332f!important;
+  font-size:11.5px!important;
+  font-weight:600!important;
+  box-shadow:none!important;
+}
+.card .size-select:hover,
+.f-card .f-size-select:hover{border-color:#c6bbaa!important}
+.card .size-select:focus,
+.f-card .f-size-select:focus{
+  border-color:#a88a59!important;
+  box-shadow:0 0 0 3px rgba(168,138,89,.10)!important;
+}
+
+/* Price block: remove secondary captions and keep the commercial information dominant. */
+.f-card .f-price-caption{display:none!important}
+.card .pricearea,
+.f-card .f-price-row{
+  width:100%!important;
+  height:auto!important;
+  min-height:70px!important;
+  max-height:none!important;
+  margin:0!important;
+  padding:10px 0 0!important;
+  border-top:1px solid #eee9e1!important;
+  display:flex!important;
+  align-items:flex-end!important;
+  justify-content:space-between!important;
+  gap:12px!important;
+}
+.card .price,
+.f-card .f-price{
+  line-height:1!important;
+}
+
+/* Same action geometry for mattresses, beds and sofas. */
+.cardbottom,
+.f-card-bottom{
+  width:100%!important;
+  margin-top:auto!important;
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;
+  column-gap:9px!important;
+  row-gap:10px!important;
+  align-items:center!important;
+}
+.cardbottom>.variantbox,
+.cardbottom>.pricearea,
+.f-card-bottom>.f-price-row{
+  grid-column:1 / -1!important;
+}
+.cardbottom>.cart-card-actions,
+.f-card-bottom>.cart-card-actions,
+.cardbottom>.product-more-link,
+.f-card-bottom>.product-more-link{
+  grid-column:auto!important;
+  width:100%!important;
+  min-width:0!important;
+  margin:0!important;
+}
+.cardbottom>.cart-card-actions,
+.f-card-bottom>.cart-card-actions{
+  display:block!important;
+}
+.cart-card-btn,
+.cardbottom .product-more-link,
+.f-card-bottom .product-more-link{
+  width:100%!important;
+  min-width:0!important;
+  max-width:none!important;
+  height:44px!important;
+  min-height:44px!important;
+  max-height:44px!important;
+  padding:0 13px!important;
+  border-radius:11px!important;
+  font-size:10.8px!important;
+  line-height:1!important;
+  font-weight:700!important;
+  letter-spacing:0!important;
+  white-space:nowrap!important;
+  box-shadow:none!important;
+}
+.cart-card-btn{
+  border:1px solid #252823!important;
+  background:#252823!important;
+  color:#fff!important;
+}
+.cart-card-btn:hover{background:#343731!important;border-color:#343731!important}
+.cardbottom .product-more-link,
+.f-card-bottom .product-more-link{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:8px!important;
+  border:1px solid #d9d2c8!important;
+  background:#fff!important;
+  color:#454640!important;
+}
+.cardbottom .product-more-link:hover,
+.f-card-bottom .product-more-link:hover{
+  background:#f8f6f1!important;
+  border-color:#c8bda9!important;
+  color:#292b27!important;
+  transform:none!important;
+}
+.cardbottom .product-more-link span:last-child,
+.f-card-bottom .product-more-link span:last-child{
+  color:#ae8951!important;
+  font-size:15px!important;
+}
+
+/* MAX is intentionally a quiet secondary action, not a third primary button. */
+.cardbottom>.max-btn,
+.f-card-bottom>.max-btn{
+  grid-column:1 / -1!important;
+  justify-self:start!important;
+  width:auto!important;
+  min-width:0!important;
+  min-height:38px!important;
+  height:38px!important;
+  padding:0 12px!important;
+  border:1px solid #ddd8f2!important;
+  border-radius:11px!important;
+  background:linear-gradient(180deg,#fff 0%,#fbfaff 100%)!important;
+  box-shadow:none!important;
+  gap:8px!important;
+  color:#5b4dc8!important;
+  font-weight:600!important;
+}
+.cardbottom>.max-btn:hover,
+.f-card-bottom>.max-btn:hover{
+  transform:none!important;
+  border-color:#c9c0ed!important;
+  background:#f8f6ff!important;
+}
+.cardbottom>.max-btn .max-icon,
+.f-card-bottom>.max-btn .max-icon{
+  width:20px!important;
+  height:20px!important;
+  flex:0 0 20px!important;
+  border-radius:6px!important;
+}
+.cardbottom>.max-btn span,
+.f-card-bottom>.max-btn span{
+  font-size:0!important;
+  background:none!important;
+  color:#5b4dc8!important;
+  -webkit-text-fill-color:#5b4dc8!important;
+}
+.cardbottom>.max-btn span::after,
+.f-card-bottom>.max-btn span::after{
+  content:"Консультация в MAX";
+  font-size:10.5px!important;
+  line-height:1!important;
+  font-weight:600!important;
+  letter-spacing:0!important;
+}
+
+@media(max-width:620px){
+  .card .body,.f-card .f-card-body{padding:17px!important;gap:13px!important}
+  .card .body h3,.f-card h3{height:auto!important;min-height:48px!important;max-height:48px!important}
+  .cart-card-btn,.cardbottom .product-more-link,.f-card-bottom .product-more-link{font-size:10.2px!important;padding:0 10px!important}
+}
