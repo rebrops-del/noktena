@@ -1,0 +1,56 @@
+name: Apply Premium Storefront V5
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/apply-premium-v5.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Load premium theme across storefront pages
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+
+          link='<link rel="stylesheet" href="assets/storefront-premium-v5.css?v=20260922-premium1">'
+          for name in ['index.html','product.html','checkout.html']:
+              p=Path(name)
+              s=p.read_text(encoding='utf-8')
+              s=re.sub(r'\n?<link rel="stylesheet" href="assets/storefront-v4\.css\?v=[^"]+">','',s)
+              s=re.sub(r'\n?<link rel="stylesheet" href="assets/storefront-premium-v5\.css\?v=[^"]+">','',s)
+              if '</head>' not in s:
+                  raise SystemExit(f'{name}: missing </head>')
+              s=s.replace('</head>',link+'\n</head>',1)
+              p.write_text(s,encoding='utf-8')
+          PY
+      - name: Validate premium theme
+        run: |
+          set -euxo pipefail
+          for f in index.html product.html checkout.html; do
+            grep -q 'storefront-premium-v5.css?v=20260922-premium1' "$f"
+            ! grep -q 'storefront-v4.css' "$f"
+          done
+          grep -q 'CATEGORY NAVIGATION: COMPACT' assets/storefront-premium-v5.css
+          grep -q 'white-space:nowrap!important' assets/storefront-premium-v5.css
+          grep -q 'product-promo-badge.hit' assets/storefront-premium-v5.css
+          grep -q 'grid-template-columns:minmax(0,1fr) minmax(0,1fr)' assets/storefront-premium-v5.css
+      - name: Commit
+        run: |
+          if git diff --quiet; then
+            echo 'No changes needed'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html product.html checkout.html
+          git commit -m 'Load premium v5 storefront design'
+          git push
