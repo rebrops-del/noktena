@@ -2,7 +2,7 @@
   'use strict';
 
   const MAX_LINK='https://max.ru/u/f9LHodD0cOKZqie3BJvn11xgsNvxJK_kFOqYtKyFuZ2uMitoxZIwNaH8-NY';
-  const MAX_ICON='https://max.ru/s/img/big-logo.png';
+  const MAX_ICON='/assets/max-logo.png?v=20260922-max1';
   const DATA_FILES=['data/data1.json','data/data2.json','data/data3.json','data/data4.json','data/data5.json','data/data6.json'];
   const REMOVE_MODELS=new Set(['Матрас Mega холкон TFK','Матрас Mega холкон-кокос TFK','Матрас MEGA Бикокос ППУ 10 ECO','Матрас Стандарт Детский','Подушка Обнимашки']);
   const FIRMNESS={'Подушка Память форма':'Средняя','Матрас Стандарт':'Ниже средней','Матрас Барселона ZAСоня Gray Night':'1 сторона — выше средней / 2 сторона — средняя','Матрас Касабланка ZAСоня Gray Night':'Средняя','Матрас Валенсия ZAСоня Gray Night':'Средняя','Матрас Ибица ZAСоня Gray Night':'Средняя','Матрас Imperial Suite латекс-кокос Gray Night':'Жёсткая','Матрас MEGA MULT ЗИМА ЛЕТО MultiPocket Gray Night':'1 сторона — мягкая / 2 сторона — средняя','Матрас MEGA MULT ELITE MultiPocket Gray Night':'1 сторона — мягкая / 2 сторона — средняя'};

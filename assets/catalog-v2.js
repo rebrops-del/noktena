@@ -1,7 +1,7 @@
 (() => {
   'use strict';
   const MAX_LINK='https://max.ru/u/f9LHodD0cOKZqie3BJvn11xgsNvxJK_kFOqYtKyFuZ2uMitoxZIwNaH8-NY';
-  const MAX_ICON='https://max.ru/s/img/big-logo.png';
+  const MAX_ICON='/assets/max-logo.png?v=20260922-max1';
   const PAGE_SIZE=12;
   const views=new Set(['home','mattresses','beds','sofas','delivery','guide']);
   const state={data:{beds:[],sofas:[]},page:{beds:1,sofas:1},query:{beds:'',sofas:''},sort:{beds:'price-asc',sofas:'price-asc'},subtype:'',gallery:new Map(),loaded:false};
