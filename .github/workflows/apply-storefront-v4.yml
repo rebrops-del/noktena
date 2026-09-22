@@ -1,0 +1,78 @@
+name: Apply Storefront V4
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/apply-storefront-v4.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Patch storefront
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+
+          # Load the final visual layer last so all legacy theme rules are consistently overridden.
+          p=Path('index.html')
+          s=p.read_text(encoding='utf-8')
+          marker='<link rel="stylesheet" href="assets/shop-nav-v3.css?v=20260921-1">'
+          link='<link rel="stylesheet" href="assets/storefront-v4.css?v=20260922-1">'
+          if link not in s:
+              if marker not in s:
+                  raise SystemExit('index.html: shop-nav-v3 marker missing')
+              s=s.replace(marker,marker+'\n'+link,1)
+          p.write_text(s,encoding='utf-8')
+
+          p=Path('product.html')
+          s=p.read_text(encoding='utf-8')
+          marker='<link rel="stylesheet" href="assets/atelier-v2.css?v=20260921-wow1">'
+          link='<link rel="stylesheet" href="assets/storefront-v4.css?v=20260922-1">'
+          if link not in s:
+              if marker not in s:
+                  raise SystemExit('product.html: atelier-v2 marker missing')
+              s=s.replace(marker,marker+'\n'+link,1)
+          s=s.replace('assets/product-detail.js?v=20260921-depthpromo1','assets/product-detail.js?v=20260922-cardunify1')
+          p.write_text(s,encoding='utf-8')
+
+          # Remove duplicated clarification CTA. Purchase/cart buttons are injected by cart.js;
+          # consultation in MAX remains as the single assistance CTA.
+          p=Path('assets/product-detail.js')
+          s=p.read_text(encoding='utf-8')
+          before=s
+          s,n=re.subn(r'<a class="pd-primary-btn"[^>]*>.*?</a>','',s,flags=re.S)
+          if n < 2 and ('Уточнить размер и наличие' in before or 'Уточнить наличие и оформить' in before):
+              raise SystemExit(f'Expected to remove both clarification CTAs, removed {n}')
+          p.write_text(s,encoding='utf-8')
+          PY
+      - name: Validate
+        run: |
+          set -euxo pipefail
+          grep -q 'storefront-v4.css?v=20260922-1' index.html
+          grep -q 'storefront-v4.css?v=20260922-1' product.html
+          grep -q 'assets/product-detail.js?v=20260922-cardunify1' product.html
+          ! grep -q 'Уточнить размер и наличие' assets/product-detail.js
+          ! grep -q 'Уточнить наличие и оформить' assets/product-detail.js
+          grep -q 'product-promo-badge.hit' assets/storefront-v4.css
+          grep -q 'background:#e5323d!important' assets/storefront-v4.css
+          grep -q '.shop-tab.is-active' assets/storefront-v4.css
+          node --check assets/product-detail.js
+      - name: Commit
+        run: |
+          if git diff --quiet; then
+            echo 'No changes needed'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html product.html assets/product-detail.js
+          git commit -m 'Unify catalog cards and remove duplicate clarification CTA'
+          git push
