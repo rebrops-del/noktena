@@ -1,0 +1,42 @@
+/* Full-width MAX consultation button inside product cards */
+.cardbottom>.max-btn,
+.f-card-bottom>.max-btn{
+  grid-column:1 / -1!important;
+  width:100%!important;
+  min-width:100%!important;
+  max-width:100%!important;
+  justify-self:stretch!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:10px!important;
+  height:46px!important;
+  min-height:46px!important;
+  padding:0 16px!important;
+  margin:0!important;
+  box-sizing:border-box!important;
+  border:1px solid #d8d1ef!important;
+  border-radius:12px!important;
+  background:linear-gradient(180deg,#fff 0%,#fbfaff 100%)!important;
+  box-shadow:0 4px 14px rgba(73,48,224,.045)!important;
+  transition:background .18s ease,border-color .18s ease,box-shadow .18s ease,transform .18s ease!important;
+}
+.cardbottom>.max-btn:hover,
+.f-card-bottom>.max-btn:hover{
+  background:#f8f6ff!important;
+  border-color:#c7bced!important;
+  box-shadow:0 7px 18px rgba(73,48,224,.075)!important;
+  transform:translateY(-1px)!important;
+}
+.cardbottom>.max-btn .max-icon,
+.f-card-bottom>.max-btn .max-icon{
+  width:23px!important;
+  height:23px!important;
+  flex:0 0 23px!important;
+}
+.cardbottom>.max-btn span,
+.f-card-bottom>.max-btn span{
+  white-space:nowrap!important;
+  font-size:11px!important;
+  font-weight:600!important;
+}
