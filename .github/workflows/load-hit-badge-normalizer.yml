@@ -1,0 +1,47 @@
+name: Load Strict Hit Badge Normalizer
+on:
+  push:
+    paths:
+      - '.github/workflows/load-hit-badge-normalizer.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Load normalizer last
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('index.html')
+          s=p.read_text(encoding='utf-8')
+          tag='<script src="assets/unify-hit-badges.js?v=20260922-strict1"></script>'
+          if tag not in s:
+              marker='</body>'
+              if marker not in s:
+                  raise SystemExit('body marker not found')
+              s=s.replace(marker,tag+'\n'+marker,1)
+              p.write_text(s,encoding='utf-8')
+          PY
+      - name: Validate
+        run: |
+          grep -q 'unify-hit-badges.js?v=20260922-strict1' index.html
+          grep -q "height','32px'" assets/unify-hit-badges.js
+          grep -q "font-family','Onest" assets/unify-hit-badges.js
+      - name: Commit
+        run: |
+          if git diff --quiet; then
+            echo 'No changes'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          git commit -m 'Load strict unified bestseller badge normalizer'
+          git push
