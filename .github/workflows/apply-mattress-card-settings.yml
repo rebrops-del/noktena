@@ -1,0 +1,55 @@
+name: Apply Mattress Card Settings
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/apply-mattress-card-settings.yml'
+      - 'admin/admin-mattress-card-settings.js'
+      - 'assets/mattress-card-settings-runtime.js'
+permissions:
+  contents: write
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Add runtime scripts
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          p=Path('admin/index.html')
+          s=p.read_text(encoding='utf-8')
+          tag='  <script src="./admin-mattress-card-settings.js?v=20260922-1" defer></script>'
+          if tag not in s:
+              marker='  <script src="./admin-card-settings.js?v=1" defer></script>'
+              if marker not in s: raise SystemExit('admin marker missing')
+              s=s.replace(marker,marker+'\n'+tag,1)
+              p.write_text(s,encoding='utf-8')
+
+          p=Path('index.html')
+          s=p.read_text(encoding='utf-8')
+          tag='<script src="assets/mattress-card-settings-runtime.js?v=20260922-1"></script>'
+          if tag not in s:
+              marker='<script src="assets/cart.js?v=20260921-cart1"></script>'
+              if marker not in s: raise SystemExit('storefront marker missing')
+              s=s.replace(marker,marker+'\n'+tag,1)
+              p.write_text(s,encoding='utf-8')
+          PY
+      - name: Validate
+        run: |
+          set -euxo pipefail
+          grep -q 'admin-mattress-card-settings.js?v=20260922-1' admin/index.html
+          grep -q 'mattress-card-settings-runtime.js?v=20260922-1' index.html
+          grep -q 'productDiscountPercent' admin/admin-mattress-card-settings.js
+          grep -q 'product-promo-badge.hit' assets/mattress-card-settings-runtime.js
+      - name: Commit
+        run: |
+          if git diff --quiet; then exit 0; fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add admin/index.html index.html
+          git commit -m 'Enable mattress discount and promo card settings'
+          git push
