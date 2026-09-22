@@ -1,0 +1,62 @@
+name: Fix Topper Product Image
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/fix-topper-product-image.yml'
+permissions:
+  contents: write
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Fix mattress product image resolution
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('assets/product-detail.js')
+          s=p.read_text(encoding='utf-8')
+          old="""  function mattressImageMarkup(product){if(Array.isArray(product.images)&&product.images.length)return galleryMarkup(product.images,product.model);const pp=PHOTO_POS[product.model];if(!pp)return galleryMarkup([],product.model);galleryImages=[];return `<div class=\"pd-gallery-card\"><div class=\"pd-main-media pd-sprite-media\"><div class=\"pd-sprite\" style=\"--col:${pp[0]};background-image:url('assets/product-row-${pp[1]+1}.webp?v=20260905-photos2')\" role=\"img\" aria-label=\"${esc(product.model)}\"></div></div></div>`;}"""
+          new="""  function normalizeMattressModelKey(value){return String(value||'').trim().replace(/[«»„“”]/g,'\\\"').replace(/\\s+/g,' ');}
+  function mattressImageMarkup(product){
+    if(Array.isArray(product.images)&&product.images.length)return galleryMarkup(product.images,product.model);
+    const normalized=normalizeMattressModelKey(product.model);
+    if(normalized==='Наматрасник \\\"Непромокаемый чехол\\\"')return galleryMarkup(['assets/admin-mattress-thumbs/r5-c2.webp?v=20260922-topper1'],product.model);
+    const photoKey=Object.keys(PHOTO_POS).find(key=>normalizeMattressModelKey(key)===normalized);
+    const pp=photoKey?PHOTO_POS[photoKey]:null;
+    if(!pp)return galleryMarkup([],product.model);
+    galleryImages=[];
+    return `<div class=\"pd-gallery-card\"><div class=\"pd-main-media pd-sprite-media\"><div class=\"pd-sprite\" style=\"--col:${pp[0]};background-image:url('assets/product-row-${pp[1]+1}.webp?v=20260905-photos2')\" role=\"img\" aria-label=\"${esc(product.model)}\"></div></div></div>`;
+  }"""
+          if old not in s:
+            raise SystemExit('mattressImageMarkup source block not found')
+          s=s.replace(old,new,1)
+          p.write_text(s,encoding='utf-8')
+
+          p=Path('product.html')
+          s=p.read_text(encoding='utf-8')
+          oldsrc='assets/product-detail.js?v=20260921-depthpromo1'
+          newsrc='assets/product-detail.js?v=20260922-topper1'
+          if oldsrc in s:
+            s=s.replace(oldsrc,newsrc,1)
+          elif newsrc not in s:
+            raise SystemExit('product-detail cache marker not found')
+          p.write_text(s,encoding='utf-8')
+          PY
+      - name: Validate
+        run: |
+          set -euxo pipefail
+          node --check assets/product-detail.js
+          grep -q 'admin-mattress-thumbs/r5-c2.webp?v=20260922-topper1' assets/product-detail.js
+          grep -q 'product-detail.js?v=20260922-topper1' product.html
+      - name: Commit
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add assets/product-detail.js product.html
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'Show real topper image on product page'
+          git push
