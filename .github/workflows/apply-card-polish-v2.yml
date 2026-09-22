@@ -1,0 +1,45 @@
+name: Apply Card Polish V2
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/apply-card-polish-v2.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Load targeted card polish after cart styles
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('index.html')
+          s=p.read_text(encoding='utf-8')
+          marker='<link rel="stylesheet" href="assets/cart.css?v=20260921-cart1">'
+          link='<link rel="stylesheet" href="assets/card-polish-v2.css?v=20260922-card2">'
+          if link not in s:
+              if marker not in s:
+                  raise SystemExit('cart.css marker not found')
+              s=s.replace(marker, marker+'\n'+link, 1)
+              p.write_text(s,encoding='utf-8')
+          PY
+      - name: Validate
+        run: |
+          set -euxo pipefail
+          grep -q 'card-polish-v2.css?v=20260922-card2' index.html
+          grep -q 'grid-template-columns:repeat(3,minmax(0,1fr))' assets/card-polish-v2.css
+          grep -q 'min-width:142px' assets/card-polish-v2.css
+      - name: Commit
+        run: |
+          if git diff --quiet; then exit 0; fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          git commit -m 'Load targeted product card polish'
+          git push
