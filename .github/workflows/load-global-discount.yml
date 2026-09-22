@@ -1,0 +1,61 @@
+name: Load Global Discount
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/load-global-discount.yml'
+      - 'assets/global-discount-runtime.js'
+      - 'admin/global-discount-settings.js'
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Patch script links
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          def add_after(path, marker, addition):
+              p=Path(path); s=p.read_text(encoding='utf-8')
+              if addition in s:
+                  return
+              if marker not in s:
+                  raise SystemExit(f'{path}: marker not found: {marker}')
+              p.write_text(s.replace(marker, marker+'\n'+addition, 1), encoding='utf-8')
+
+          add_after('index.html',
+                    '<script src="assets/global-promo-runtime.js?v=20260922-globalpromo1"></script>',
+                    '<script src="assets/global-discount-runtime.js?v=20260922-globaldiscount1"></script>')
+          add_after('product.html',
+                    '<script src="assets/global-promo-runtime.js?v=20260922-globalpromo1"></script>',
+                    '<script src="assets/global-discount-runtime.js?v=20260922-globaldiscount1"></script>')
+          add_after('admin/index.html',
+                    '<script src="./global-promo-settings.js?v=20260922-1" defer></script>',
+                    '<script src="./global-discount-settings.js?v=20260922-1" defer></script>')
+          PY
+      - name: Validate
+        run: |
+          set -euxo pipefail
+          node --check assets/global-discount-runtime.js
+          node --check admin/global-discount-settings.js
+          grep -q 'global-discount-runtime.js?v=20260922-globaldiscount1' index.html
+          grep -q 'global-discount-runtime.js?v=20260922-globaldiscount1' product.html
+          grep -q 'global-discount-settings.js?v=20260922-1' admin/index.html
+      - name: Commit
+        run: |
+          if git diff --quiet; then
+            echo 'No changes needed'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html product.html admin/index.html
+          git commit -m 'Load global discount controls'
+          git push
