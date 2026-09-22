@@ -1,0 +1,41 @@
+name: Apply MAX Card Fullwidth
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/apply-max-card-fullwidth.yml'
+permissions:
+  contents: write
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Add stylesheet link
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('index.html')
+          s=p.read_text(encoding='utf-8')
+          tag='<link rel="stylesheet" href="assets/max-card-fullwidth.css?v=20260922-maxwide1">'
+          if tag not in s:
+              marker='<link rel="stylesheet" href="assets/card-polish-v2.css?v=20260922-card2">'
+              if marker not in s:
+                  raise SystemExit('card polish marker not found')
+              s=s.replace(marker, marker+'\n'+tag,1)
+              p.write_text(s,encoding='utf-8')
+          PY
+      - name: Validate
+        run: |
+          grep -q 'max-card-fullwidth.css?v=20260922-maxwide1' index.html
+          grep -q 'width:100%!important' assets/max-card-fullwidth.css
+      - name: Commit
+        run: |
+          if git diff --quiet; then exit 0; fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          git commit -m 'Load full-width MAX card button style'
+          git push
