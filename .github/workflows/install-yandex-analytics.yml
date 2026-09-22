@@ -1,0 +1,56 @@
+name: Install Yandex Analytics
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/install-yandex-analytics.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  install:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Inject analytics loader
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          snippet = '''\n<script src="/assets/yandex-metrika-config.js?v=20260922-1"></script>\n<script src="/assets/yandex-analytics.js?v=20260922-1"></script>\n'''
+          for name in ['index.html','product.html','checkout.html']:
+              p=Path(name)
+              text=p.read_text(encoding='utf-8')
+              if '/assets/yandex-analytics.js' in text:
+                  continue
+              if '</body>' not in text:
+                  raise SystemExit(f'{name}: </body> not found')
+              text=text.replace('</body>', snippet+'\n</body>', 1)
+              p.write_text(text, encoding='utf-8')
+          PY
+
+      - name: Validate
+        run: |
+          node --check assets/yandex-metrika-config.js
+          node --check assets/yandex-analytics.js
+          grep -q '/assets/yandex-analytics.js' index.html
+          grep -q '/assets/yandex-analytics.js' product.html
+          grep -q '/assets/yandex-analytics.js' checkout.html
+
+      - name: Commit
+        run: |
+          if git diff --quiet; then
+            echo 'No changes'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html product.html checkout.html
+          git commit -m 'Install Yandex analytics on storefront'
+          git push
