@@ -1,0 +1,10 @@
+/* Preserve only explicit storefront requirements after visual rollback. */
+.hit-badge,
+.f-card-overlay-tags .hit,
+.product-promo-badge.hit,
+.pd-product-badge.hit{
+  background:#ef3340!important;
+  border-color:#ef3340!important;
+  color:#fff!important;
+}
+.pd-primary-btn{display:none!important}
