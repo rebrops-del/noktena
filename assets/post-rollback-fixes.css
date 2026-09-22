@@ -1,11 +1,34 @@
 /* Preserve explicit storefront requirements after visual rollback. */
+/* One canonical bestseller badge for mattresses, beds and sofas. */
 .hit-badge,
-.f-card-overlay-tags .hit,
 .product-promo-badge.hit,
+.f-card-overlay-tags .hit,
 .pd-product-badge.hit{
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  width:auto!important;
+  min-width:0!important;
+  height:32px!important;
+  min-height:32px!important;
+  max-height:32px!important;
+  padding:0 13px!important;
+  margin:0!important;
+  border:1px solid #ef3340!important;
+  border-radius:999px!important;
   background:#ef3340!important;
-  border-color:#ef3340!important;
   color:#fff!important;
+  font-family:Onest,Arial,"Segoe UI",sans-serif!important;
+  font-size:11px!important;
+  line-height:1!important;
+  font-weight:800!important;
+  font-style:normal!important;
+  letter-spacing:.025em!important;
+  text-transform:uppercase!important;
+  white-space:nowrap!important;
+  box-shadow:none!important;
+  text-shadow:none!important;
+  box-sizing:border-box!important;
 }
 .pd-primary-btn{display:none!important}
 
@@ -31,25 +54,14 @@
   grid-template-rows:none!important;
   margin:0!important;
 }
-/* Native and ADMIN-injected bestseller badges must occupy exactly the same place. */
 .card .cardtop>.hit-badge,
 .card .cardtop>.product-promo-badge.hit{
-  display:inline-flex!important;
-  align-items:center!important;
-  justify-content:center!important;
-  height:32px!important;
-  min-height:32px!important;
   margin:0 0 14px!important;
-  padding:0 13px!important;
-  border-radius:999px!important;
-  font-family:Onest,Arial,"Segoe UI",sans-serif!important;
-  font-size:11px!important;
-  line-height:1!important;
-  font-weight:800!important;
-  letter-spacing:.025em!important;
-  text-transform:uppercase!important;
   vertical-align:top!important;
-  box-sizing:border-box!important;
+}
+/* Furniture hit badge uses the same geometry; only its overlay position differs. */
+.f-card-overlay-tags .hit{
+  margin:0!important;
 }
 .card .body,
 .f-card .f-card-body{
