@@ -1,0 +1,44 @@
+name: Visual QA Premium V5
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/visual-qa-premium-v5.yml'
+
+jobs:
+  visual:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wait for live premium v5
+        run: |
+          set -euxo pipefail
+          for i in $(seq 1 80); do
+            html=$(curl -sS -L --max-time 20 "https://noktena.ru/?qa=$GITHUB_RUN_ID" || true)
+            css=$(curl -sS -L --max-time 20 "https://noktena.ru/assets/storefront-premium-v5.css?qa=$GITHUB_RUN_ID" || true)
+            if printf '%s' "$html" | grep -q 'storefront-premium-v5.css?v=20260922-premium1' \
+              && printf '%s' "$css" | grep -q 'premium storefront v5'; then
+              exit 0
+            fi
+            sleep 5
+          done
+          echo 'Premium v5 not live in time' >&2
+          exit 1
+      - name: Capture desktop and mobile
+        run: |
+          set -euxo pipefail
+          CHROME=$(command -v google-chrome || command -v google-chrome-stable || command -v chromium || command -v chromium-browser)
+          "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --hide-scrollbars --virtual-time-budget=12000 --window-size=1600,1200 --screenshot=/tmp/home.png "https://noktena.ru/?qa=$GITHUB_RUN_ID#home"
+          "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --hide-scrollbars --virtual-time-budget=12000 --window-size=1600,1300 --screenshot=/tmp/beds.png "https://noktena.ru/?qa=$GITHUB_RUN_ID#beds"
+          "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --hide-scrollbars --virtual-time-budget=12000 --window-size=1600,1300 --screenshot=/tmp/mattresses.png "https://noktena.ru/?qa=$GITHUB_RUN_ID#mattresses"
+          "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --hide-scrollbars --virtual-time-budget=12000 --window-size=430,1050 --screenshot=/tmp/mobile-beds.png "https://noktena.ru/?qa=$GITHUB_RUN_ID#beds"
+          "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --hide-scrollbars --virtual-time-budget=12000 --window-size=1600,1200 --screenshot=/tmp/product.png "https://noktena.ru/product.html?kind=furniture&id=berhouse-20778&qa=$GITHUB_RUN_ID"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: premium-v5-screenshots
+          path: |
+            /tmp/home.png
+            /tmp/beds.png
+            /tmp/mattresses.png
+            /tmp/mobile-beds.png
+            /tmp/product.png
+          retention-days: 3
