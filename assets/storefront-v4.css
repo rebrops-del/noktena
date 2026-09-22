@@ -1,0 +1,255 @@
+/* NOKTENA storefront v4 — unified product cards + refined category navigation */
+
+/* ---------- CATEGORY NAVIGATION ---------- */
+.shop-tabs-shell{
+  padding:10px 0!important;
+  background:rgba(248,245,239,.96)!important;
+  border-bottom:1px solid rgba(60,52,43,.075)!important;
+  box-shadow:0 8px 28px rgba(45,38,31,.04)!important;
+  backdrop-filter:blur(18px) saturate(120%)!important;
+}
+.shop-tabs{
+  width:min(1180px,calc(100% - 28px))!important;
+  min-height:58px!important;
+  display:grid!important;
+  grid-template-columns:repeat(6,minmax(0,1fr))!important;
+  gap:8px!important;
+  margin:0 auto!important;
+  padding:0!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  overflow:visible!important;
+}
+.shop-tab,.shop-tab[data-shop-view="guide"]{
+  position:relative!important;
+  min-width:0!important;
+  min-height:56px!important;
+  padding:0 16px!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:10px!important;
+  border:1px solid rgba(62,54,45,.10)!important;
+  border-radius:16px!important;
+  background:rgba(255,254,251,.84)!important;
+  box-shadow:0 4px 14px rgba(51,43,34,.035)!important;
+  color:#5b5851!important;
+  overflow:hidden!important;
+  transition:background .18s ease,border-color .18s ease,box-shadow .18s ease,transform .18s ease!important;
+}
+.shop-tab + .shop-tab:before{display:none!important}
+.shop-tab:hover{
+  transform:translateY(-1px)!important;
+  background:#fffdfa!important;
+  border-color:rgba(159,126,77,.22)!important;
+  box-shadow:0 10px 24px rgba(53,45,36,.07)!important;
+}
+.shop-tab-icon{
+  width:31px!important;height:31px!important;flex:0 0 31px!important;
+  display:grid!important;place-items:center!important;
+  border:1px solid rgba(155,122,72,.13)!important;
+  border-radius:10px!important;
+  background:#f2ebdf!important;
+  color:#967443!important;
+  box-shadow:none!important;
+}
+.shop-tab-icon svg{width:17px!important;height:17px!important;stroke-width:1.65!important}
+.shop-tab>span:last-child{display:flex!important;align-items:center!important;min-width:0!important}
+.shop-tab b{font-size:13px!important;line-height:1!important;font-weight:650!important;letter-spacing:-.012em!important;color:#565750!important;white-space:nowrap!important}
+.shop-tab small{display:none!important}
+.shop-tab.is-active{
+  background:linear-gradient(180deg,#f2eadf 0%,#ede3d4 100%)!important;
+  border-color:rgba(157,122,68,.24)!important;
+  box-shadow:0 8px 22px rgba(74,59,42,.075),inset 0 1px 0 rgba(255,255,255,.72)!important;
+  transform:none!important;
+}
+.shop-tab.is-active::after{
+  content:""!important;position:absolute!important;left:24%!important;right:24%!important;bottom:0!important;
+  height:2px!important;width:auto!important;border-radius:2px 2px 0 0!important;
+  background:#9b7745!important;box-shadow:none!important;transform:none!important;
+}
+.shop-tab.is-active .shop-tab-icon{background:#fffaf2!important;color:#815f32!important;border-color:rgba(151,111,57,.20)!important}
+.shop-tab.is-active b{color:#2f302c!important;font-weight:720!important;text-shadow:none!important}
+
+/* ---------- UNIFIED CATALOG CARDS ---------- */
+.card,.f-card{
+  border:1px solid #e6dfd5!important;
+  border-radius:24px!important;
+  background:#fff!important;
+  box-shadow:0 16px 42px rgba(48,41,33,.07)!important;
+  overflow:hidden!important;
+  transition:transform .22s ease,box-shadow .22s ease,border-color .22s ease!important;
+}
+.card:hover,.f-card:hover{
+  transform:translateY(-3px)!important;
+  border-color:#d8cbb8!important;
+  box-shadow:0 25px 62px rgba(48,41,33,.11)!important;
+}
+.photo-media,.f-gallery{
+  background:linear-gradient(145deg,#f0ece6,#e9e3da)!important;
+  border-bottom:1px solid #ece5dc!important;
+}
+.body,.f-card-body{
+  padding:20px!important;
+  background:linear-gradient(180deg,#fff 0%,#fffdfa 100%)!important;
+}
+.body h3,.f-card h3{
+  color:#2d2f2b!important;
+  font-size:20px!important;
+  line-height:1.18!important;
+  font-weight:650!important;
+  letter-spacing:-.025em!important;
+}
+.f-card-eyebrow{color:#9a7a49!important;font-size:8.5px!important;font-weight:650!important;letter-spacing:.12em!important}
+.f-card-summary{color:#777169!important;font-size:11.5px!important;line-height:1.58!important}
+
+/* One calm characteristics block instead of three heavy strips. */
+.f-premium-specs{
+  display:block!important;
+  height:auto!important;min-height:0!important;max-height:none!important;
+  padding:4px 14px!important;
+  border:1px solid #e8e1d7!important;
+  border-radius:14px!important;
+  background:#faf8f4!important;
+  overflow:hidden!important;
+}
+.f-premium-specs>div{
+  min-height:36px!important;height:auto!important;max-height:none!important;
+  display:grid!important;grid-template-columns:minmax(0,1fr) minmax(110px,auto)!important;
+  align-items:center!important;gap:14px!important;
+  padding:8px 0!important;
+  border-bottom:1px solid #ece5dc!important;
+}
+.f-premium-specs>div:last-child{border-bottom:0!important}
+.f-premium-specs span{color:#908a82!important;font-size:10px!important;font-weight:500!important;line-height:1.3!important}
+.f-premium-specs b{color:#3d4742!important;font-size:10.5px!important;font-weight:700!important;line-height:1.3!important;text-align:right!important}
+
+/* Details accordion and size selector use the same component language. */
+.f-card-details,.card .spec,.f-option,.card .variantbox{
+  border:1px solid #e7dfd4!important;
+  border-radius:14px!important;
+  background:#fffdf9!important;
+  box-shadow:none!important;
+}
+.f-card-details:not([open]){height:auto!important;min-height:0!important;max-height:none!important}
+.f-card-details summary,.card .spec summary{
+  min-height:48px!important;height:auto!important;max-height:none!important;
+  padding:0 14px!important;
+  display:flex!important;align-items:center!important;justify-content:space-between!important;
+  color:#4c504b!important;font-size:10.5px!important;font-weight:650!important;
+}
+.f-card-details-plus{
+  width:29px!important;height:29px!important;display:grid!important;place-items:center!important;
+  border-radius:50%!important;background:#f3ebdf!important;color:#9b7744!important;font-size:20px!important;font-weight:400!important;
+}
+.f-card-details-body{background:#fff!important;border-top:1px solid #ece5dc!important;padding:14px!important}
+.f-option,.card .variantbox{
+  height:auto!important;min-height:0!important;max-height:none!important;
+  padding:13px!important;display:grid!important;gap:9px!important;
+}
+.f-option-head{height:auto!important;min-height:0!important;max-height:none!important;margin:0!important}
+.f-option-head span,.card .label{color:#827b72!important;font-size:9px!important;font-weight:700!important;letter-spacing:.08em!important;text-transform:uppercase!important}
+.f-option-head b{color:#777f79!important;font-size:9px!important;font-weight:600!important}
+.f-size-select,.card .size-select{
+  height:48px!important;min-height:48px!important;max-height:48px!important;
+  border:1px solid #ddd5ca!important;border-radius:12px!important;
+  background:#fff!important;color:#333934!important;
+  padding:0 14px!important;font-size:11px!important;font-weight:600!important;
+  box-shadow:0 3px 10px rgba(52,44,35,.025)!important;
+}
+.f-size-select:focus,.card .size-select:focus{outline:none!important;border-color:#b79666!important;box-shadow:0 0 0 3px rgba(183,150,102,.10)!important}
+
+/* Mattress characteristics follow the same rhythm. */
+.card .firmness{
+  height:auto!important;min-height:48px!important;
+  display:flex!important;align-items:center!important;gap:6px!important;
+  padding:11px 13px!important;
+  border:1px solid #e7dfd4!important;border-radius:14px!important;
+  background:#faf8f4!important;color:#777169!important;font-size:10.5px!important;
+}
+.card .firmness b{color:#4a504b!important;font-weight:700!important}
+.card .spec{overflow:hidden!important}
+.card .speccontent{padding:14px!important;background:#fff!important;border-top:1px solid #ece5dc!important;color:#746e66!important}
+
+/* Promo and price styling identical across categories. */
+.price,.f-price{color:#252824!important;font-weight:720!important;letter-spacing:-.035em!important}
+.old-price,.f-old-price{color:#8a8580!important;text-decoration-color:#b9847d!important}
+.discount-badge,.f-discount-badge,.f-discount{background:#f5e9e7!important;color:#8d514b!important;border-color:#ead3cf!important}
+.promo b,.f-price-promo b{background:#f0e8db!important;color:#775b37!important;border-color:#e0d0b6!important}
+.promo span,.f-price-promo span{color:#9a8a72!important}
+.f-price-row,.pricearea{border-top-color:#eee7dd!important}
+
+/* HIT SALES is always red — mattress, bed, sofa and admin-configured badges. */
+.hit-badge,
+.f-card-overlay-tags .hit,
+.product-promo-badge.hit,
+.pd-product-badge.hit{
+  background:#e5323d!important;
+  border-color:#e5323d!important;
+  color:#fff!important;
+  box-shadow:0 7px 16px rgba(229,50,61,.17)!important;
+}
+
+/* Primary actions are consistent across all catalog cards. */
+.cart-card-btn,
+.product-more-link{
+  min-height:48px!important;height:48px!important;max-height:48px!important;
+  border-radius:13px!important;
+  font-size:11px!important;font-weight:700!important;letter-spacing:0!important;
+  transition:transform .18s ease,box-shadow .18s ease,background .18s ease!important;
+}
+.cart-card-btn{
+  width:100%!important;
+  background:linear-gradient(135deg,#2c2e2a,#20221f)!important;
+  border:1px solid #292b27!important;color:#fff!important;
+  box-shadow:0 10px 22px rgba(42,36,30,.14)!important;
+}
+.cart-card-btn:hover{transform:translateY(-1px)!important;background:linear-gradient(135deg,#393b36,#282a26)!important;box-shadow:0 14px 30px rgba(42,36,30,.19)!important}
+.product-more-link{
+  background:#fffdf9!important;border:1px solid #ddd4c7!important;color:#484944!important;
+  box-shadow:none!important;padding:0 15px!important;
+}
+.product-more-link:hover{transform:translateY(-1px)!important;background:#f7f2ea!important;border-color:#cbbca5!important;box-shadow:none!important}
+.card .max-btn,.f-card .max-btn{display:none!important}
+
+/* ---------- PRODUCT DETAIL ---------- */
+/* The duplicated “clarify size/availability” CTA is removed; Buy/Cart + MAX remain. */
+.pd-primary-btn{display:none!important}
+.pd-action-stack{gap:10px!important}
+.pd-max-btn{
+  min-height:54px!important;border-radius:14px!important;
+  background:#fff!important;border:1px solid #ddd7ee!important;
+  box-shadow:0 7px 20px rgba(56,48,93,.055)!important;
+}
+.pd-specs{
+  overflow:hidden!important;border:1px solid #e7dfd4!important;border-radius:16px!important;background:#faf8f4!important;
+  gap:0!important;
+}
+.pd-spec{padding:13px 14px!important;border-bottom:1px solid #ebe4da!important}
+.pd-spec:last-child{border-bottom:0!important}
+.pd-spec span{color:#8b857d!important}.pd-spec b{color:#3f4641!important}
+.pd-choice{padding:14px!important;border:1px solid #e7dfd4!important;border-radius:15px!important;background:#fffdf9!important}
+.pd-choice-head{margin-bottom:10px!important}.pd-choice-head label{color:#716b63!important}.pd-choice-head b{color:#927649!important}
+.pd-select{height:50px!important;border-color:#ddd5ca!important;background:#fff!important;color:#333934!important}
+.pd-size{background:#fff!important;border-color:#ddd5ca!important;color:#414741!important}
+.pd-size.is-active{background:#efe5d6!important;border-color:#c8aa7c!important;color:#3a342d!important;box-shadow:none!important}
+
+@media(max-width:1000px){
+  .shop-tabs{display:flex!important;overflow-x:auto!important;justify-content:flex-start!important;gap:7px!important;scrollbar-width:none!important;overscroll-behavior-x:contain!important}
+  .shop-tabs::-webkit-scrollbar{display:none!important}
+  .shop-tab,.shop-tab[data-shop-view="guide"]{flex:0 0 auto!important;min-width:145px!important}
+}
+@media(max-width:620px){
+  .shop-tabs-shell{padding:7px 0!important}
+  .shop-tabs{width:calc(100% - 14px)!important;gap:6px!important}
+  .shop-tab,.shop-tab[data-shop-view="guide"]{min-width:126px!important;min-height:46px!important;padding:0 11px!important;border-radius:13px!important;justify-content:flex-start!important}
+  .shop-tab-icon{width:28px!important;height:28px!important;flex-basis:28px!important;border-radius:9px!important}
+  .shop-tab-icon svg{width:15px!important;height:15px!important}.shop-tab b{font-size:11.5px!important}
+  .body,.f-card-body{padding:17px!important}
+  .f-premium-specs{padding:3px 12px!important}
+  .f-premium-specs>div{min-height:35px!important;padding:7px 0!important}
+  .f-card-details summary,.card .spec summary{min-height:46px!important;padding:0 12px!important}
+  .f-option,.card .variantbox{padding:12px!important}
+}
