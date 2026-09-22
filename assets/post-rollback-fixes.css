@@ -31,7 +31,26 @@
   grid-template-rows:none!important;
   margin:0!important;
 }
-.card .cardtop .hit-badge{margin:0 0 14px!important}
+/* Native and ADMIN-injected bestseller badges must occupy exactly the same place. */
+.card .cardtop>.hit-badge,
+.card .cardtop>.product-promo-badge.hit{
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  height:32px!important;
+  min-height:32px!important;
+  margin:0 0 14px!important;
+  padding:0 13px!important;
+  border-radius:999px!important;
+  font-family:Onest,Arial,"Segoe UI",sans-serif!important;
+  font-size:11px!important;
+  line-height:1!important;
+  font-weight:800!important;
+  letter-spacing:.025em!important;
+  text-transform:uppercase!important;
+  vertical-align:top!important;
+  box-sizing:border-box!important;
+}
 .card .body,
 .f-card .f-card-body{
   padding:20px!important;
@@ -209,23 +228,26 @@
   font-size:15px!important;
 }
 
-/* MAX is intentionally a quiet secondary action, not a third primary button. */
+/* MAX consultation is a full-width secondary action on its own row. */
 .cardbottom>.max-btn,
 .f-card-bottom>.max-btn{
   grid-column:1 / -1!important;
-  justify-self:start!important;
-  width:auto!important;
+  justify-self:stretch!important;
+  width:100%!important;
   min-width:0!important;
-  min-height:38px!important;
-  height:38px!important;
-  padding:0 12px!important;
-  border:1px solid #ddd8f2!important;
+  max-width:none!important;
+  min-height:44px!important;
+  height:44px!important;
+  padding:0 14px!important;
+  margin:0!important;
+  border:1px solid #d8d1ef!important;
   border-radius:11px!important;
   background:linear-gradient(180deg,#fff 0%,#fbfaff 100%)!important;
   box-shadow:none!important;
-  gap:8px!important;
+  gap:9px!important;
   color:#5b4dc8!important;
   font-weight:600!important;
+  box-sizing:border-box!important;
 }
 .cardbottom>.max-btn:hover,
 .f-card-bottom>.max-btn:hover{
@@ -235,9 +257,9 @@
 }
 .cardbottom>.max-btn .max-icon,
 .f-card-bottom>.max-btn .max-icon{
-  width:20px!important;
-  height:20px!important;
-  flex:0 0 20px!important;
+  width:21px!important;
+  height:21px!important;
+  flex:0 0 21px!important;
   border-radius:6px!important;
 }
 .cardbottom>.max-btn span,
@@ -250,7 +272,7 @@
 .cardbottom>.max-btn span::after,
 .f-card-bottom>.max-btn span::after{
   content:"Консультация в MAX";
-  font-size:10.5px!important;
+  font-size:10.8px!important;
   line-height:1!important;
   font-weight:600!important;
   letter-spacing:0!important;
