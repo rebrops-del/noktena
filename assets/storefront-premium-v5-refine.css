@@ -1,0 +1,84 @@
+/* NOKTENA premium v5.1 — refinements after live visual QA */
+
+.card .hit-badge,
+.card .product-promo-badge{
+  width:max-content!important;
+  max-width:max-content!important;
+  justify-self:start!important;
+  align-self:start!important;
+  padding:5px 10px!important;
+}
+
+.card .body h3{color:#2b2d29!important}
+.card .price{color:#282b27!important}
+.card .firmness b{color:#454b46!important}
+.card .size-select{width:100%!important;max-width:none!important}
+.card .variantbox{width:100%!important}
+
+.f-premium-specs{padding-left:17px!important;padding-right:17px!important}
+.f-premium-specs>div{min-height:41px!important;padding:9px 0!important}
+.f-premium-specs span{font-size:11px!important;line-height:1.35!important}
+.f-premium-specs b{font-size:11.2px!important;line-height:1.3!important;white-space:nowrap!important}
+
+.global-delivery-product{
+  margin-top:12px!important;
+  padding:11px 13px!important;
+  border:1px solid #e5dccf!important;
+  border-radius:12px!important;
+  background:#f6f1e8!important;
+  color:#62594c!important;
+  font-weight:600!important;
+}
+.global-delivery-product strong{color:#755936!important}
+.pd-color.is-active{
+  background:#2a2c28!important;
+  color:#fff!important;
+  border-color:#2a2c28!important;
+  box-shadow:none!important;
+}
+.pd-info-card h1{
+  font-size:clamp(38px,3.25vw,52px)!important;
+  line-height:1.02!important;
+  letter-spacing:-.035em!important;
+}
+
+.cta{
+  background:#292b27!important;
+  color:#fff!important;
+  border:1px solid #353731!important;
+  box-shadow:0 16px 42px rgba(39,36,31,.13)!important;
+}
+.cta p{color:#d8d6d0!important}
+.footer{background:#262824!important;color:#d5d3cd!important}
+.footer b,.footer a{color:#fff!important}
+
+@media(max-width:620px){
+  .mobile{
+    display:block!important;
+    left:auto!important;
+    right:10px!important;
+    bottom:10px!important;
+    width:auto!important;
+    padding:0!important;
+    border:0!important;
+    border-radius:12px!important;
+    background:transparent!important;
+    box-shadow:none!important;
+  }
+  .mobile .max-btn{
+    width:auto!important;
+    min-width:0!important;
+    min-height:42px!important;
+    height:42px!important;
+    padding:0 13px!important;
+    border-radius:11px!important;
+    background:rgba(255,255,255,.96)!important;
+    border:1px solid #ddd7eb!important;
+    box-shadow:0 10px 28px rgba(38,34,48,.12)!important;
+    font-size:10.5px!important;
+  }
+  body{padding-bottom:58px!important}
+  .f-premium-specs{padding-left:13px!important;padding-right:13px!important}
+  .f-premium-specs span{font-size:10.3px!important}
+  .f-premium-specs b{font-size:10.5px!important}
+}
