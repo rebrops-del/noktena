@@ -1,0 +1,42 @@
+name: Bump Card UI Cache V2
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/bump-card-ui-cache-v2.yml'
+permissions:
+  contents: write
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Bump storefront and admin asset versions
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('index.html')
+          s=p.read_text(encoding='utf-8')
+          s=s.replace('assets/post-rollback-fixes.css?v=20260922-rollback1','assets/post-rollback-fixes.css?v=20260922-cardfix2')
+          s=s.replace('assets/max-card-fullwidth.css?v=20260922-maxwide1','assets/max-card-fullwidth.css?v=20260922-maxwide2')
+          s=s.replace('assets/mattress-card-settings-runtime.js?v=20260922-1','assets/mattress-card-settings-runtime.js?v=20260922-2')
+          p.write_text(s,encoding='utf-8')
+
+          p=Path('admin/index.html')
+          s=p.read_text(encoding='utf-8')
+          s=s.replace('./admin-mattress-card-settings.js?v=20260922-1','./admin-mattress-card-settings.js?v=20260922-2')
+          p.write_text(s,encoding='utf-8')
+          PY
+      - name: Validate
+        run: |
+          grep -q 'post-rollback-fixes.css?v=20260922-cardfix2' index.html
+          grep -q 'mattress-card-settings-runtime.js?v=20260922-2' index.html
+          grep -q 'admin-mattress-card-settings.js?v=20260922-2' admin/index.html
+      - name: Commit
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html admin/index.html
+          git diff --cached --quiet && exit 0
+          git commit -m 'Force refresh product card fixes'
+          git push
