@@ -1,0 +1,225 @@
+/* NOKTENA — targeted card polish v2
+   Only product-card controls/specs/actions. No global redesign. */
+
+/* Keep bestseller treatment consistent. */
+.hit-badge,.f-card-overlay-tags .hit{
+  background:#e5323d!important;
+  border-color:#e5323d!important;
+  color:#fff!important;
+}
+
+/* Mattress size control: use the whole card width, with a clean compact rhythm. */
+.card .variantbox{
+  width:100%!important;
+  height:auto!important;
+  min-height:0!important;
+  display:grid!important;
+  grid-template-columns:1fr!important;
+  gap:7px!important;
+  padding:0!important;
+  margin:0!important;
+}
+.card .variantbox .label{
+  margin:0!important;
+  color:#817b72!important;
+  font-size:9px!important;
+  line-height:1!important;
+  font-weight:700!important;
+  letter-spacing:.09em!important;
+  text-transform:uppercase!important;
+}
+.card .size-select{
+  display:block!important;
+  width:100%!important;
+  max-width:none!important;
+  height:44px!important;
+  min-height:44px!important;
+  padding:0 42px 0 14px!important;
+  border:1px solid #ddd6cc!important;
+  border-radius:12px!important;
+  background:#fff!important;
+  color:#31332f!important;
+  font-size:11.5px!important;
+  font-weight:600!important;
+  box-shadow:0 2px 8px rgba(39,35,30,.025)!important;
+}
+.card .size-select:hover{border-color:#c9bca9!important}
+.card .size-select:focus{border-color:#9f8155!important;box-shadow:0 0 0 3px rgba(159,129,85,.10)!important}
+
+/* Furniture quick characteristics: three balanced stat tiles instead of cramped label/value rows. */
+.f-premium-specs{
+  display:grid!important;
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  gap:8px!important;
+  width:100%!important;
+  height:auto!important;
+  min-height:0!important;
+  max-height:none!important;
+  padding:0!important;
+  border:0!important;
+  background:transparent!important;
+  overflow:visible!important;
+}
+.f-premium-specs>div{
+  min-width:0!important;
+  height:64px!important;
+  min-height:64px!important;
+  max-height:64px!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:flex-start!important;
+  justify-content:center!important;
+  gap:6px!important;
+  padding:9px 11px!important;
+  border:1px solid #e8e1d7!important;
+  border-radius:12px!important;
+  background:#faf8f4!important;
+  overflow:hidden!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.85)!important;
+}
+.f-premium-specs>div:last-child{border-bottom:1px solid #e8e1d7!important}
+.f-premium-specs span{
+  width:100%!important;
+  color:#89837b!important;
+  font-size:8.4px!important;
+  line-height:1.05!important;
+  font-weight:650!important;
+  letter-spacing:.035em!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  display:block!important;
+}
+.f-premium-specs b{
+  width:100%!important;
+  max-width:none!important;
+  color:#2e3f38!important;
+  font-size:10.5px!important;
+  line-height:1.15!important;
+  font-weight:700!important;
+  text-align:left!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  display:block!important;
+}
+
+/* Furniture size selector: same control language as mattresses. */
+.f-option{height:auto!important;min-height:0!important;max-height:none!important;display:grid!important;gap:7px!important}
+.f-option-head{height:auto!important;min-height:0!important;max-height:none!important;margin:0!important}
+.f-option-head span{font-size:8.8px!important;letter-spacing:.08em!important;color:#817b72!important}
+.f-option-head b{font-size:9px!important;color:#7e837e!important}
+.f-size-select{
+  width:100%!important;
+  height:44px!important;
+  min-height:44px!important;
+  max-height:44px!important;
+  border:1px solid #ddd6cc!important;
+  border-radius:12px!important;
+  background:#fff!important;
+  color:#31332f!important;
+  padding:0 40px 0 13px!important;
+  font-size:11px!important;
+  font-weight:600!important;
+  box-shadow:0 2px 8px rgba(39,35,30,.025)!important;
+}
+.f-size-select:hover{border-color:#c9bca9!important}
+.f-size-select:focus{border-color:#9f8155!important;box-shadow:0 0 0 3px rgba(159,129,85,.10)!important}
+
+/* Bottom actions: compact premium buttons, never stretched across the whole card. */
+.cardbottom,.f-card-bottom{
+  grid-template-columns:max-content max-content!important;
+  column-gap:9px!important;
+  row-gap:10px!important;
+  justify-content:start!important;
+  align-items:center!important;
+}
+.cardbottom>.variantbox,.cardbottom>.pricearea,
+.f-card-bottom>.f-price-row,
+.f-card-bottom>.f-option,
+.f-card-bottom>.f-card-details,
+.cardbottom>.spec{
+  grid-column:1 / -1!important;
+  width:100%!important;
+}
+.cardbottom>.cart-card-actions,.f-card-bottom>.cart-card-actions{
+  grid-column:auto!important;
+  display:block!important;
+  width:auto!important;
+  margin:0!important;
+}
+.cardbottom>.product-more-link,.f-card-bottom>.product-more-link{
+  grid-column:auto!important;
+  width:auto!important;
+  margin:0!important;
+}
+.cart-card-btn,
+.cardbottom .product-more-link,
+.f-card-bottom .product-more-link{
+  width:auto!important;
+  min-width:142px!important;
+  max-width:none!important;
+  height:44px!important;
+  min-height:44px!important;
+  max-height:44px!important;
+  padding:0 16px!important;
+  border-radius:11px!important;
+  font-size:11.5px!important;
+  line-height:1!important;
+  font-weight:700!important;
+  letter-spacing:0!important;
+  white-space:nowrap!important;
+  box-shadow:none!important;
+}
+.cart-card-btn{
+  border:1px solid #252823!important;
+  background:#252823!important;
+  color:#fff!important;
+}
+.cart-card-btn:hover{background:#343731!important;border-color:#343731!important}
+.cardbottom .product-more-link,.f-card-bottom .product-more-link{
+  justify-content:center!important;
+  gap:9px!important;
+  border:1px solid #d9d2c8!important;
+  background:#fff!important;
+  color:#454640!important;
+}
+.cardbottom .product-more-link:hover,.f-card-bottom .product-more-link:hover{
+  background:#f7f4ee!important;
+  border-color:#c8bda9!important;
+  color:#292b27!important;
+  transform:none!important;
+}
+.cardbottom .product-more-link span:last-child,.f-card-bottom .product-more-link span:last-child{
+  color:#a7834f!important;
+  font-size:15px!important;
+}
+
+/* Any consultation button that remains in a card stays secondary and on its own row. */
+.cardbottom>.max-btn,.f-card-bottom>.max-btn{
+  grid-column:1 / -1!important;
+  width:auto!important;
+  justify-self:start!important;
+  min-width:0!important;
+  height:42px!important;
+  min-height:42px!important;
+  padding:0 14px!important;
+  border-radius:11px!important;
+  font-size:10.5px!important;
+}
+
+@media(max-width:620px){
+  .f-premium-specs{gap:6px!important}
+  .f-premium-specs>div{height:60px!important;min-height:60px!important;max-height:60px!important;padding:8px 9px!important}
+  .f-premium-specs span{font-size:7.9px!important}
+  .f-premium-specs b{font-size:9.6px!important}
+  .cardbottom,.f-card-bottom{grid-template-columns:1fr 1fr!important;width:100%!important}
+  .cardbottom>.cart-card-actions,.f-card-bottom>.cart-card-actions,
+  .cardbottom>.product-more-link,.f-card-bottom>.product-more-link{width:100%!important}
+  .cart-card-btn,.cardbottom .product-more-link,.f-card-bottom .product-more-link{width:100%!important;min-width:0!important;padding:0 11px!important;font-size:10.5px!important}
+}
+
+@media(max-width:390px){
+  .f-premium-specs{grid-template-columns:1fr!important}
+  .f-premium-specs>div{height:50px!important;min-height:50px!important;max-height:50px!important}
+}
