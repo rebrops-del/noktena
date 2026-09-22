@@ -1,0 +1,42 @@
+name: Load Topper Image Fix
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/load-topper-image-fix.yml'
+permissions:
+  contents: write
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Load topper image override last
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('product.html')
+          s=p.read_text(encoding='utf-8')
+          tag='<script src="assets/topper-detail-image-fix.js?v=20260922-topper2"></script>'
+          if tag not in s:
+              marker='<script src="assets/cart.js?v=20260921-cart1"></script>'
+              if marker not in s:
+                  raise SystemExit('cart script marker not found')
+              s=s.replace(marker,marker+'\n'+tag,1)
+              p.write_text(s,encoding='utf-8')
+          PY
+      - name: Validate
+        run: |
+          set -euxo pipefail
+          grep -q 'topper-detail-image-fix.js?v=20260922-topper2' product.html
+          test -f assets/topper-detail-image-fix.js
+      - name: Commit
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add product.html
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'Load real topper image on product detail'
+          git push
