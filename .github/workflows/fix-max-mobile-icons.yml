@@ -1,0 +1,71 @@
+name: Fix MAX Mobile Icons
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/fix-max-mobile-icons.yml'
+      - 'assets/max-mobile-icon-fix.css'
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Download official MAX icon locally
+        run: |
+          set -euxo pipefail
+          curl -fsSL --retry 3 --max-time 30 'https://max.ru/s/img/big-logo.png' -o assets/max-logo.png
+          test -s assets/max-logo.png
+      - name: Use local MAX icon and load mobile fix last
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          replacement='/assets/max-logo.png?v=20260922-max1'
+          targets=[]
+          for base in [Path('.'), Path('assets')]:
+              for ext in ('*.html','*.js'):
+                  targets.extend(base.glob(ext))
+          for p in targets:
+              try:
+                  s=p.read_text(encoding='utf-8')
+              except Exception:
+                  continue
+              ns=s.replace('https://max.ru/s/img/big-logo.png', replacement)
+              if ns!=s:
+                  p.write_text(ns,encoding='utf-8')
+
+          link='<link rel="stylesheet" href="assets/max-mobile-icon-fix.css?v=20260922-max1">'
+          for name in ['index.html','product.html','checkout.html']:
+              p=Path(name)
+              if not p.exists():
+                  continue
+              s=p.read_text(encoding='utf-8')
+              if 'max-mobile-icon-fix.css' not in s:
+                  s=s.replace('</head>',link+'\n</head>',1)
+                  p.write_text(s,encoding='utf-8')
+          PY
+      - name: Validate
+        run: |
+          set -euxo pipefail
+          grep -q 'max-mobile-icon-fix.css?v=20260922-max1' index.html
+          grep -q '/assets/max-logo.png?v=20260922-max1' index.html
+          grep -q '/assets/max-logo.png?v=20260922-max1' assets/catalog-v2.js
+          grep -q 'display:block!important' assets/max-mobile-icon-fix.css
+          file assets/max-logo.png
+      - name: Commit
+        run: |
+          if git diff --quiet && git status --porcelain | grep -q '^$'; then
+            echo 'No changes needed'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add assets/max-logo.png assets/max-mobile-icon-fix.css index.html product.html checkout.html assets/*.js
+          git commit -m 'Restore MAX icons on mobile'
+          git push
