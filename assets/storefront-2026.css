@@ -63,8 +63,11 @@
 .f-grid,.grid{gap:18px!important}
 .f-card,.card{border-radius:5px!important;box-shadow:none!important;border:1px solid var(--n-line)!important;overflow:hidden!important;background:#fff!important}
 .f-card:hover,.card:hover{box-shadow:var(--n-shadow)!important;transform:translateY(-3px)}
-.f-gallery,.photo-media{background:#f2eee8!important;aspect-ratio:1.15!important}
-.f-gallery img,.photo-media img{object-fit:contain!important}
+.f-gallery{background:#fff!important;aspect-ratio:3/2!important}
+.f-gallery img{object-fit:cover!important;object-position:center!important;background:transparent!important}
+.f-gallery-shade{display:none!important}
+.photo-media{background:#fff!important;aspect-ratio:4/3!important}
+.photo-media img{object-fit:cover!important}
 .f-card-body,.card .body{padding:22px!important}
 .f-card h3,.card .body h3{font-family:Onest,"Segoe UI",sans-serif!important;font-size:1.05rem!important;line-height:1.35!important;font-weight:700!important;color:var(--n-ink)!important}
 .f-card-eyebrow,.f-price-caption,.f-option-head,.label{font-size:.76rem!important;letter-spacing:0!important;color:var(--n-muted)!important}
