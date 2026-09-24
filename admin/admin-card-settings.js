@@ -1,8 +1,8 @@
 (()=>{
   'use strict';
 
-  const DEFAULT_PROMO_TITLE='Цена сентября';
-  const DEFAULT_PROMO_SUBTITLE='до 30 сентября';
+  const DEFAULT_PROMO_TITLE='';
+  const DEFAULT_PROMO_SUBTITLE='';
 
   const style=document.createElement('style');
   style.textContent=`
@@ -42,11 +42,11 @@
 
     const title=document.createElement('label');
     title.id='promoLabelWrap';
-    title.innerHTML='Текст ценовой плашки<input id="promoLabel" maxlength="60" placeholder="Цена сентября"><small class="admin-field-note">Например: Цена сентября, Спеццена, Цена недели. Оставьте пустым вместе с подписью, чтобы скрыть плашку.</small>';
+    title.innerHTML='Текст ценовой плашки<input id="promoLabel" maxlength="60" placeholder="Спеццена"><small class="admin-field-note">Например: Спеццена, Цена недели. Оставьте пустым вместе с подписью, чтобы скрыть плашку.</small>';
 
     const subtitle=document.createElement('label');
     subtitle.id='promoSubtextWrap';
-    subtitle.innerHTML='Подпись под плашкой<input id="promoSubtext" maxlength="80" placeholder="до 30 сентября"><small class="admin-field-note">Например: до 30 сентября, только до воскресенья.</small>';
+    subtitle.innerHTML='Подпись под плашкой<input id="promoSubtext" maxlength="80" placeholder="Только до воскресенья"><small class="admin-field-note">Например: до конца недели, только до воскресенья.</small>';
 
     const discount=document.getElementById('productDiscountPercentLabel');
     if(discount?.nextSibling){

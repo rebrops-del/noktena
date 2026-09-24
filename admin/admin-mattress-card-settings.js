@@ -1,7 +1,7 @@
 (()=>{
   'use strict';
-  const DEFAULT_PROMO_TITLE='Цена сентября';
-  const DEFAULT_PROMO_SUBTITLE='до 30 сентября';
+  const DEFAULT_PROMO_TITLE='';
+  const DEFAULT_PROMO_SUBTITLE='';
 
   function hasDraft(){try{return typeof draft!=='undefined'&&!!draft}catch{return false}}
   function isMattress(){return hasDraft()&&draft._kind==='mattress'}
@@ -14,7 +14,7 @@
     if(discountWrap)discountWrap.classList.remove('hide');
     if(discount){
       const raw=Number(draft.discountPercent);
-      discount.value=Number.isFinite(raw)?Math.min(99,Math.max(0,Math.round(raw))):30;
+      discount.value=Number.isFinite(raw)?Math.min(99,Math.max(0,Math.round(raw))):0;
     }
 
     const promoWrap=document.getElementById('promoLabelWrap');
@@ -30,7 +30,7 @@
   document.getElementById('productDiscountPercent')?.addEventListener('input',event=>{
     if(!isMattress())return;
     const value=Number(event.target.value);
-    draft.discountPercent=Number.isFinite(value)?Math.min(99,Math.max(0,Math.round(value))):30;
+    draft.discountPercent=Number.isFinite(value)?Math.min(99,Math.max(0,Math.round(value))):0;
   });
   document.getElementById('promoLabel')?.addEventListener('input',event=>{if(isMattress())draft.promoLabel=event.target.value;});
   document.getElementById('promoSubtext')?.addEventListener('input',event=>{if(isMattress())draft.promoSubtext=event.target.value;});
@@ -42,7 +42,7 @@
     const promoSub=document.getElementById('promoSubtext');
     if(discount){
       const value=Number(discount.value);
-      draft.discountPercent=Number.isFinite(value)?Math.min(99,Math.max(0,Math.round(value))):30;
+      draft.discountPercent=Number.isFinite(value)?Math.min(99,Math.max(0,Math.round(value))):0;
     }
     if(promo)draft.promoLabel=promo.value.trim();
     if(promoSub)draft.promoSubtext=promoSub.value.trim();

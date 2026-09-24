@@ -6,15 +6,19 @@
   <meta name="robots" content="noindex,nofollow">
   <title>НОКТЕНА — ADMIN</title>
   <link rel="stylesheet" href="./admin.css?v=6">
+  <link rel="stylesheet" href="./admin-luxe.css?v=premium1">
+  <link rel="stylesheet" href="./admin-2026.css?v=premium1">
 </head>
 <body>
   <div id="toast" class="toast hide"></div>
 
   <section id="login" class="login">
+    <div class="login-story" aria-hidden="true"><div class="login-story-top">НОКТЕНА <span>УПРАВЛЕНИЕ МАГАЗИНОМ</span></div><div class="login-story-bottom"><span>ПРОСТРАНСТВО ДЛЯ РАБОТЫ</span><p>Красота в деталях.<br>Порядок в каждом заказе.</p></div></div>
     <form id="loginForm" class="box">
       <img class="admin-logo" src="../assets/logo-noktena-final.png?v=20260908-final2" alt="НОКТЕНА">
-      <h1>Админ-панель</h1>
-      <p class="muted">Цены, карточки и фотографии через единый защищённый API.</p>
+      <span class="login-overline">ЛИЧНЫЙ КАБИНЕТ</span>
+      <h1>Добро пожаловать</h1>
+      <p class="muted">Управляйте товарами и заказами НОКТЕНЫ в одном месте.</p>
       <label>E-mail<input id="email" type="email" autocomplete="username" required></label>
       <label>Пароль<input id="password" type="password" autocomplete="current-password" required></label>
       <button id="loginBtn" class="btn primary" type="submit">Войти</button>
@@ -25,17 +29,14 @@
 
   <div id="app" class="app hide">
     <aside class="side">
-      <div><img class="admin-logo" src="../assets/logo-noktena-final.png?v=20260908-final2" alt="НОКТЕНА"><small>ADMIN</small></div>
-      <a href="https://noktena.ru" target="_blank" rel="noopener">Открыть сайт ↗</a>
-      <div class="bottom">
-        <div id="adminEmail" class="muted" style="color:#bdd1c8;margin-bottom:9px"></div>
-        <button id="logout" class="btn secondary" type="button">Выйти</button>
-      </div>
+      <div class="side-head"><img class="admin-logo" src="../assets/logo-noktena-final.png" alt="НОКТЕНА"><small>ПАНЕЛЬ УПРАВЛЕНИЯ</small></div>
+      <div class="side-nav"><span class="side-label">МАГАЗИН</span><button class="side-link is-current" type="button" data-admin-open="catalog"><span aria-hidden="true">◫</span>Обзор и товары</button><button class="side-link" type="button" data-admin-open="orders"><span aria-hidden="true">▤</span>Заказы <span id="sideOrdersBadge" class="side-badge" hidden></span></button><span class="side-label">НАСТРОЙКИ</span><button class="side-link" type="button" data-admin-open="prices"><span aria-hidden="true">◈</span>Цены</button><button class="side-link" type="button" data-admin-open="delivery"><span aria-hidden="true">↗</span>Доставка</button></div>
+      <div class="bottom"><a class="side-site-link" href="/" target="_blank" rel="noopener">Открыть магазин ↗</a><div id="adminEmail" class="muted"></div><button id="logout" class="btn secondary" type="button">Выйти</button></div>
     </aside>
 
     <main class="main">
       <div class="top">
-        <div><h1 style="margin:0">Каталог</h1><div class="muted">Матрасы, кровати, диваны</div></div>
+        <div><span class="admin-overline">НОКТЕНА / УПРАВЛЕНИЕ</span><h1>Обзор каталога</h1><div class="muted">Товары, цены и актуальность коллекции</div></div>
         <div class="actions">
           <button id="reload" class="btn secondary" type="button">Обновить</button>
           <button id="bulk" class="btn secondary" type="button">Цены %</button>
@@ -45,9 +46,10 @@
         </div>
       </div>
 
+      <section class="admin-overview" id="adminOverview" aria-label="Сводка по каталогу"><div><span>Всего товаров</span><strong id="statAll">—</strong><small>В каталоге</small></div><div><span>Матрасы</span><strong id="statMattresses">—</strong><small>Для сна</small></div><div><span>Кровати</span><strong id="statBeds">—</strong><small>Для спальни</small></div><div><span>Диваны</span><strong id="statSofas">—</strong><small>Для отдыха</small></div></section>
       <div class="panel">
         <div class="toolbar">
-          <input id="q" placeholder="Поиск товара">
+          <label class="visually-hidden" for="q">Поиск товара</label><input id="q" type="search" placeholder="Найти товар по названию или артикулу…">
           <select id="kindFilter">
             <option value="">Все товары</option>
             <option value="mattress">Матрасы</option>
@@ -90,6 +92,7 @@
 
         <label>Краткое описание<textarea id="summary" rows="3"></textarea></label>
         <label>Полное описание<textarea id="description" rows="6"></textarea></label>
+        <section class="section"><h3>SEO карточки</h3><div class="muted">Если поля пустые, заголовок и описание формируются из названия и текста товара.</div><div class="grid2"><label>Заголовок страницы<input id="seoTitle" maxlength="100" placeholder="Например, Матрас Комфорт — НОКТЕНА"></label><label>Описание для поиска<textarea id="seoDescription" rows="3" maxlength="200" placeholder="Краткое описание для поисковых систем"></textarea></label></div></section>
 
         <section class="section">
           <h3>Фотографии</h3>
@@ -98,6 +101,7 @@
             <label class="btn primary" style="display:inline-flex;align-items:center;cursor:pointer;margin:0">+ Загрузить фото<input id="photo" type="file" accept="image/*" hidden></label>
             <input id="photoUrl" placeholder="https:// ссылка на фото" style="max-width:450px">
             <button id="addUrl" type="button" class="btn secondary">Добавить ссылку</button>
+            <span id="photoUploadStatus" class="muted" role="status" aria-live="polite"></span>
           </div>
           <div id="images" class="images"></div>
         </section>
@@ -188,5 +192,6 @@
   <script src="./orders.js?v=3" defer></script>
   <script src="./global-promo-settings.js?v=20260922-1" defer></script>
 <script src="./global-discount-settings.js?v=20260922-1" defer></script>
+  <script src="./admin-shell-2026.js?v=premium1" defer></script>
 </body>
 </html>

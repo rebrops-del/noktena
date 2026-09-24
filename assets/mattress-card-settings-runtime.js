@@ -46,7 +46,7 @@
     if(!card.matches('.card'))return;
     const model=modelFromCard(card);if(!model)return;
     const o=overrides.get(model)||{};
-    const pct=Object.prototype.hasOwnProperty.call(o,'discountPercent')?clamp(o.discountPercent):30;
+    const pct=Object.prototype.hasOwnProperty.call(o,'discountPercent')?clamp(o.discountPercent):0;
     const price=parseMoney(card.querySelector('.price')?.textContent||'');
     const line=card.querySelector('.old-price-line');
     const old=card.querySelector('.old-price');
@@ -58,8 +58,8 @@
 
     const promo=card.querySelector('.promo');
     if(promo){
-      const title=Object.prototype.hasOwnProperty.call(o,'promoLabel')?String(o.promoLabel??'').trim():'Цена сентября';
-      const subtitle=Object.prototype.hasOwnProperty.call(o,'promoSubtext')?String(o.promoSubtext??'').trim():'до 30 сентября';
+      const title=Object.prototype.hasOwnProperty.call(o,'promoLabel')?String(o.promoLabel??'').trim():'';
+      const subtitle=Object.prototype.hasOwnProperty.call(o,'promoSubtext')?String(o.promoSubtext??'').trim():'';
       promo.style.display=title||subtitle?'':'none';
       const bEl=promo.querySelector('b'),sEl=promo.querySelector('span');
       if(bEl){bEl.textContent=title;bEl.style.display=title?'':'none'}

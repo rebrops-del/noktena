@@ -48,13 +48,15 @@
     const orders=document.createElement('section');orders.id='adminOrdersPane';orders.className='admin-pane hide';orders.innerHTML=`
       <div class="orders-pane-head"><div><h1>Заказы</h1><div class="muted">Заказы с сайта, доставка, подъём и сборка.</div></div><button id="ordersReload" class="btn secondary" type="button">Обновить</button></div>
       <div class="orders-pane-panel">
-        <section id="ordersListScreen"><div class="orders-toolbar"><div id="ordersSummary" class="orders-summary"></div></div><div id="ordersList" class="orders-list"></div></section>
+        <section id="ordersListScreen"><div class="orders-toolbar"><div id="ordersSummary" class="orders-summary"></div><div class="orders-filters"><label class="visually-hidden" for="ordersSearch">Поиск заказа</label><input id="ordersSearch" type="search" placeholder="Номер, имя или телефон"><label class="visually-hidden" for="ordersStatusFilter">Статус заказа</label><select id="ordersStatusFilter"><option value="">Все статусы</option><option value="new">Новый</option><option value="confirmed">Подтверждён</option><option value="processing">В работе</option><option value="done">Выполнен</option><option value="cancelled">Отменён</option></select></div></div><div id="ordersList" class="orders-list"></div></section>
         <section id="ordersDetailScreen" class="hide"></section>
       </div>`;
     main.append(tabs,catalog,orders);
     $('#catalogTab').addEventListener('click',()=>showTab('catalog'));
     $('#ordersTab').addEventListener('click',open);
     $('#ordersReload').addEventListener('click',()=>load(true));
+    $('#ordersSearch').addEventListener('input',()=>renderList(ordersCache));
+    $('#ordersStatusFilter').addEventListener('change',()=>renderList(ordersCache));
   }
 
   function showTab(name){
@@ -75,11 +77,13 @@
 
   function renderList(rows){
     const mount=$('#ordersList'),summary=$('#ordersSummary');if(!mount)return;
-    updateBadge(rows);
+    updateBadge(ordersCache);
     const newCount=rows.filter(o=>o.status==='new').length;
-    if(summary)summary.textContent=`Всего: ${rows.length}${newCount?` · Новых: ${newCount}`:''}`;
-    if(!rows.length){mount.innerHTML='<div class="notice">Заказов пока нет.</div>';return}
-    mount.innerHTML=rows.map(o=>`<article class="orders-row ${o.status==='new'?'is-new':''}" data-order-open="${esc(o.id)}" tabindex="0" role="button" aria-label="Открыть заказ ${esc(o.order_no)}">
+    const query=($('#ordersSearch')?.value||'').trim().toLowerCase(),status=$('#ordersStatusFilter')?.value||'';
+    const filtered=rows.filter(o=>(!status||o.status===status)&&(!query||[o.order_no,o.customer_name,o.phone,o.email].join(' ').toLowerCase().includes(query)));
+    if(summary)summary.textContent=`Показано: ${filtered.length} из ${rows.length}${newCount?` · Новых: ${newCount}`:''}`;
+    if(!filtered.length){mount.innerHTML=`<div class="notice">${rows.length?'Заказы по выбранным параметрам не найдены.':'Заказов пока нет.'}</div>`;return}
+    mount.innerHTML=filtered.map(o=>`<article class="orders-row ${o.status==='new'?'is-new':''}" data-order-open="${esc(o.id)}" tabindex="0" role="button" aria-label="Открыть заказ ${esc(o.order_no)}">
       <div class="orders-no">№ ${esc(o.order_no)}</div>
       <div class="orders-date">${esc(dateText(o.created_at))}</div>
       <div><div class="orders-client">${esc(o.customer_name)}</div><div class="muted">${itemCount(o)} ${itemCount(o)===1?'товар':'товаров'}</div></div>

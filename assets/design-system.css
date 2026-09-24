@@ -1,0 +1,24 @@
+/* NOKTENA design tokens shared by storefront, product and checkout. */
+:root {
+  --n-paper:#fbf9f5;
+  --n-cream:#f1ece4;
+  --n-surface:#fffefa;
+  --n-ink:#252c27;
+  --n-muted:#65716a;
+  --n-deep:#173b31;
+  --n-line:#e5e0d8;
+  --n-bronze:#a3815f;
+  --n-shadow:0 20px 48px rgba(38,39,33,.08);
+  --n-radius:18px;
+}
+html {scroll-behavior:smooth;scroll-padding-top:88px}
+body {font-family:Onest,"Segoe UI",Arial,sans-serif!important;background:var(--n-paper);color:var(--n-ink);-webkit-font-smoothing:antialiased}
+button,input,select,textarea {font-family:inherit}
+a,button,summary,input,select,textarea {transition:background-color .2s,border-color .2s,color .2s,box-shadow .2s,transform .2s}
+:where(a,button,summary,input,select,textarea):focus-visible {outline:3px solid var(--n-bronze)!important;outline-offset:3px!important}
+:where(button,a)[disabled],:where(button,a)[aria-disabled="true"] {opacity:.55;cursor:not-allowed}
+img {max-width:100%}
+.overline {display:block;color:#806a50;font-size:.75rem;font-weight:750;letter-spacing:.16em;text-transform:uppercase}
+.section-heading h2 {font-family:Georgia,"Times New Roman",serif;font-size:clamp(2.4rem,4.2vw,4.2rem);font-weight:400;letter-spacing:-.045em;line-height:1.05;margin:.35em 0 .18em;color:var(--n-ink)}
+.section-heading p {font-size:1rem;line-height:1.6;color:var(--n-muted);margin:0}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*:before,*:after{animation-duration:.01ms!important;transition-duration:.01ms!important}}

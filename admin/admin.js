@@ -106,6 +106,11 @@ function draw(){
       <td><button class="btn secondary" data-edit="${esc(item._key)}">Изменить</button></td>
     </tr>`;
   }).join('')||'<tr><td colspan="5">Товары не найдены</td></tr>';
+  const stat={mattress:0,beds:0,sofas:0};
+  items.forEach(item=>{const kind=group(item);if(Object.hasOwn(stat,kind))stat[kind]++});
+  for(const [id,value] of Object.entries({statAll:items.length,statMattresses:stat.mattress,statBeds:stat.beds,statSofas:stat.sofas})){
+    const el=document.getElementById(id);if(el)el.textContent=value.toLocaleString('ru-RU');
+  }
 }
 
 async function loadCatalog(){
@@ -133,9 +138,11 @@ function readVariantRows(){
 function renderImages(){
   const images=Array.isArray(draft?.images)?draft.images:[];
   $('#images').innerHTML=images.map((url,index)=>`<div class="image-card">
-    <img src="${esc(url)}" alt="Фото товара">
+    <img src="${esc(url)}" alt="Фото ${index+1} товара" loading="lazy">
     <div class="image-actions">
       <button type="button" data-main-image="${index}">${index===0?'Главное ✓':'Сделать главным'}</button>
+      <button type="button" data-move-image="${index}" data-direction="-1" ${index===0?'disabled':''} aria-label="Переместить фото ${index+1} влево">←</button>
+      <button type="button" data-move-image="${index}" data-direction="1" ${index===images.length-1?'disabled':''} aria-label="Переместить фото ${index+1} вправо">→</button>
       <button type="button" data-remove-image="${index}" style="color:#c93643">Убрать</button>
     </div>
   </div>`).join('')||'<div class="muted">Фотографий пока нет.</div>';
@@ -196,6 +203,8 @@ function openEditor(key){
   $('#skipCategoryPrice').checked=!!draft.skipCategoryPriceAdjustment;
   $('#summary').value=draft._kind==='mattress'?(draft.intro||''):(draft.summary||'');
   $('#description').value=draft.description||'';
+  $('#seoTitle').value=draft.seoTitle||'';
+  $('#seoDescription').value=draft.seoDescription||'';
   $('#hidden').checked=!!draft._hidden;
   $('#reset').textContent=draft._isCustom?'Удалить карточку':'Сбросить изменения';
   renderImages();
@@ -211,10 +220,11 @@ function closeEditor(){
 
 async function uploadPhoto(file,color=''){
   if(!file||!draft)return;
+  const status=$('#photoUploadStatus');if(status)status.textContent=`Загружаем ${file.name}…`;
   const form=new FormData();
   form.append('file',file);
   form.append('product_key',draft._key);
-  const data=await request('upload',{method:'POST',body:form});
+  let data;try{data=await request('upload',{method:'POST',body:form})}catch(error){if(status)status.textContent='Не удалось загрузить фото';throw error}
   if(color){
     draft.colorImages=draft.colorImages||{};
     draft.colorImages[color]=data.url;
@@ -224,6 +234,7 @@ async function uploadPhoto(file,color=''){
   }
   renderImages();
   renderColors();
+  if(status)status.textContent='Фото загружено';
   toast('Фото загружено');
 }
 
@@ -278,6 +289,8 @@ function openFreshDraft(item){
   $('#skipCategoryPrice').checked=false;
   $('#summary').value='';
   $('#description').value='';
+  $('#seoTitle').value='';
+  $('#seoDescription').value='';
   $('#hidden').checked=false;
   $('#reset').textContent='Удалить карточку';
   renderImages();
@@ -298,6 +311,8 @@ async function saveEditor(event){
     draft.category=$('#category').value.trim();
     draft.available=$('#available').value==='1';
     draft.description=$('#description').value.trim();
+    draft.seoTitle=$('#seoTitle').value.trim();
+    draft.seoDescription=$('#seoDescription').value.trim();
     const deliveryRaw=$('#deliveryOverride').value.trim();
     const freeRaw=$('#freeDeliveryOverride').value.trim();
     if(deliveryRaw==='')delete draft.deliveryPriceOverride;else draft.deliveryPriceOverride=Math.max(0,Number(deliveryRaw)||0);
@@ -522,6 +537,13 @@ document.addEventListener('click',event=>{
   if(mainImage&&draft){
     const index=Number(mainImage.dataset.mainImage);
     if(index>0){const [url]=draft.images.splice(index,1);draft.images.unshift(url);renderImages();renderColors()}
+    return;
+  }
+
+  const moveImage=event.target.closest('[data-move-image]');
+  if(moveImage&&draft){
+    const index=Number(moveImage.dataset.moveImage),next=index+Number(moveImage.dataset.direction);
+    if(next>=0&&next<draft.images.length){[draft.images[index],draft.images[next]]=[draft.images[next],draft.images[index]];renderImages();renderColors()}
     return;
   }
 

@@ -1,15 +1,14 @@
 (()=>{
   'use strict';
   const KEY='settings:discount_global_v1';
-  const DEFAULT_PERCENT=30;
 
   const clamp=value=>Math.min(99,Math.max(0,Math.round(Number(value)||0)));
   const getSettings=()=>{
     const rows=window.NOKTENA_CATALOG_BOOTSTRAP?.rows||[];
     const row=rows.find(r=>r.product_key===KEY);
-    if(!row)return{enabled:true,percent:DEFAULT_PERCENT};
+    if(!row)return{enabled:false,percent:0};
     const p=row.payload||{};
-    return{enabled:p.enabled!==false,percent:clamp(Object.prototype.hasOwnProperty.call(p,'percent')?p.percent:DEFAULT_PERCENT)};
+    return{enabled:p.enabled===true,percent:clamp(Object.prototype.hasOwnProperty.call(p,'percent')?p.percent:0)};
   };
   const parseMoney=text=>{
     const n=Number(String(text||'').replace(/[^0-9]/g,''));

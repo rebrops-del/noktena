@@ -109,6 +109,7 @@
 
   function trackCheckout(){
     if(!/checkout\.html$/i.test(location.pathname))return;
+    if(performance.getEntriesByType?.('navigation')?.[0]?.type==='reload')return;
     const cart=readCart();
     if(!cart.length)return;
     const value=cart.reduce((s,x)=>s+money(x.price)*(Number(x.qty)||1),0);
@@ -116,6 +117,7 @@
   }
 
   const nativeFetch=window.fetch.bind(window);
+  const trackedOrders=new Set();
   window.fetch=async function(input,init){
     const url=typeof input==='string'?input:String(input?.url||'');
     const isOrder=/action=create-order/i.test(url)&&String(init?.method||'GET').toUpperCase()==='POST';
@@ -137,7 +139,12 @@
             color:x.color
           },x.qty));
           const revenue=money(order.total||requestBody?.total||items.reduce((s,x)=>s+x.price*x.quantity,0));
-          const orderId=String(order.order_no||order.id||Date.now());
+          const orderId=String(order.order_no||order.id||'');
+          let alreadyTracked=false;
+          try{alreadyTracked=!!sessionStorage.getItem(`noktena-purchase:${orderId}`)}catch{}
+          if(!orderId||trackedOrders.has(orderId)||alreadyTracked)return response;
+          trackedOrders.add(orderId);
+          try{sessionStorage.setItem(`noktena-purchase:${orderId}`,'1')}catch{}
           ecommerce('purchase',items,{id:orderId,revenue});
           goal('PURCHASE',{order_id:orderId,order_price:revenue,revenue,currency:CURRENCY,items_count:items.reduce((s,x)=>s+x.quantity,0)});
         }
@@ -161,6 +168,16 @@
     }
     if(a.matches('.cart-detail-buy'))goal('BUY_CLICK',{page:location.pathname});
     if(a.matches('.product-more-link')||/product\.html/i.test(href))goal('PRODUCT_CLICK',{href,page:location.pathname});
+    else if(a.matches('[data-pd-size]:not(.is-active)'))goal('SIZE_SELECT',{value:a.dataset.pdSize,page:location.pathname});
+  },true);
+  document.addEventListener('click',e=>{
+    const card=e.target.closest('[data-product-link]');
+    if(!card||e.target.closest('a,button,select,input,textarea,label,summary,details,[data-gallery-dir],[data-card-color],[data-card-size]'))return;
+    goal('PRODUCT_CLICK',{href:card.dataset.productLink,page:location.pathname});
+  },true);
+  document.addEventListener('keydown',e=>{
+    if(!['Enter',' '].includes(e.key)||!e.target.matches('[data-product-link]'))return;
+    goal('PRODUCT_CLICK',{href:e.target.dataset.productLink,page:location.pathname});
   },true);
 
   document.addEventListener('change',e=>{
@@ -170,7 +187,7 @@
   },true);
 
   window.addEventListener('noktena-cart-change',e=>cartDiff(Array.isArray(e.detail?.items)?e.detail.items:readCart()));
-  window.addEventListener('storage',e=>{if(e.key===CART_KEY)cartDiff(readCart())});
+  window.addEventListener('storage',e=>{if(e.key===CART_KEY)previousCart=readCart().map(x=>({...x}))});
 
   loadCounter();
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{trackDetail();trackCheckout()});

@@ -118,13 +118,13 @@
     if(!grid||document.getElementById('productDiscountPercent'))return;
     const label=document.createElement('label');
     label.id='productDiscountPercentLabel';
-    label.innerHTML='Скидка в карточке, %<input id="productDiscountPercent" type="number" min="0" max="99" step="1" inputmode="numeric" placeholder="30">';
+    label.innerHTML='Скидка в карточке, %<input id="productDiscountPercent" type="number" min="0" max="99" step="1" inputmode="numeric" placeholder="0">';
     const badge=document.getElementById('productBadge')?.closest('label');
     if(badge?.nextSibling)grid.insertBefore(label,badge.nextSibling);else grid.appendChild(label);
     label.querySelector('input')?.addEventListener('input',event=>{
       if(typeof draft==='undefined'||!draft||draft._kind!=='furniture')return;
       const value=Number(event.target.value);
-      draft.discountPercent=Number.isFinite(value)?Math.min(99,Math.max(0,Math.round(value))):30;
+      draft.discountPercent=Number.isFinite(value)?Math.min(99,Math.max(0,Math.round(value))):0;
     });
   }
 
@@ -137,7 +137,7 @@
     label?.classList.toggle('hide',!isFurniture);
     if(!isFurniture)return;
     const raw=Number(draft.discountPercent);
-    input.value=Number.isFinite(raw)?Math.min(99,Math.max(0,Math.round(raw))):30;
+    input.value=Number.isFinite(raw)?Math.min(99,Math.max(0,Math.round(raw))):0;
   }
 
   function mattressThumbUrl(model){
@@ -224,7 +224,7 @@
     const discountInput=document.getElementById('productDiscountPercent');
     if(discountInput&&draft._kind==='furniture'){
       const raw=Number(discountInput.value);
-      draft.discountPercent=Number.isFinite(raw)?Math.min(99,Math.max(0,Math.round(raw))):30;
+      draft.discountPercent=Number.isFinite(raw)?Math.min(99,Math.max(0,Math.round(raw))):0;
     }
   },true);
 

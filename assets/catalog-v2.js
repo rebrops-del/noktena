@@ -9,10 +9,10 @@
   const $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
   const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const rub=n=>Number.isFinite(Number(n))&&Number(n)>0?`${Math.round(Number(n)).toLocaleString('ru-RU')} ₽`:'Цена по запросу';
-  const discountPercent=product=>{const raw=Number(product?.discountPercent);return Number.isFinite(raw)?Math.min(99,Math.max(0,Math.round(raw))):30;};
-  const oldPrice=(n,discount=30)=>{const price=Number(n),pct=Math.min(99,Math.max(0,Number(discount)||0));return price>=5000&&pct>0?Math.round((price/(1-pct/100))/100)*100:null;};
+  const discountPercent=product=>{const raw=Number(product?.discountPercent);return product?.discountPercent!=null&&Number.isFinite(raw)?Math.min(99,Math.max(0,Math.round(raw))):0;};
+  const oldPrice=(n,discount=0)=>{const price=Number(n),pct=Math.min(99,Math.max(0,Number(discount)||0));return price>=5000&&pct>0?Math.round((price/(1-pct/100))/100)*100:null;};
   const promoField=(product,key,fallback)=>Object.prototype.hasOwnProperty.call(product||{},key)?String(product?.[key]??'').trim():fallback;
-  function promoMarkup(product){const title=promoField(product,'promoLabel','Цена сентября'),subtitle=promoField(product,'promoSubtext','до 30 сентября');return title||subtitle?`<div class="f-price-promo">${title?`<b>${esc(title)}</b>`:''}${subtitle?`<span>${esc(subtitle)}</span>`:''}</div>`:'';}
+  function promoMarkup(product){const title=promoField(product,'promoLabel',''),subtitle=promoField(product,'promoSubtext','');return `<div class="f-price-promo" ${title||subtitle?'':'style="display:none"'}>${title?`<b>${esc(title)}</b>`:''}${subtitle?`<span>${esc(subtitle)}</span>`:''}</div>`;}
 
   const ICONS={
     home:`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.8 10.6 12 3.8l8.2 6.8v9.1a.8.8 0 0 1-.8.8H4.6a.8.8 0 0 1-.8-.8v-9.1Z"/><path d="M9.3 20.5v-6.8h5.4v6.8"/></svg>`,
@@ -34,11 +34,11 @@
   }
 
   function routeFromHash(){const raw=(location.hash||'#home').slice(1).split('?')[0];return views.has(raw)?raw:'home';}
-  function sections(){const cta=$('.cta')?.closest('section');return{hero:$('.hero'),delivery:$('#delivery'),about:$('#about'),guide:$('#guide'),catalog:$('#catalog'),hits:$('#homeHits'),furniture:$('#furnitureCatalog'),cta};}
+  function sections(){const cta=$('.cta')?.closest('section');return{hero:$('.hero'),categories:$('#homeCategories'),journey:$('#homeJourney'),service:$('#homeService'),faq:$('#homeFaq'),delivery:$('#delivery'),about:$('#about'),guide:$('#guide'),catalog:$('#catalog'),hits:$('#homeHits'),furniture:$('#furnitureCatalog'),cta};}
   function show(el,on){if(el)el.classList.toggle('shop-view-hidden',!on)}
   function applyView(view,{scroll=true}={}){
     if(!views.has(view))view='home';const s=sections();
-    show(s.hero,view==='home');show(s.delivery,view==='delivery');show(s.about,view==='home');show(s.guide,view==='guide');show(s.hits,view==='home');show(s.catalog,view==='mattresses');show(s.furniture,view==='beds'||view==='sofas');show(s.cta,true);
+    show(s.hero,view==='home');show(s.categories,view==='home');show(s.journey,view==='home');show(s.service,view==='home');show(s.faq,view==='home');show(s.delivery,view==='delivery');show(s.about,view==='home');show(s.guide,view==='guide');show(s.hits,view==='home');show(s.catalog,view==='mattresses');show(s.furniture,view==='beds'||view==='sofas');show(s.cta,true);
     $$('[data-shop-view]').forEach(a=>a.classList.toggle('is-active',a.dataset.shopView===view));document.body.dataset.shopView=view;
     if(view==='beds'||view==='sofas')renderFurniture(view);if(view==='home')renderHomeHits();if(scroll)window.scrollTo({top:0,behavior:'smooth'});
   }

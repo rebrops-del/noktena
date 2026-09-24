@@ -1,0 +1,87 @@
+:root{--ink:#29302b;--muted:#777c75;--line:#e5e0d7;--bg:#f8f5f0;--green:#254337;--side:#24382f}
+*{box-sizing:border-box}
+body{background:#f8f5f0!important;font-family:Onest,"Segoe UI",Arial,sans-serif!important;color:#29302b!important}
+button,input,select,textarea{font-family:inherit!important}
+:where(a,button,input,select,textarea):focus-visible{outline:3px solid #a3815f!important;outline-offset:2px!important}
+.visually-hidden{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.login{grid-template-columns:minmax(0,1.05fr) minmax(440px,.95fr);place-items:stretch;padding:0!important;background:#eee8df!important}
+.login-story{min-height:100vh;background:linear-gradient(180deg,rgba(27,32,27,.16),rgba(25,37,29,.72)),url('../assets/noktena-editorial-bedroom.webp') center/cover;display:flex;flex-direction:column;justify-content:space-between;color:#fff;padding:clamp(36px,6vw,90px)}
+.login-story-top{font-family:Georgia,"Times New Roman",serif;font-size:2rem;letter-spacing:.08em;display:flex;align-items:center;gap:24px}
+.login-story-top span{font-family:Onest,"Segoe UI",sans-serif;font-size:.66rem;letter-spacing:.17em;border-left:1px solid #ffffff80;padding-left:24px}
+.login-story-bottom>span,.login-overline,.admin-overline{font-size:.69rem;font-weight:800;letter-spacing:.17em;color:#af8f68}
+.login-story-bottom>span{color:#e3d1b3}
+.login-story-bottom p{font-family:Georgia,"Times New Roman",serif;font-size:clamp(2.6rem,4.2vw,5.1rem);line-height:1.07;letter-spacing:-.05em;margin:16px 0 0}
+.login .box{align-self:center;justify-self:center;border:0!important;border-radius:0!important;box-shadow:none!important;background:transparent!important;backdrop-filter:none!important;width:min(450px,calc(100% - 70px));padding:20px!important}
+.login .admin-logo{width:178px!important;margin:0 0 64px!important;border:0!important}
+.login h1{font-family:Georgia,"Times New Roman",serif;font-size:3.2rem!important;font-weight:400!important;letter-spacing:-.05em!important;line-height:1.06;margin:17px 0 14px!important}
+.login p{font-size:.95rem!important;line-height:1.6!important;margin:0 0 32px!important}
+.login label{font-size:.83rem!important;font-weight:700!important;color:#444b44!important;margin:16px 0!important}
+.login input{height:52px!important;background:#fff!important;font-size:1rem!important;padding:0 15px!important}
+.login .primary{width:100%;min-height:54px!important;margin-top:12px;font-size:.93rem!important}
+.login .statusline{font-size:.76rem!important;margin-top:18px!important}
+.app{grid-template-columns:248px minmax(0,1fr)!important}
+.side{position:sticky;top:0;height:100vh;overflow:auto;background:#25372e!important;box-shadow:none!important;gap:0!important;padding:26px 18px!important}
+.side-head{padding:5px 10px 30px;border-bottom:1px solid #ffffff24}
+.side .admin-logo{width:178px!important;padding:10px!important;border-radius:4px!important;background:#fff!important;box-shadow:none!important}
+.side-head small{display:block;margin-top:19px;letter-spacing:.18em;color:#c5baa6;font-size:.65rem;font-weight:700}
+.side-nav{display:grid;padding-top:30px;gap:5px}
+.side-label{color:#a7b2a9;font-size:.64rem;font-weight:800;letter-spacing:.16em;padding:20px 14px 9px}
+.side-link{border:1px solid transparent;background:transparent;color:#e5e9e3;display:flex;align-items:center;gap:13px;text-align:left;padding:12px 14px;border-radius:6px;cursor:pointer;font-size:.88rem;font-weight:600;min-height:48px}
+.side-link>span:first-child{font-size:1.14rem;line-height:1;width:20px;text-align:center;color:#d4c4aa}
+.side-link:hover,.side-link.is-current{background:#ffffff16;border-color:#ffffff26;color:#fff}
+.side-badge{margin-left:auto;background:#a3815f;color:#fff;border-radius:50px;padding:2px 7px;font-size:.67rem}
+.side-badge[hidden]{display:none}
+.side .bottom{border-top:1px solid #ffffff24;padding:20px 12px 6px;display:grid;gap:13px}
+.side-site-link{color:#e7dfd2!important;text-decoration:none!important;font-size:.82rem!important;margin-bottom:5px}
+.side #adminEmail{font-size:.72rem!important;color:#b9c5bb!important;overflow-wrap:anywhere;margin:0!important}
+.side #logout{width:100%;background:#fff!important;border-radius:6px!important;color:#334139!important;box-shadow:none!important}
+.main{padding:37px clamp(22px,3.4vw,56px) 60px!important;min-width:0}
+.top{align-items:flex-end!important;margin-bottom:27px!important;gap:18px}
+.top h1{font-family:Georgia,"Times New Roman",serif;font-size:clamp(2.3rem,3vw,3.5rem)!important;line-height:1.1!important;font-weight:400!important;letter-spacing:-.045em!important;margin:8px 0 3px!important}
+.top .muted{font-size:.88rem!important;color:#6d746d!important}
+.top .actions{justify-content:flex-end;gap:7px!important}
+.btn{border-radius:6px!important;font-size:.78rem!important;min-height:43px!important;padding:0 14px!important}
+.primary{background:#294539!important;border-color:#294539!important;box-shadow:none!important}
+.primary:hover{background:#3a5b4b!important;box-shadow:none!important}
+.secondary{box-shadow:none!important;background:#fff!important;border-color:#dcd8cf!important;color:#344339!important}
+.danger{box-shadow:none!important}
+.admin-overview{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:11px;margin-bottom:26px}
+.admin-overview>div{min-height:142px;background:#fffefa;border:1px solid #e6e0d6;border-radius:6px;padding:20px 21px;display:flex;flex-direction:column}
+.admin-overview span{color:#68726a;font-size:.8rem;font-weight:650}
+.admin-overview strong{font-family:Georgia,"Times New Roman",serif;font-weight:400;font-size:2.8rem;line-height:1.18;color:#293d32;margin:auto 0 3px}
+.admin-overview small{color:#a38260;font-size:.72rem}
+.panel,.modalbox{background:#fffefa!important;box-shadow:none!important;border:1px solid #e5e0d7!important;border-radius:6px!important}
+.toolbar{background:#fcfaf6!important;border-bottom-color:#e5e0d7!important;padding:16px!important}
+.toolbar input,.toolbar select{background:#fff!important;height:48px!important;font-size:.85rem!important}
+table{background:#fffefa!important}
+th{font-size:.7rem!important;background:#f8f5ef!important;color:#778078!important}
+td{font-size:.83rem!important;color:#3c473e!important}
+.prod{min-width:200px}.prod b{font-size:.83rem!important;line-height:1.4}
+.thumb{object-fit:contain!important;background:#f1eee8!important}
+.muted,.count{font-size:.76rem!important}
+.pill{border-radius:4px!important}
+.modal{background:#172a22bf!important;backdrop-filter:blur(4px)!important}
+.modalbox{width:min(1080px,98vw)!important;max-height:95vh!important;padding:clamp(20px,3vw,36px)!important;box-shadow:0 35px 95px #0a150d4d!important}
+.modalhead{top:-36px!important;background:#fffefa!important}
+.modalhead b{font-family:Georgia,"Times New Roman",serif;font-size:1.6rem!important;font-weight:400!important}
+label{font-size:.82rem!important}
+input,select,textarea{font-size:.89rem!important;border-radius:6px!important;min-height:46px!important}
+textarea{line-height:1.55}
+.section h3{font-size:1rem!important}
+.image-card{border-radius:5px!important}.image-card img{object-fit:contain!important}
+.notice{border-radius:6px!important;background:#f4f0e8!important}
+.toast{border-radius:6px!important}
+#app .admin-tabs{background:#eee8df;border-color:#e2dbcf;border-radius:6px;gap:3px;padding:4px}
+#app .admin-tab{border-radius:4px;font-size:.81rem;font-weight:700;color:#5c695f}
+#app .admin-tab.is-active{color:#244136;box-shadow:none}
+#app .orders-pane-panel{background:#fffefa;border-color:#e5e0d7;border-radius:6px;padding:18px}
+#app .orders-row{border-color:#e6e0d7;border-radius:6px;box-shadow:none}
+#app .orders-row:hover{border-color:#bca587;box-shadow:0 8px 24px #3533260c}
+#app .orders-row.is-new{border-left-color:#a3815f;background:#fdfaf5}
+.orders-toolbar{align-items:center;flex-wrap:wrap}.orders-filters{display:flex;gap:8px;flex-wrap:wrap}.orders-filters input{width:min(250px,100%);min-height:43px;border:1px solid #ded9cf;background:#fff;padding:0 12px;border-radius:5px}.orders-filters select{width:180px;min-height:43px;border:1px solid #ded9cf;background:#fff;border-radius:5px}
+#images .image-actions{display:flex;flex-wrap:wrap;gap:5px}#images .image-actions button{min-height:32px}#images .image-actions button:disabled{opacity:.35;cursor:not-allowed}
+#app .orders-info-card,#app .orders-detail-items,#app .orders-detail-totals{border-color:#e5e0d7;border-radius:6px}
+@media(max-width:1150px){.app{grid-template-columns:215px minmax(0,1fr)!important}.side{padding:18px 12px!important}.top{align-items:flex-start!important;flex-direction:column!important}.top .actions{justify-content:flex-start}.admin-overview{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:800px){.login{grid-template-columns:1fr;min-height:100vh}.login-story{display:none}.login .box{width:min(460px,calc(100% - 40px))}.app{grid-template-columns:1fr!important}.side{display:block!important;position:relative;height:auto;overflow:visible;padding:10px 16px!important}.side-head{display:flex;align-items:center;justify-content:space-between;padding:0 0 9px}.side .admin-logo{width:130px!important}.side-head small{margin:0}.side-nav{display:flex;gap:5px;overflow-x:auto;padding:8px 0 0;scrollbar-width:none}.side-label{display:none}.side-link{white-space:nowrap;min-height:40px;padding:8px 10px;font-size:.76rem}.side .bottom{display:none}.main{padding:22px 16px 40px!important}.toolbar{grid-template-columns:1fr 1fr!important}.toolbar input{grid-column:1/-1}.top h1{font-size:2.4rem!important}.panel .wrap{overflow-x:auto}.panel table{min-width:690px}.modalbox{padding:18px!important}.modalhead{top:-18px!important}}
+@media(max-width:520px){.login .admin-logo{margin-bottom:46px!important}.login h1{font-size:2.7rem!important}.admin-overview{gap:8px}.admin-overview>div{min-height:114px;padding:13px}.admin-overview strong{font-size:2.3rem}.top .actions{width:100%}.top .actions .btn{flex:1 1 40%;padding:0 9px!important;font-size:.73rem!important}.toolbar{grid-template-columns:1fr!important}.toolbar input{grid-column:auto}.orders-pane-panel{padding:10px!important}.side-head small{font-size:.55rem}.modalbox{max-height:98vh!important}}
+.orders-filters input,.orders-filters select{max-width:100%}

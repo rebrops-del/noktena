@@ -2,6 +2,7 @@ name: Test live admin
 on:
   workflow_dispatch:
   push:
+    branches: [main]
     paths:
       - 'admin/**'
       - 'assets/category-settings-ui.js'
