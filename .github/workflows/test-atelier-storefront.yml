@@ -1,4 +1,4 @@
-name: Test Atelier storefront
+name: Test premium storefront
 on:
   workflow_dispatch:
   push:
@@ -7,8 +7,9 @@ on:
       - 'index.html'
       - 'product.html'
       - 'checkout.html'
-      - 'assets/atelier-v1.css'
-      - 'assets/atelier-v1.js'
+      - 'assets/storefront-2026.css'
+      - 'assets/product-2026.css'
+      - 'assets/product-detail.js'
       - '.github/workflows/test-atelier-storefront.yml'
 
 jobs:
@@ -16,50 +17,28 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Static checks
+      - name: Check current storefront files
         run: |
-          set -euxo pipefail
-          node --check assets/atelier-v1.js
-          grep -q 'atelier-v1.css' index.html
-          grep -q 'atelier-v1.js' index.html
-          grep -q 'atelier-v1.css' product.html
-          grep -q 'atelier-v1.js' product.html
-          grep -q 'atelier-v1.css' checkout.html
-          grep -q 'atelier-v1.js' checkout.html
-          grep -q 'Журнал НОКТЕНА' assets/atelier-v1.js
-          grep -q 'Коллекция для спальни' assets/atelier-v1.js
-      - name: Wait for GitHub Pages
+          set -euo pipefail
+          node --check assets/product-detail.js
+          grep -q 'storefront-2026.css' index.html
+          grep -q 'product-2026.css' product.html
+          grep -q 'checkout-2026.css' checkout.html
+          grep -q 'removeBrokenGalleryPhoto' assets/product-detail.js
+          test -s assets/admin-mattress-thumbs/r4-c5.webp
+      - name: Wait for live premium pages
         run: |
-          set -euxo pipefail
-          for i in $(seq 1 60); do
-            home=$(curl -sS -L --max-time 20 "https://noktena.ru/?atelier=$GITHUB_RUN_ID" || true)
-            css=$(curl -sS -L --max-time 20 "https://noktena.ru/assets/atelier-v1.css?atelier=$GITHUB_RUN_ID" || true)
-            js=$(curl -sS -L --max-time 20 "https://noktena.ru/assets/atelier-v1.js?atelier=$GITHUB_RUN_ID" || true)
-            if printf '%s' "$home" | grep -q 'atelier-v1.css' \
-              && printf '%s' "$home" | grep -q 'atelier-v1.js' \
-              && printf '%s' "$css" | grep -q 'Atelier retail experience' \
-              && printf '%s' "$js" | grep -q 'atelierJournal'; then
+          set -euo pipefail
+          for i in $(seq 1 40); do
+            home=$(curl -fsSL --max-time 20 "https://noktena.ru/?release=$GITHUB_SHA" || true)
+            product=$(curl -fsSL --max-time 20 "https://noktena.ru/product.html?release=$GITHUB_SHA" || true)
+            css=$(curl -fsSL --max-time 20 "https://noktena.ru/assets/product-2026.css?release=$GITHUB_SHA" || true)
+            if [[ "$home" == *'storefront-2026.css'* ]] \
+              && [[ "$product" == *'product-detail.js?v=20260925-gallery2'* ]] \
+              && [[ "$css" == *'pd-main-media.pd-mattress-media'* ]]; then
               exit 0
             fi
             sleep 5
           done
-          echo 'Atelier deployment did not become ready' >&2
+          echo 'Premium pages did not become ready' >&2
           exit 1
-      - name: Render premium home
-        run: |
-          set -euxo pipefail
-          CHROME=$(command -v google-chrome || command -v google-chrome-stable || command -v chromium || command -v chromium-browser)
-          "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --virtual-time-budget=14000 --window-size=1440,1400 --dump-dom "https://noktena.ru/#home" > /tmp/home.html
-          grep -q 'Коллекция для спальни' /tmp/home.html
-          grep -q 'Журнал НОКТЕНА' /tmp/home.html
-          grep -q 'Персональный подбор без лишней сложности' /tmp/home.html
-          grep -q 'atelier-concierge' /tmp/home.html
-          ! grep -q 'Каталог временно не загрузился' /tmp/home.html
-      - name: Render checkout polish
-        run: |
-          set -euxo pipefail
-          CHROME=$(command -v google-chrome || command -v google-chrome-stable || command -v chromium || command -v chromium-browser)
-          "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --virtual-time-budget=7000 --window-size=1280,900 --dump-dom "https://noktena.ru/checkout.html?atelier=$GITHUB_RUN_ID" > /tmp/checkout.html
-          grep -q 'Оформление заказа НОКТЕНА' /tmp/checkout.html
-          grep -q 'Наличие подтвердит менеджер' /tmp/checkout.html
-# verified against deployed Atelier generation

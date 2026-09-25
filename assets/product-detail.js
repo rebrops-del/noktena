@@ -101,7 +101,7 @@
         ${galleryImages.length>1?`<button class="pd-gallery-arrow prev" type="button" data-pd-dir="-1" aria-label="Предыдущее фото">‹</button><button class="pd-gallery-arrow next" type="button" data-pd-dir="1" aria-label="Следующее фото">›</button>`:''}
         <span class="pd-counter" id="pdCounter">${galleryImages.length>1?`1 / ${galleryImages.length}`:'1 фото'}</span>
       </div>
-      ${galleryImages.length>1?`<div class="pd-thumbs" id="pdThumbs">${galleryImages.map((src,i)=>`<button class="pd-thumb ${i===0?'is-active':''}" type="button" data-pd-index="${i}" aria-label="Фото ${i+1}"><img src="${esc(src)}" alt="" loading="lazy" referrerpolicy="no-referrer"></button>`).join('')}</div>`:''}
+      ${galleryImages.length>1?`<div class="pd-thumbs" id="pdThumbs">${galleryImages.map((src,i)=>`<button class="pd-thumb ${i===0?'is-active':''}" type="button" data-pd-index="${i}" aria-label="Фото ${i+1}"><img src="${esc(src)}" alt="" decoding="async" referrerpolicy="no-referrer"></button>`).join('')}</div>`:''}
     </div>`;
   }
   function mattressImageMarkup(product){if(Array.isArray(product.images)&&product.images.length)return galleryMarkup(product.images,product.model,'mattress');const pp=PHOTO_POS[product.model];return galleryMarkup(pp?[`assets/admin-mattress-thumbs/r${pp[1]+1}-c${pp[0]+1}.webp`]:[],product.model,'mattress');}
@@ -180,7 +180,33 @@
     $('#pdVariant')?.addEventListener('change',e=>{const price=Number(e.target.value)||0;const p=$('#pdPrice'),op=$('#pdOldPrice');if(p)p.textContent=rub(price);if(op)op.textContent=oldPrice(price,discountPercent(product))?rub(oldPrice(price,discountPercent(product))):'';});
   }
 
-  function showGallery(index){if(!galleryImages.length)return;const len=galleryImages.length;galleryIndex=(index+len)%len;const src=galleryImages[galleryIndex];const img=$('#pdMainImage');const media=$('#pdMainMedia');if(img){img.classList.add('is-changing');const preload=new Image();preload.onload=()=>{img.src=src;img.classList.remove('is-changing')};preload.onerror=()=>img.classList.remove('is-changing');preload.src=src;}if(media)media.style.setProperty('--pd-bg',`url("${src.replace(/"/g,'\\"')}")`);const counter=$('#pdCounter');if(counter)counter.textContent=`${galleryIndex+1} / ${len}`;$$('[data-pd-index]').forEach(el=>el.classList.toggle('is-active',Number(el.dataset.pdIndex)===galleryIndex));const active=document.querySelector(`[data-pd-index="${galleryIndex}"]`);active?.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});}
+  function showGallery(index){if(!galleryImages.length)return;const len=galleryImages.length;galleryIndex=(index+len)%len;const src=galleryImages[galleryIndex];const img=$('#pdMainImage');const media=$('#pdMainMedia');if(img){img.classList.add('is-changing');const preload=new Image();preload.onload=()=>{img.src=src;img.classList.remove('is-changing')};preload.onerror=()=>{img.classList.remove('is-changing');removeBrokenGalleryPhoto(src)};preload.src=src;}if(media)media.style.setProperty('--pd-bg',`url("${src.replace(/"/g,'\\"')}")`);const counter=$('#pdCounter');if(counter)counter.textContent=`${galleryIndex+1} / ${len}`;$$('[data-pd-index]').forEach(el=>el.classList.toggle('is-active',Number(el.dataset.pdIndex)===galleryIndex));const active=document.querySelector(`[data-pd-index="${galleryIndex}"]`);active?.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});}
+
+  function removeBrokenGalleryPhoto(src){
+    const index=galleryImages.indexOf(src);if(index<0)return;
+    galleryImages.splice(index,1);if(galleryIndex>index)galleryIndex--;
+    const main=$('#pdMainImage'),media=$('#pdMainMedia'),thumbs=$('#pdThumbs');
+    $$('[data-pd-index]').forEach(button=>{
+      const photo=button.querySelector('img')?.getAttribute('src');
+      if(photo===src){button.remove();return;}
+      const next=galleryImages.indexOf(photo);button.dataset.pdIndex=String(next);
+      button.setAttribute('aria-label',`Фото ${next+1}`);
+      button.classList.toggle('is-active',next===galleryIndex);
+    });
+    if(galleryImages.length<2){thumbs?.remove();$$('.pd-gallery-arrow').forEach(button=>button.remove());}
+    const counter=$('#pdCounter');if(counter)counter.textContent=galleryImages.length>1?`${galleryIndex+1} / ${galleryImages.length}`:galleryImages.length?'1 фото':'Фото недоступно';
+    if(!galleryImages.length){
+      main?.removeAttribute('src');if(main)main.hidden=true;
+      media?.classList.add('is-unavailable');media?.style.setProperty('--pd-bg','none');
+      media?.querySelector('.pd-zoom')?.setAttribute('hidden','');
+      const note=document.createElement('span');note.className='pd-unavailable-note';note.textContent='Фото временно недоступно';media?.appendChild(note);
+    }else if(main?.getAttribute('src')===src){showGallery(Math.max(0,galleryIndex));}
+  }
+  document.addEventListener('error',event=>{
+    const image=event.target;
+    if(!(image instanceof HTMLImageElement))return;
+    if(image.closest('.pd-thumb')||image.id==='pdMainImage')removeBrokenGalleryPhoto(image.getAttribute('src'));
+  },true);
 
   document.addEventListener('click',e=>{
     const dir=e.target.closest('[data-pd-dir]');if(dir){showGallery(galleryIndex+(Number(dir.dataset.pdDir)||1));return;}

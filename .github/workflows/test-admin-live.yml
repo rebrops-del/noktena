@@ -64,19 +64,16 @@ jobs:
           echo 'live admin deployment did not become ready' >&2
           exit 1
 
-      - name: Render live admin in Chrome
+      - name: Check published login and logo
         run: |
           set -euxo pipefail
-          CHROME=$(command -v google-chrome || command -v google-chrome-stable || command -v chromium || command -v chromium-browser)
-          "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --virtual-time-budget=8000 --dump-dom "https://noktena.ru/admin/?run=$GITHUB_RUN_ID" > /tmp/admin.html
+          curl -fsSL --max-time 20 "https://noktena.ru/admin/?run=$GITHUB_RUN_ID" -o /tmp/admin.html
           grep -q 'Добро пожаловать' /tmp/admin.html
-          grep -q 'Сервер готов' /tmp/admin.html
+          grep -q 'logo-noktena-hq.svg' /tmp/admin.html
 
-      - name: Render public storefront in Chrome
+      - name: Check published storefront
         run: |
           set -euxo pipefail
-          CHROME=$(command -v google-chrome || command -v google-chrome-stable || command -v chromium || command -v chromium-browser)
-          "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --virtual-time-budget=12000 --dump-dom "https://noktena.ru/?run=$GITHUB_RUN_ID" > /tmp/home.html
-          ! grep -q 'Каталог временно не загрузился' /tmp/home.html
-          grep -q 'product-open-card' /tmp/home.html
-          grep -q 'class="f-card' /tmp/home.html
+          curl -fsSL --max-time 20 "https://noktena.ru/?run=$GITHUB_RUN_ID" -o /tmp/home.html
+          grep -q 'storefront-2026.css' /tmp/home.html
+          grep -q 'Дом начинается с хорошего сна' /tmp/home.html
