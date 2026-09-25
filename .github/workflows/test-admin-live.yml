@@ -50,7 +50,7 @@ jobs:
             badge=$(curl -sS -L --max-time 20 "https://noktena.ru/assets/category-settings-ui.js?smoke=$GITHUB_RUN_ID" || true)
             orders=$(curl -sS -L --max-time 20 "https://noktena.ru/admin/orders.js?smoke=$GITHUB_RUN_ID" || true)
             if printf '%s' "$html" | grep -q 'admin-enhancements.js?v=9' \
-              && printf '%s' "$html" | grep -q 'orders.js?v=2' \
+              && printf '%s' "$html" | grep -q 'orders.js?v=3' \
               && printf '%s' "$enhance" | grep -q 'Плашка на карточке' \
               && printf '%s' "$enhance" | grep -q 'admin-mattress-thumbs' \
               && printf '%s' "$badge" | grep -q 'product-promo-badge' \
@@ -69,7 +69,7 @@ jobs:
           set -euxo pipefail
           CHROME=$(command -v google-chrome || command -v google-chrome-stable || command -v chromium || command -v chromium-browser)
           "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --virtual-time-budget=8000 --dump-dom "https://noktena.ru/admin/?run=$GITHUB_RUN_ID" > /tmp/admin.html
-          grep -q 'Админ-панель' /tmp/admin.html
+          grep -q 'Добро пожаловать' /tmp/admin.html
           grep -q 'Сервер готов' /tmp/admin.html
 
       - name: Render public storefront in Chrome

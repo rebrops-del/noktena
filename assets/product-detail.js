@@ -84,7 +84,7 @@
       const title=item.title||item.model||'';
       const src=item.images?.[0];
       const pp=PHOTO_POS[item.model];
-      const visual=src?`<img src="${esc(src)}" alt="${esc(title)}" loading="lazy" decoding="async">`:pp?`<div class="pd-similar-sprite" style="--col:${pp[0]};background-image:url('assets/product-row-${pp[1]+1}.webp')" role="img" aria-label="${esc(title)}"></div>`:'<div class="pd-similar-sprite"></div>';
+      const visual=src?`<img src="${esc(src)}" alt="${esc(title)}" loading="lazy" decoding="async">`:pp?`<img class="pd-mattress-thumb" src="assets/admin-mattress-thumbs/r${pp[1]+1}-c${pp[0]+1}.webp" alt="${esc(title)}" width="1200" height="900" loading="lazy" decoding="async">`:'<div class="pd-similar-sprite"></div>';
       const price=kind==='mattress'?Math.min(...(item.variants||[]).map(v=>Number(v.price)||Infinity)):furniturePrice(item,null);
       const href=kind==='mattress'?`product.html?kind=mattress&model=${encodeURIComponent(item.model)}`:`product.html?kind=furniture&id=${encodeURIComponent(item.id)}`;
       return `<a class="pd-similar-card" href="${href}">${visual}<b>${esc(title)}</b><span>${rub(price)}</span></a>`;
@@ -92,10 +92,10 @@
   }
   function setBack(view,label){const url=`/#${view}`;const top=$('#backTop');if(top)top.href=url;const b=$('#breadcrumbs');if(b)b.innerHTML=`<a href="/">Главная</a><span>›</span><a href="${url}">${esc(label)}</a><span>›</span><span>Карточка товара</span>`;}
 
-  function galleryMarkup(images,title){
+  function galleryMarkup(images,title,kind='furniture'){
     galleryImages=uniq(images);galleryIndex=0;if(!galleryImages.length)galleryImages=['assets/hero-noktena-final.png?v=20260908-final2'];const first=galleryImages[0];
     return `<div class="pd-gallery-card">
-      <div class="pd-main-media" id="pdMainMedia" style="--pd-bg:url('${esc(first)}')">
+      <div class="pd-main-media ${kind==='mattress'?'pd-mattress-media':''}" id="pdMainMedia" style="--pd-bg:url('${esc(first)}')">
         <img id="pdMainImage" src="${esc(first)}" alt="${esc(title)}" decoding="async" referrerpolicy="no-referrer">
         <button class="pd-zoom" type="button" aria-label="Увеличить изображение товара">Увеличить ↗</button>
         ${galleryImages.length>1?`<button class="pd-gallery-arrow prev" type="button" data-pd-dir="-1" aria-label="Предыдущее фото">‹</button><button class="pd-gallery-arrow next" type="button" data-pd-dir="1" aria-label="Следующее фото">›</button>`:''}
@@ -104,7 +104,7 @@
       ${galleryImages.length>1?`<div class="pd-thumbs" id="pdThumbs">${galleryImages.map((src,i)=>`<button class="pd-thumb ${i===0?'is-active':''}" type="button" data-pd-index="${i}" aria-label="Фото ${i+1}"><img src="${esc(src)}" alt="" loading="lazy" referrerpolicy="no-referrer"></button>`).join('')}</div>`:''}
     </div>`;
   }
-  function mattressImageMarkup(product){if(Array.isArray(product.images)&&product.images.length)return galleryMarkup(product.images,product.model);const pp=PHOTO_POS[product.model];if(!pp)return galleryMarkup([],product.model);galleryImages=[];return `<div class="pd-gallery-card"><div class="pd-main-media pd-sprite-media"><div class="pd-sprite" style="--col:${pp[0]};background-image:url('assets/product-row-${pp[1]+1}.webp?v=20260905-photos2')" role="img" aria-label="${esc(product.model)}"></div></div></div>`;}
+  function mattressImageMarkup(product){if(Array.isArray(product.images)&&product.images.length)return galleryMarkup(product.images,product.model,'mattress');const pp=PHOTO_POS[product.model];return galleryMarkup(pp?[`assets/admin-mattress-thumbs/r${pp[1]+1}-c${pp[0]+1}.webp`]:[],product.model,'mattress');}
   function publicSpec([k,v]){return k&&v&&!/производител|артикул|sku/i.test(k);}
   function specsMarkup(specs){const entries=Object.entries(specs||{}).filter(publicSpec);if(!entries.length)return '<p class="pd-description">Характеристики уточняйте при оформлении заказа.</p>';return `<div class="pd-specs">${entries.map(([k,v])=>`<div class="pd-spec"><span>${esc(k)}</span><b>${esc(v)}</b></div>`).join('')}</div>`;}
   function variantFor(product,color,size){const vars=Array.isArray(product.variants)?product.variants:[];return vars.find(v=>(!color||colorKey(v.color)===colorKey(color))&&(!size||v.size===size))||vars.find(v=>(!size||v.size===size))||vars.find(v=>(!color||colorKey(v.color)===colorKey(color)))||null;}

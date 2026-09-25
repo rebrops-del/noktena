@@ -1,11 +1,6 @@
 name: Patch depth and promo controls
 
 on:
-  push:
-    paths:
-      - 'scripts/patch_depth_and_promo_controls.py'
-      - 'admin/admin-card-settings.js'
-      - '.github/workflows/patch-depth-and-promo.yml'
   workflow_dispatch:
 
 permissions:
@@ -30,7 +25,7 @@ jobs:
           grep -q 'furnitureDepthValue' assets/product-detail.js
           grep -q 'admin-card-settings.js?v=1' admin/index.html
           grep -q 'catalog-v2.js?v=20260921-depthpromo1' index.html
-          grep -q 'product-detail.js?v=20260921-depthpromo1' product.html
+          grep -q 'product-detail.js?v=20260925-gallery1' product.html
 
       - name: Commit patch
         run: |

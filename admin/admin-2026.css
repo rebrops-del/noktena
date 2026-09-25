@@ -12,7 +12,7 @@ button,input,select,textarea{font-family:inherit!important}
 .login-story-bottom>span{color:#e3d1b3}
 .login-story-bottom p{font-family:Georgia,"Times New Roman",serif;font-size:clamp(2.6rem,4.2vw,5.1rem);line-height:1.07;letter-spacing:-.05em;margin:16px 0 0}
 .login .box{align-self:center;justify-self:center;border:0!important;border-radius:0!important;box-shadow:none!important;background:transparent!important;backdrop-filter:none!important;width:min(450px,calc(100% - 70px));padding:20px!important}
-.login .admin-logo{width:178px!important;margin:0 0 64px!important;border:0!important}
+.login .admin-logo{display:block;width:215px!important;max-width:100%;height:auto;margin:0 0 48px!important;border:0!important;background:transparent!important}
 .login h1{font-family:Georgia,"Times New Roman",serif;font-size:3.2rem!important;font-weight:400!important;letter-spacing:-.05em!important;line-height:1.06;margin:17px 0 14px!important}
 .login p{font-size:.95rem!important;line-height:1.6!important;margin:0 0 32px!important}
 .login label{font-size:.83rem!important;font-weight:700!important;color:#444b44!important;margin:16px 0!important}

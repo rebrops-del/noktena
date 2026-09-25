@@ -1,12 +1,6 @@
 name: Load Global Discount
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths:
-      - '.github/workflows/load-global-discount.yml'
-      - 'assets/global-discount-runtime.js'
-      - 'admin/global-discount-settings.js'
 
 permissions:
   contents: write

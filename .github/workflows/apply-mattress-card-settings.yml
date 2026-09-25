@@ -1,12 +1,6 @@
 name: Apply Mattress Card Settings
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths:
-      - '.github/workflows/apply-mattress-card-settings.yml'
-      - 'admin/admin-mattress-card-settings.js'
-      - 'assets/mattress-card-settings-runtime.js'
 permissions:
   contents: write
 jobs:
