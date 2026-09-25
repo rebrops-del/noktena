@@ -49,8 +49,9 @@ jobs:
             enhance=$(curl -sS -L --max-time 20 "https://noktena.ru/admin/admin-enhancements.js?smoke=$GITHUB_RUN_ID" || true)
             badge=$(curl -sS -L --max-time 20 "https://noktena.ru/assets/category-settings-ui.js?smoke=$GITHUB_RUN_ID" || true)
             orders=$(curl -sS -L --max-time 20 "https://noktena.ru/admin/orders.js?smoke=$GITHUB_RUN_ID" || true)
-            if printf '%s' "$html" | grep -q 'admin-enhancements.js?v=9' \
+            if printf '%s' "$html" | grep -q 'admin-enhancements.js?v=10' \
               && printf '%s' "$html" | grep -q 'orders.js?v=3' \
+              && printf '%s' "$html" | grep -q 'store-settings.js?v=20260925-2' \
               && printf '%s' "$enhance" | grep -q 'Плашка на карточке' \
               && printf '%s' "$enhance" | grep -q 'admin-mattress-thumbs' \
               && printf '%s' "$badge" | grep -q 'product-promo-badge' \
@@ -69,7 +70,7 @@ jobs:
           set -euxo pipefail
           curl -fsSL --max-time 20 "https://noktena.ru/admin/?run=$GITHUB_RUN_ID" -o /tmp/admin.html
           grep -q 'Добро пожаловать' /tmp/admin.html
-          grep -q 'logo-noktena-hq.svg' /tmp/admin.html
+          grep -q 'logo-noktena-final.png' /tmp/admin.html
 
       - name: Check published storefront
         run: |

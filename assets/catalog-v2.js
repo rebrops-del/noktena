@@ -4,7 +4,7 @@
   const MAX_ICON='/assets/max-logo.png?v=20260922-max1';
   const PAGE_SIZE=12;
   const views=new Set(['home','mattresses','beds','sofas','delivery','guide']);
-  const state={data:{beds:[],sofas:[]},page:{beds:1,sofas:1},query:{beds:'',sofas:''},sort:{beds:'price-asc',sofas:'price-asc'},subtype:'',gallery:new Map(),loaded:false};
+  const state={data:{beds:[],sofas:[],mattresses:[]},page:{beds:1,sofas:1},query:{beds:'',sofas:''},sort:{beds:'price-asc',sofas:'price-asc'},subtype:'',gallery:new Map(),loaded:false};
   const $=(s,r=document)=>r.querySelector(s);
   const $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
   const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -43,7 +43,7 @@
     if(view==='beds'||view==='sofas')renderFurniture(view);if(view==='home')renderHomeHits();if(scroll)window.scrollTo({top:0,behavior:'smooth'});
   }
 
-  function detailUrl(product){return `product.html?kind=furniture&id=${encodeURIComponent(product.id)}`;}
+  function detailUrl(product){return product.category==='mattress'?`product.html?kind=mattress&model=${encodeURIComponent(product.model)}`:`product.html?kind=furniture&id=${encodeURIComponent(product.id)}`;}
   function uniq(list){return [...new Set((list||[]).filter(Boolean).map(v=>String(v).trim()).filter(Boolean))];}
   function sizeSortValue(value){const nums=String(value||'').replace(/×/g,'х').match(/\d+/g)?.map(Number)||[];return [nums[0]??Number.MAX_SAFE_INTEGER,nums[1]??Number.MAX_SAFE_INTEGER,String(value||'')];}
   function sortSizes(list){return uniq(list).sort((a,b)=>{const A=sizeSortValue(a),B=sizeSortValue(b);return A[0]-B[0]||A[1]-B[1]||A[2].localeCompare(B[2],'ru');});}
@@ -123,8 +123,8 @@
   }
 
   function cardMarkup(product){
-    const imgs=uniq(product.images);const category=product.category==='beds'?'Кровать':'Диван';const link=detailUrl(product);
-    const sizes=sortSizes(product.sizes?.length?product.sizes:(product.variants||[]).map(v=>v.size));const initial=preferredVariant(product,'',sizes[0]||'');const quick=chooseSpecs(product,initial);const summary=shortTextForVariant(product,initial);const price=furniturePrice(product,initial,sizes[0]||'');const discount=discountPercent(product);const comparePrice=oldPrice(price,discount);const first=imgs[0]||'assets/hero-noktena-final.png?v=20260908-final2';
+    const imgs=uniq(product.images);const category=product.category==='mattress'?'Матрас':product.category==='beds'?'Кровать':'Диван';const link=detailUrl(product);
+    const sizes=sortSizes(product.sizes?.length?product.sizes:(product.variants||[]).map(v=>v.size));const initial=preferredVariant(product,'',sizes[0]||'');const quick=chooseSpecs(product,initial);const summary=shortTextForVariant(product,initial);const price=cardPrice(product,initial,sizes[0]||'');const discount=discountPercent(product);const comparePrice=oldPrice(price,discount);const first=imgs[0]||'assets/hero-noktena-final.png?v=20260908-final2';
     state.gallery.set(product.id,0);
     return `<article class="f-card product-open-card" data-product-id="${esc(product.id)}" data-product-link="${esc(link)}" data-selected-size="${esc(sizes[0]||'')}">
       <div class="f-gallery" data-gallery-id="${esc(product.id)}">
@@ -135,7 +135,7 @@
         <span class="f-gallery-count">${imgs.length>1?`1 / ${imgs.length}`:'1 фото'}</span>
       </div>
       <div class="f-card-body">
-        <div class="f-card-eyebrow">${product.subtype?esc(product.subtype):'Каталог мебели'}${product.available?' · в наличии':''}</div>
+        <div class="f-card-eyebrow">${product.subtype?esc(product.subtype):product.category==='mattress'?'Каталог матрасов':'Каталог мебели'}${product.available?' · в наличии':''}</div>
         <h3 title="${esc(product.title)}">${esc(product.title)}</h3>
         ${summary?`<p class="f-card-summary">${esc(summary)}</p>`:''}
         ${quick.length?`<div class="f-premium-specs">${quick.map(([k,v])=>`<div data-spec-key="${esc(k)}"><span>${esc(k)}</span><b>${esc(v)}</b></div>`).join('')}</div>`:''}
@@ -150,14 +150,45 @@
     </article>`;
   }
 
-  function productById(id){return [...state.data.beds,...state.data.sofas].find(x=>x.id===id);}
+  function productById(id){return [...state.data.beds,...state.data.sofas,...state.data.mattresses].find(x=>x.id===id);}
+  function cardPrice(product,variant,size){
+    if(product.category!=='mattress')return furniturePrice(product,variant,size);
+    const amount=Number(variant?.price);
+    return Number.isFinite(amount)&&amount>0?amount:furniturePrice(product,variant,size);
+  }
   function updateCardSpecs(card,product,variant){if(!card||!product)return;card.querySelectorAll('[data-spec-key]').forEach(row=>{const value=specValueFor(product,variant,row.dataset.specKey);const target=row.querySelector('b');if(target&&value!==''&&value!=null)target.textContent=String(value);});card.querySelectorAll('[data-detail-spec-key]').forEach(row=>{const value=specValueFor(product,variant,row.dataset.detailSpecKey);const target=row.querySelector('dd');if(target&&value!==''&&value!=null)target.textContent=String(value);});const summary=card.querySelector('.f-card-summary');if(summary)summary.textContent=shortTextForVariant(product,variant);const detailsText=card.querySelector('.f-card-details-body>p');if(detailsText)detailsText.textContent=variantText(product.description||'',variant);}
-  function updateCardVariant(card){const product=productById(card?.dataset.productId);if(!product)return;const size=card.dataset.selectedSize||'';const variant=preferredVariant(product,'',size);const price=furniturePrice(product,variant,size);const discount=discountPercent(product),comparePrice=oldPrice(price,discount);const el=$('[data-card-price]',card),old=$('[data-card-old-price]',card),badge=$('[data-card-discount]',card),line=old?.closest('.f-old-price-line');if(el)el.textContent=rub(price);if(old)old.textContent=comparePrice?rub(comparePrice):'';if(badge)badge.textContent=`−${discount}%`;if(line)line.style.display=discount>0&&comparePrice?'':'none';updateCardSpecs(card,product,variant);}
+  function updateCardVariant(card){const product=productById(card?.dataset.productId);if(!product)return;const size=card.dataset.selectedSize||'';const variant=preferredVariant(product,'',size);const price=cardPrice(product,variant,size);const discount=discountPercent(product),comparePrice=oldPrice(price,discount);const el=$('[data-card-price]',card),old=$('[data-card-old-price]',card),badge=$('[data-card-discount]',card),line=old?.closest('.f-old-price-line');if(el)el.textContent=rub(price);if(old)old.textContent=comparePrice?rub(comparePrice):'';if(badge)badge.textContent=`−${discount}%`;if(line)line.style.display=discount>0&&comparePrice?'':'none';updateCardSpecs(card,product,variant);}
   function setGallery(id,delta){const product=productById(id);if(!product)return;const imgs=uniq(product.images);if(imgs.length<2)return;const current=state.gallery.get(id)||0;const next=(current+delta+imgs.length)%imgs.length;const g=document.querySelector(`[data-gallery-id="${CSS.escape(id)}"]`);if(!g)return;const img=$('img',g);if(!img)return;const preload=new Image();preload.onload=()=>{state.gallery.set(id,next);img.classList.add('is-changing');setTimeout(()=>{img.src=imgs[next];img.classList.remove('is-changing')},90);const counter=$('.f-gallery-count',g);if(counter)counter.textContent=`${next+1} / ${imgs.length}`;};preload.src=imgs[next];}
   function filtered(view){let items=[...(state.data[view]||[])];const q=(state.query[view]||'').trim().toLowerCase();if(q)items=items.filter(p=>`${p.title} ${p.subtype||''} ${p.description||''} ${JSON.stringify(p.specs||{})}`.toLowerCase().includes(q));if(view==='sofas'&&state.subtype)items=items.filter(p=>p.subtype===state.subtype);const sort=state.sort[view];items.sort((a,b)=>{if(sort==='price-desc')return (b.price||-1)-(a.price||-1);if(sort==='name')return String(a.title).localeCompare(String(b.title),'ru');return (a.price??Number.MAX_SAFE_INTEGER)-(b.price??Number.MAX_SAFE_INTEGER);});return items;}
   function paginationMarkup(view,total,page){const pages=Math.max(1,Math.ceil(total/PAGE_SIZE));if(pages<=1)return'';const nums=[];const from=Math.max(1,page-2),to=Math.min(pages,page+2);if(from>1)nums.push(1);if(from>2)nums.push('…');for(let i=from;i<=to;i++)nums.push(i);if(to<pages-1)nums.push('…');if(to<pages)nums.push(pages);return `<div class="f-pagination" aria-label="Страницы каталога"><button class="f-page" data-page-view="${view}" data-page="${page-1}" ${page<=1?'disabled':''}>←</button>${nums.map(n=>n==='…'?'<span class="f-page f-page-gap">…</span>':`<button class="f-page ${n===page?'is-active':''}" data-page-view="${view}" data-page="${n}">${n}</button>`).join('')}<button class="f-page" data-page-view="${view}" data-page="${page+1}" ${page>=pages?'disabled':''}>→</button></div>`;}
   function renderFurniture(view){const mount=$('#furnitureGrid'),count=$('#furnitureCount'),title=$('#furnitureTitle'),desc=$('#furnitureDesc'),subtype=$('#fSubtype');if(!mount)return;if(title)title.textContent=view==='beds'?'Кровати для вашей спальни':'Диваны для комфортного отдыха';if(desc)desc.textContent=view==='beds'?'Выберите модель и подходящее спальное место. Цвета, фотографии и подробные характеристики — в карточке товара.':'Прямые и угловые модели. Цвет, фотографии и доступные варианты выбираются внутри карточки товара.';if(subtype){subtype.style.display=view==='sofas'?'block':'none';if(view!=='sofas'){subtype.value='';state.subtype='';}}if(!state.loaded){mount.innerHTML='<div class="f-loading">Загружаем коллекцию…</div>';return;}const items=filtered(view);const pages=Math.max(1,Math.ceil(items.length/PAGE_SIZE));state.page[view]=Math.min(Math.max(1,state.page[view]),pages);const page=state.page[view];const slice=items.slice((page-1)*PAGE_SIZE,page*PAGE_SIZE);if(count)count.textContent=`${items.length} моделей · страница ${page} из ${pages}`;mount.innerHTML=slice.length?slice.map(cardMarkup).join(''):'<div class="f-empty">По выбранным параметрам модели не найдены.</div>';const pg=$('#furniturePagination');if(pg)pg.innerHTML=paginationMarkup(view,items.length,page);}
-  function renderHomeHits(){const mount=$('#homeHitsGrid');if(!mount)return;if(!state.loaded){mount.innerHTML='<div class="f-loading">Подбираем модели…</div>';return;}const excluded=p=>{const t=String(p?.title||'').toLowerCase();return t.includes('детская кровать стандарт')||(t.includes('диван тахта')&&t.includes('кушетка')&&t.includes('левый угол'));};const beds=state.data.beds.filter(p=>!excluded(p));const sofas=state.data.sofas.filter(p=>!excluded(p));const bedHits=beds.filter(x=>x.hit),sofaHits=sofas.filter(x=>x.hit);const kuba=state.data.beds.find(p=>p.id==='berhouse-24136');const bedSource=(bedHits.length>=3?bedHits:beds).filter(p=>p.id!=='berhouse-24136');const bedPicks=bedSource.slice(0,3);if(kuba){const kubaHit={...kuba,hit:true};if(bedPicks.length>=3)bedPicks[2]=kubaHit;else bedPicks.push(kubaHit);}const sofaPicks=(sofaHits.length>=3?sofaHits:sofas).slice(0,3);mount.innerHTML=[...bedPicks,...sofaPicks].map(cardMarkup).join('');}
+  function syncPopularMattresses(){
+    state.data.mattresses=(window.NoktenaPopularMattresses||[]).map(product=>({
+      ...product,id:'mattress:'+product.model,title:product.model,category:'mattress',
+      summary:product.intro||'',sizes:[...new Set((product.variants||[]).map(v=>v.size).filter(Boolean))]
+    }));
+  }
+  function renderHomeHits(){
+    const mount=$('#homeHitsGrid');
+    if(!mount)return;
+    if(!state.loaded){mount.innerHTML='<div class="f-loading">Подбираем модели…</div>';return;}
+    syncPopularMattresses();
+    const row=(window.NOKTENA_CATALOG_BOOTSTRAP?.rows||[]).find(item=>item.product_key==='settings:popular_v1');
+    const selected=row?.payload?.keys;
+    if(Array.isArray(selected)){
+      const catalog=new Map([...state.data.beds,...state.data.sofas,...state.data.mattresses].map(p=>[p.category==='mattress'?'mattress:'+p.model:'furniture:'+p.id,p]));
+      const picked=selected.slice(0,6).map(key=>catalog.get(key)).filter(Boolean);
+      mount.innerHTML=picked.length?picked.map(cardMarkup).join(''):'<div class="f-empty">Выбранные модели пока недоступны. Обновите подборку в админке.</div>';
+      return;
+    }
+    const excluded=p=>{const t=String(p?.title||'').toLowerCase();return t.includes('детская кровать стандарт')||(t.includes('диван тахта')&&t.includes('кушетка')&&t.includes('левый угол'));};
+    const beds=state.data.beds.filter(p=>!excluded(p)),sofas=state.data.sofas.filter(p=>!excluded(p));
+    const bedHits=beds.filter(x=>x.hit),sofaHits=sofas.filter(x=>x.hit);
+    const kuba=state.data.beds.find(p=>p.id==='berhouse-24136');
+    const bedPicks=(bedHits.length>=3?bedHits:beds).filter(p=>p.id!=='berhouse-24136').slice(0,3);
+    if(kuba){const kubaHit={...kuba,hit:true};if(bedPicks.length>=3)bedPicks[2]=kubaHit;else bedPicks.push(kubaHit)}
+    mount.innerHTML=[...bedPicks,...(sofaHits.length>=3?sofaHits:sofas).slice(0,3)].map(cardMarkup).join('');
+  }
   async function loadFurniture(){try{const r=await fetch('data/furniture.json?v=20260919-cache1',{cache:'force-cache'});if(!r.ok)throw new Error(`HTTP ${r.status}`);const raw=await r.json();const data=window.NoktenaCatalog?await window.NoktenaCatalog.mergeFurniture(raw):raw;state.data.beds=Array.isArray(data.beds)?data.beds:[];state.data.sofas=Array.isArray(data.sofas)?data.sofas:[];state.loaded=true;}catch(e){console.error('Furniture catalog load failed',e);state.loaded=true;}applyView(routeFromHash(),{scroll:false});}
   function bind(){
     document.addEventListener('click',e=>{
@@ -167,6 +198,7 @@
     });
     document.addEventListener('change',e=>{const select=e.target.closest('[data-card-size]');if(!select)return;const card=select.closest('.f-card');if(!card)return;card.dataset.selectedSize=select.value;updateCardVariant(card);});
     window.addEventListener('hashchange',()=>{const h=(location.hash||'#home').slice(1).split('?')[0];if(views.has(h)){applyView(h);return;}if(['top','delivery','about'].includes(h)){applyView('home',{scroll:false});requestAnimationFrame(()=>document.getElementById(h)?.scrollIntoView({behavior:'smooth',block:'start'}));return;}applyView('home');});
+    window.addEventListener('noktena:mattresses-ready',()=>{syncPopularMattresses();if(state.loaded&&routeFromHash()==='home')renderHomeHits()});
     $('#fSearch')?.addEventListener('input',e=>{const v=routeFromHash();if(v==='beds'||v==='sofas'){state.query[v]=e.target.value;state.page[v]=1;renderFurniture(v);}});
     $('#fSort')?.addEventListener('change',e=>{const v=routeFromHash();if(v==='beds'||v==='sofas'){state.sort[v]=e.target.value;state.page[v]=1;renderFurniture(v);}});
     $('#fSubtype')?.addEventListener('change',e=>{state.subtype=e.target.value;state.page.sofas=1;renderFurniture('sofas');});

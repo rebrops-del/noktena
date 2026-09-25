@@ -189,10 +189,19 @@
       if(badge&&BADGES[badge]){
         const statusCell=row.children[3];
         if(statusCell&&!statusCell.querySelector('.admin-badge-pill')){
+          let group=statusCell.querySelector('.admin-status-badges');
+          if(!group){
+            group=document.createElement('div');
+            group.className='admin-status-badges';
+            const existing=[...statusCell.querySelectorAll('.pill')];
+            if(existing.length)existing.forEach(node=>group.appendChild(node));
+            else statusCell.textContent='';
+            statusCell.appendChild(group);
+          }
           const pill=document.createElement('span');
           pill.className=`admin-badge-pill ${badge}`;
           pill.textContent=BADGES[badge];
-          statusCell.appendChild(pill);
+          group.appendChild(pill);
         }
       }
     });

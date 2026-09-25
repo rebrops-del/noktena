@@ -10,7 +10,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./admin.css?v=6">
   <link rel="stylesheet" href="./admin-luxe.css?v=premium1">
-  <link rel="stylesheet" href="./admin-2026.css?v=premium2">
+  <link rel="stylesheet" href="./admin-2026.css?v=premium3">
 </head>
 <body>
   <div id="toast" class="toast hide"></div>
@@ -33,7 +33,7 @@
   <div id="app" class="app hide">
     <aside class="side">
       <div class="side-head"><img class="admin-logo" src="../assets/logo-noktena-final.png" alt="НОКТЕНА"><small>ПАНЕЛЬ УПРАВЛЕНИЯ</small></div>
-      <div class="side-nav"><span class="side-label">МАГАЗИН</span><button class="side-link is-current" type="button" data-admin-open="catalog"><span aria-hidden="true">◫</span>Обзор и товары</button><button class="side-link" type="button" data-admin-open="orders"><span aria-hidden="true">▤</span>Заказы <span id="sideOrdersBadge" class="side-badge" hidden></span></button><span class="side-label">НАСТРОЙКИ</span><button class="side-link" type="button" data-admin-open="prices"><span aria-hidden="true">◈</span>Цены</button><button class="side-link" type="button" data-admin-open="delivery"><span aria-hidden="true">↗</span>Доставка</button></div>
+      <div class="side-nav"><span class="side-label">МАГАЗИН</span><button class="side-link is-current" type="button" data-admin-open="catalog"><span aria-hidden="true">◫</span>Обзор и товары</button><button class="side-link" type="button" data-admin-open="orders"><span aria-hidden="true">▤</span>Заказы <span id="sideOrdersBadge" class="side-badge" hidden></span></button><button class="side-link" type="button" data-admin-open="popular"><span aria-hidden="true">✦</span>Популярные модели</button><span class="side-label">НАСТРОЙКИ</span><button class="side-link" type="button" data-admin-open="prices"><span aria-hidden="true">◈</span>Цены</button><button class="side-link" type="button" data-admin-open="delivery"><span aria-hidden="true">↗</span>Доставка</button><button class="side-link" type="button" data-admin-open="contacts"><span aria-hidden="true">☎</span>Контакты</button><button class="side-link" type="button" data-admin-open="password"><span aria-hidden="true">◇</span>Пароль</button></div>
       <div class="bottom"><a class="side-site-link" href="/" target="_blank" rel="noopener">Открыть магазин ↗</a><div id="adminEmail" class="muted"></div><button id="logout" class="btn secondary" type="button">Выйти</button></div>
     </aside>
 
@@ -187,8 +187,26 @@
     </div>
   </div>
 
+  <div id="contactsModal" class="modal hide" role="dialog" aria-modal="true" aria-labelledby="contactsTitle">
+    <div class="modalbox small"><div class="modalhead"><div><b id="contactsTitle">Контакты магазина</b><div class="muted">Телефон и ссылка MAX на всех страницах сайта.</div></div><button type="button" class="btn secondary" data-close-store-modal>Закрыть</button></div>
+      <form id="contactsForm"><label>Телефон<input id="storePhone" type="tel" autocomplete="tel" required placeholder="+7 (999) 123-45-67"></label><label>Ссылка на MAX<input id="storeMaxUrl" type="url" inputmode="url" required placeholder="https://max.ru/u/..."></label><div class="savebar"><span></span><button class="btn primary" type="submit">Сохранить контакты</button></div></form>
+    </div>
+  </div>
+
+  <div id="popularModal" class="modal hide" role="dialog" aria-modal="true" aria-labelledby="popularTitle">
+    <div class="modalbox small"><div class="modalhead"><div><b id="popularTitle">Популярные модели</b><div class="muted">Выберите до шести товаров и порядок показа на главной странице.</div></div><button type="button" class="btn secondary" data-close-store-modal>Закрыть</button></div>
+      <form id="popularForm"><div id="popularSlots" class="popular-slots"></div><div class="savebar"><span></span><button class="btn primary" type="submit">Сохранить подборку</button></div></form>
+    </div>
+  </div>
+
+  <div id="passwordModal" class="modal hide" role="dialog" aria-modal="true" aria-labelledby="passwordTitle">
+    <div class="modalbox small"><div class="modalhead"><div><b id="passwordTitle">Смена пароля</b><div class="muted">После изменения войдите с новым паролем.</div></div><button type="button" class="btn secondary" data-close-store-modal>Закрыть</button></div>
+      <form id="passwordForm" autocomplete="off"><label>Текущий пароль<input id="currentAdminPassword" type="password" autocomplete="current-password" required></label><label>Новый пароль<input id="newAdminPassword" type="password" autocomplete="new-password" minlength="12" maxlength="128" required></label><label>Повторите новый пароль<input id="confirmAdminPassword" type="password" autocomplete="new-password" minlength="12" maxlength="128" required></label><div class="savebar"><span class="muted">Не менее 12 символов</span><button class="btn primary" type="submit">Сменить пароль</button></div></form>
+    </div>
+  </div>
+
   <script src="./admin.js?v=6" defer></script>
-  <script src="./admin-enhancements.js?v=9" defer></script>
+  <script src="./admin-enhancements.js?v=10" defer></script>
   <script src="./admin-card-settings.js?v=1" defer></script>
   <script src="./admin-mattress-card-settings.js?v=20260922-2" defer></script>
   <script src="./cart-settings.js?v=1" defer></script>
@@ -196,5 +214,6 @@
   <script src="./global-promo-settings.js?v=20260922-1" defer></script>
 <script src="./global-discount-settings.js?v=20260922-1" defer></script>
   <script src="./admin-shell-2026.js?v=premium1" defer></script>
+  <script src="./store-settings.js?v=20260925-2" defer></script>
 </body>
 </html>
