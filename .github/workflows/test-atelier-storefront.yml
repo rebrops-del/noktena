@@ -34,7 +34,7 @@ jobs:
             product=$(curl -fsSL --max-time 20 "https://noktena.ru/product.html?release=$GITHUB_SHA" || true)
             css=$(curl -fsSL --max-time 20 "https://noktena.ru/assets/product-2026.css?release=$GITHUB_SHA" || true)
             if [[ "$home" == *'storefront-2026.css'* ]] \
-              && [[ "$product" == *'product-detail.js?v=20260925-gallery2'* ]] \
+              && [[ "$product" == *'product-detail.js?v=20260925-gallery3'* ]] \
               && [[ "$css" == *'pd-main-media.pd-mattress-media'* ]]; then
               exit 0
             fi

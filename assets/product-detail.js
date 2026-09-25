@@ -94,14 +94,20 @@
 
   function galleryMarkup(images,title,kind='furniture'){
     galleryImages=uniq(images);galleryIndex=0;if(!galleryImages.length)galleryImages=['assets/hero-noktena-final.png?v=20260908-final2'];const first=galleryImages[0];
+    setTimeout(()=>{
+      $$('#pdThumbs [data-pd-index]').forEach(button=>{
+        if(Number(button.dataset.pdIndex)===0)return;
+        const img=button.querySelector('img');if(img&&!img.naturalWidth)removeBrokenGalleryPhoto(img.getAttribute('src'));
+      });
+    },12000);
     return `<div class="pd-gallery-card">
       <div class="pd-main-media ${kind==='mattress'?'pd-mattress-media':''}" id="pdMainMedia" style="--pd-bg:url('${esc(first)}')">
         <img id="pdMainImage" src="${esc(first)}" alt="${esc(title)}" decoding="async" referrerpolicy="no-referrer">
         <button class="pd-zoom" type="button" aria-label="Увеличить изображение товара">Увеличить ↗</button>
-        ${galleryImages.length>1?`<button class="pd-gallery-arrow prev" type="button" data-pd-dir="-1" aria-label="Предыдущее фото">‹</button><button class="pd-gallery-arrow next" type="button" data-pd-dir="1" aria-label="Следующее фото">›</button>`:''}
-        <span class="pd-counter" id="pdCounter">${galleryImages.length>1?`1 / ${galleryImages.length}`:'1 фото'}</span>
+        ${galleryImages.length>1?`<button class="pd-gallery-arrow prev" type="button" data-pd-dir="-1" aria-label="Предыдущее фото" hidden>‹</button><button class="pd-gallery-arrow next" type="button" data-pd-dir="1" aria-label="Следующее фото" hidden>›</button>`:''}
+        <span class="pd-counter" id="pdCounter">1 фото</span>
       </div>
-      ${galleryImages.length>1?`<div class="pd-thumbs" id="pdThumbs">${galleryImages.map((src,i)=>`<button class="pd-thumb ${i===0?'is-active':''}" type="button" data-pd-index="${i}" aria-label="Фото ${i+1}"><img src="${esc(src)}" alt="" decoding="async" referrerpolicy="no-referrer"></button>`).join('')}</div>`:''}
+      ${galleryImages.length>1?`<div class="pd-thumbs" id="pdThumbs" hidden>${galleryImages.map((src,i)=>`<button class="pd-thumb ${i===0?'is-active':''}" type="button" data-pd-index="${i}" aria-label="Фото ${i+1}" hidden><img src="${esc(src)}" alt="" decoding="async" referrerpolicy="no-referrer"></button>`).join('')}</div>`:''}
     </div>`;
   }
   function mattressImageMarkup(product){if(Array.isArray(product.images)&&product.images.length)return galleryMarkup(product.images,product.model,'mattress');const pp=PHOTO_POS[product.model];return galleryMarkup(pp?[`assets/admin-mattress-thumbs/r${pp[1]+1}-c${pp[0]+1}.webp`]:[],product.model,'mattress');}
@@ -180,7 +186,26 @@
     $('#pdVariant')?.addEventListener('change',e=>{const price=Number(e.target.value)||0;const p=$('#pdPrice'),op=$('#pdOldPrice');if(p)p.textContent=rub(price);if(op)op.textContent=oldPrice(price,discountPercent(product))?rub(oldPrice(price,discountPercent(product))):'';});
   }
 
-  function showGallery(index){if(!galleryImages.length)return;const len=galleryImages.length;galleryIndex=(index+len)%len;const src=galleryImages[galleryIndex];const img=$('#pdMainImage');const media=$('#pdMainMedia');if(img){img.classList.add('is-changing');const preload=new Image();preload.onload=()=>{img.src=src;img.classList.remove('is-changing')};preload.onerror=()=>{img.classList.remove('is-changing');removeBrokenGalleryPhoto(src)};preload.src=src;}if(media)media.style.setProperty('--pd-bg',`url("${src.replace(/"/g,'\\"')}")`);const counter=$('#pdCounter');if(counter)counter.textContent=`${galleryIndex+1} / ${len}`;$$('[data-pd-index]').forEach(el=>el.classList.toggle('is-active',Number(el.dataset.pdIndex)===galleryIndex));const active=document.querySelector(`[data-pd-index="${galleryIndex}"]`);active?.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});}
+  function readyGalleryImages(){if(galleryImages.length===1)return galleryImages;return galleryImages.filter(src=>$$('#pdThumbs img').some(img=>img.getAttribute('src')===src&&img.naturalWidth>0));}
+  function updateGalleryVisibility(){
+    const buttons=$$('[data-pd-index]');
+    buttons.forEach(button=>{const img=button.querySelector('img');button.hidden=!img?.naturalWidth;});
+    const ready=readyGalleryImages(),multiple=ready.length>1;
+    const thumbs=$('#pdThumbs');if(thumbs)thumbs.hidden=!multiple;
+    $$('.pd-gallery-arrow').forEach(button=>button.hidden=!multiple);
+    const counter=$('#pdCounter');if(counter)counter.textContent=multiple?`${Math.max(0,ready.indexOf(galleryImages[galleryIndex]))+1} / ${ready.length}`:ready.length?'1 фото':'Фото загружается';
+  }
+  function showGallery(index){
+    if(!galleryImages.length)return;
+    const len=galleryImages.length,ready=readyGalleryImages();if(!ready.length)return;
+    const step=index<galleryIndex?-1:1;let next=(index+len)%len;
+    for(let i=0;i<len&&!ready.includes(galleryImages[next]);i++)next=(next+step+len)%len;
+    galleryIndex=next;const src=galleryImages[next],img=$('#pdMainImage'),media=$('#pdMainMedia');
+    if(img){img.classList.add('is-changing');const preload=new Image();preload.onload=()=>{img.src=src;img.classList.remove('is-changing')};preload.onerror=()=>{img.classList.remove('is-changing');removeBrokenGalleryPhoto(src)};preload.src=src;}
+    if(media)media.style.setProperty('--pd-bg',`url("${src.replace(/"/g,'\\"')}")`);
+    $$('[data-pd-index]').forEach(el=>el.classList.toggle('is-active',Number(el.dataset.pdIndex)===galleryIndex));
+    updateGalleryVisibility();document.querySelector(`[data-pd-index="${galleryIndex}"]`)?.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});
+  }
 
   function removeBrokenGalleryPhoto(src){
     const index=galleryImages.indexOf(src);if(index<0)return;
@@ -194,14 +219,18 @@
       button.classList.toggle('is-active',next===galleryIndex);
     });
     if(galleryImages.length<2){thumbs?.remove();$$('.pd-gallery-arrow').forEach(button=>button.remove());}
-    const counter=$('#pdCounter');if(counter)counter.textContent=galleryImages.length>1?`${galleryIndex+1} / ${galleryImages.length}`:galleryImages.length?'1 фото':'Фото недоступно';
+    updateGalleryVisibility();
     if(!galleryImages.length){
       main?.removeAttribute('src');if(main)main.hidden=true;
       media?.classList.add('is-unavailable');media?.style.setProperty('--pd-bg','none');
       media?.querySelector('.pd-zoom')?.setAttribute('hidden','');
       const note=document.createElement('span');note.className='pd-unavailable-note';note.textContent='Фото временно недоступно';media?.appendChild(note);
+      const counter=$('#pdCounter');if(counter)counter.textContent='Фото недоступно';
     }else if(main?.getAttribute('src')===src){showGallery(Math.max(0,galleryIndex));}
   }
+  document.addEventListener('load',event=>{
+    if(event.target instanceof HTMLImageElement&&event.target.closest('.pd-thumb'))updateGalleryVisibility();
+  },true);
   document.addEventListener('error',event=>{
     const image=event.target;
     if(!(image instanceof HTMLImageElement))return;
