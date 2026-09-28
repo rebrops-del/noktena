@@ -157,13 +157,27 @@
     const a=e.target.closest('a,button');
     if(!a)return;
     const href=String(a.getAttribute('href')||'');
-    const label=text(a).toLowerCase();
-    if(a.matches('.max-btn,.pd-header-max')||/max\.ru/i.test(href)||label.includes('max')){
-      goal('MAX_CLICK',{page:location.pathname,href});
+    const page=location.pathname;
+    const contact=(channel,extra={})=>goal('CONTACT_CLICK',{channel,page,...extra});
+    if(/^tel:/i.test(href)){
+      goal('PHONE_CLICK',{phone:href.replace(/^tel:/i,''),page});
+      contact('phone');
       return;
     }
-    if(/^tel:/i.test(href)){
-      goal('PHONE_CLICK',{phone:href.replace(/^tel:/i,''),page:location.pathname});
+    if(/^mailto:/i.test(href)){
+      goal('EMAIL_CLICK',{page});
+      contact('email');
+      return;
+    }
+    let host='';
+    try{host=new URL(href,location.href).hostname.toLowerCase()}catch{}
+    const channel=['max.ru','www.max.ru'].includes(host)?'max':
+      ['t.me','www.t.me','telegram.me'].includes(host)?'telegram':
+      ['wa.me','api.whatsapp.com'].includes(host)?'whatsapp':
+      ['vk.com','www.vk.com','m.vk.com','vk.ru','www.vk.ru'].includes(host)?'vk':'';
+    if(channel){
+      goal(channel.toUpperCase()+'_CLICK',{page,href});
+      contact(channel);
       return;
     }
     if(a.matches('.cart-detail-buy'))goal('BUY_CLICK',{page:location.pathname});

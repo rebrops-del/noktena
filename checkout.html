@@ -33,12 +33,12 @@
       <h2>02 / Оформление заказа</h2>
       <form id="checkoutForm" class="checkout-form">
         <div class="checkout-two">
-          <label>Имя<input id="orderName" required autocomplete="name"></label>
-          <label>Телефон<input id="orderPhone" required autocomplete="tel" inputmode="tel" placeholder="+7 900 000-00-00"></label>
+          <label>Имя<input id="orderName" class="ym-disable-keys" required autocomplete="name"></label>
+          <label>Телефон<input id="orderPhone" class="ym-disable-keys" required autocomplete="tel" inputmode="tel" placeholder="+7 900 000-00-00"></label>
         </div>
         <div class="checkout-two">
-          <label>E-mail<input id="orderEmail" type="email" autocomplete="email" placeholder="необязательно"></label>
-          <label>Город<input id="orderCity" value="Екатеринбург" autocomplete="address-level2"></label>
+          <label>E-mail<input id="orderEmail" class="ym-disable-keys" type="email" autocomplete="email" placeholder="необязательно"></label>
+          <label>Город<input id="orderCity" class="ym-disable-keys" value="Екатеринбург" autocomplete="address-level2"></label>
         </div>
 
         <div>
@@ -49,7 +49,7 @@
           </div>
         </div>
 
-        <label id="addressLabel">Адрес доставки<input id="orderAddress" autocomplete="street-address" placeholder="Улица, дом, квартира"></label>
+        <label id="addressLabel">Адрес доставки<input id="orderAddress" class="ym-disable-keys" autocomplete="street-address" placeholder="Улица, дом, квартира"></label>
 
         <div id="liftHelp" class="checkout-service-note">
           <b>Подъём настраивается отдельно для каждого товара</b>
@@ -62,7 +62,7 @@
           <label id="assemblyQtyLabel" class="checkout-inline-field hide">Количество кроватей для сборки<select id="assemblyQty"></select></label>
         </div>
 
-        <label>Комментарий<textarea id="orderComment" placeholder="Пожелания по заказу, доставке или времени"></textarea></label>
+        <label>Комментарий<textarea id="orderComment" class="ym-disable-keys" placeholder="Пожелания по заказу, доставке или времени"></textarea></label>
         <div id="deliverySchedule" class="checkout-schedule hide"></div>
         <div class="checkout-payment-note"><b>Оплата</b><span>Способ оплаты и окончательные условия согласует менеджер при подтверждении заказа.</span></div>
 
@@ -86,7 +86,7 @@
 <script src="assets/checkout.js?v=20260921-cart2"></script>
 
 <script src="/assets/yandex-metrika-config.js?v=20260922-1"></script>
-<script src="/assets/yandex-analytics.js?v=20260922-1"></script>
+<script src="/assets/yandex-analytics.js?v=20260928-2"></script>
 
 </body>
 </html>
