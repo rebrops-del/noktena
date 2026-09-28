@@ -16,4 +16,14 @@
   meta('meta[property="og:description"]',description);
   meta('meta[name="twitter:title"]',title);
   meta('meta[name="twitter:description"]',description);
+  let image;
+  try{image=new URL(String(settings.og_image||''));}catch{}
+  if(image?.protocol==='https:'&&!image.username&&!image.password){
+    meta('meta[property="og:image"]',image.href);
+    meta('meta[property="og:image:secure_url"]',image.href);
+    meta('meta[name="twitter:image"]',image.href);
+    const assetPath=image.searchParams.get('url')||image.pathname;
+    const mime=/\.png$/i.test(assetPath)?'image/png':/\.jpe?g$/i.test(assetPath)?'image/jpeg':/\.webp$/i.test(assetPath)?'image/webp':'';
+    meta('meta[property="og:image:type"]',mime);
+  }
 })();

@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="./admin.css?v=6">
   <link rel="stylesheet" href="./admin-luxe.css?v=premium1">
   <link rel="stylesheet" href="./admin-2026.css?v=premium3">
-  <link rel="stylesheet" href="./site-settings.css?v=20260928-1">
+  <link rel="stylesheet" href="./site-settings.css?v=20260928-2">
 </head>
 <body>
   <div id="toast" class="toast hide"></div>
@@ -78,7 +78,7 @@
   </div>
 
   <template id="siteSettingsTemplate">
-    <header class="site-settings-head"><span class="admin-overline">НОКТЕНА / УПРАВЛЕНИЕ</span><h1>Настройки и SEO</h1><p class="muted">Контакты, условия магазина и отображение главной страницы в поиске.</p></header>
+    <header class="site-settings-head"><span class="admin-overline">НОКТЕНА / УПРАВЛЕНИЕ</span><h1>Настройки и SEO</h1><p class="muted">Поисковое представление, политика конфиденциальности и резервная копия магазина.</p></header>
     <section class="site-settings-block" aria-labelledby="shopSettingsHeading">
       <div class="site-settings-section-head"><h2 id="shopSettingsHeading">Настройки магазина</h2><p>Изменения контактов и подборки появляются на сайте после сохранения.</p></div>
       <div class="site-settings-grid">
@@ -88,17 +88,37 @@
         <div class="site-settings-card"><span aria-hidden="true">◇</span><h3>Доступ</h3><p>Смена пароля администратора.</p><button type="button" class="btn secondary" data-settings-open="password">Сменить пароль</button></div>
       </div>
     </section>
-    <section class="site-settings-block site-settings-seo" aria-labelledby="siteSeoHeading">
-      <div class="site-settings-section-head"><h2 id="siteSeoHeading">SEO главной страницы</h2><p>SEO отдельных товаров редактируется в карточке каждого товара.</p></div>
-      <form id="siteSeoForm">
+    <form id="siteSeoForm">
+      <section class="site-settings-block" aria-labelledby="siteSearchHeading">
+        <div class="site-settings-section-head"><h2 id="siteSearchHeading">Поисковики</h2><p>Проверьте готовность сайта к показу в поиске.</p></div>
+        <div class="site-search-state"><span class="site-state-dot" aria-hidden="true"></span><div><strong>Сайт сейчас открыт для поисковиков</strong><p>Главная и страницы товаров доступны для индексации. Оформление заказа и админ‑панель закрыты.</p></div></div>
+        <p id="sitePrivacyReadiness" class="site-settings-hint"></p>
+        <p class="site-settings-hint">Сайт размещён на GitHub Pages. Надёжное закрытие и повторное открытие для роботов требует изменения опубликованных HTML‑страниц; сохранение поля через браузер этого не делает. Управление индексацией из админ‑панели появится после подключения серверной публикации.</p>
+      </section>
+      <section class="site-settings-block site-settings-seo" aria-labelledby="siteSeoHeading">
+      <div class="site-settings-section-head"><h2 id="siteSeoHeading">SEO и соцсети</h2><p>Поля главной страницы. SEO отдельных товаров редактируется в их карточках.</p></div>
         <div class="site-settings-fields">
-          <label>Заголовок страницы (title)<input id="siteSeoTitle" type="text" maxlength="100" required placeholder="Матрасы, кровати и диваны — НОКТЕНА"></label>
-          <label>Описание для поиска (description)<textarea id="siteSeoDescription" maxlength="250" rows="3" required placeholder="Кратко расскажите о товарах и доставке"></textarea></label>
+          <label>Title<input id="siteSeoTitle" type="text" maxlength="100" required placeholder="Матрасы, кровати и диваны — НОКТЕНА"><small id="siteSeoTitleCount" class="site-settings-hint"></small></label>
+          <label>Description<textarea id="siteSeoDescription" maxlength="250" rows="3" required placeholder="Кратко расскажите о товарах и доставке"></textarea><small id="siteSeoDescriptionCount" class="site-settings-hint"></small></label>
+          <div class="site-og-grid"><div><label>Картинка ссылки (OG)<input id="siteOgUrl" type="url" maxlength="1000" placeholder="https://…/preview.jpg"></label><small class="site-settings-hint">Публичная ссылка HTTPS; рекомендуемый размер 1200 × 630. Ссылку можно вставить или загрузить файл.</small><label class="site-upload-label">Загрузить изображение<input id="siteOgFile" type="file" accept="image/png,image/jpeg,image/webp"></label><small id="siteOgUploadStatus" class="site-settings-hint" role="status"></small></div><img id="siteOgPreview" class="site-og-preview" src="/assets/noktena-editorial-bedroom.webp" alt="Предпросмотр ссылки"></div>
         </div>
         <div class="site-seo-preview" aria-live="polite"><span>Предварительный вид в поиске</span><strong id="siteSeoPreviewTitle"></strong><small>noktena.ru</small><p id="siteSeoPreviewDescription"></p></div>
-        <div class="site-settings-save"><span class="muted">Поисковые системы сами решают, какой текст показать в выдаче.</span><button class="btn primary" type="submit">Сохранить SEO</button></div>
-      </form>
-    </section>
+        <p class="site-settings-hint">После сохранения метаданные обновляются в браузере. Превью мессенджеров и роботы без JavaScript могут видеть исходные значения до серверной публикации.</p>
+      </section>
+      <section class="site-settings-block" aria-labelledby="sitePrivacyHeading">
+        <div class="site-settings-section-head"><h2 id="sitePrivacyHeading">Политика конфиденциальности</h2><p>Реквизиты для страницы <a href="/privacy.html" target="_blank" rel="noopener">/privacy.html ↗</a>. Проверьте текст и условия обработки с юристом перед использованием.</p></div>
+        <div class="site-settings-fields">
+          <label>Оператор персональных данных *<input id="sitePrivacyOperator" maxlength="250" placeholder="ИП Иванов Иван Иванович или ООО «…»"></label>
+          <div class="site-fields-row"><label>ИНН *<input id="sitePrivacyInn" inputmode="numeric" maxlength="12" placeholder="10 или 12 цифр"></label><label>ОГРН / ОГРНИП *<input id="sitePrivacyOgrn" inputmode="numeric" maxlength="15" placeholder="13 или 15 цифр"></label></div>
+          <label>Адрес оператора *<textarea id="sitePrivacyAddress" rows="2" maxlength="350" placeholder="Адрес для обращений и реквизитов"></textarea></label>
+          <label>Куда направлять обращения<input id="sitePrivacyContact" maxlength="250" placeholder="privacy@example.ru или почтовый адрес"><small class="site-settings-hint">Если пусто — noktena@mail.ru.</small></label>
+          <div class="site-fields-row"><label>Срок хранения данных<input id="sitePrivacyRetention" maxlength="150" placeholder="До достижения целей обработки"></label><label>Дата публикации<input id="sitePrivacyDate" type="date"></label></div>
+        </div>
+      </section>
+      <div class="site-settings-save site-settings-main-save"><span class="muted">Сохранение создаёт новую версию SEO и политики. Реквизиты публикуются на странице политики после сохранения.</span><button class="btn primary" type="submit">Сохранить SEO и политику</button></div>
+    </form>
+    <section class="site-settings-block" aria-labelledby="siteHistoryHeading"><div class="site-settings-section-head"><h2 id="siteHistoryHeading">История SEO и политики</h2><p>До 100 последних версий этих полей и исходная. Восстановление создаёт новую запись.</p></div><div id="siteSettingsHistory" class="site-history" aria-live="polite">Загрузка…</div></section>
+    <section class="site-settings-block" aria-labelledby="siteBackupHeading"><div class="site-settings-section-head"><h2 id="siteBackupHeading">Резервная копия</h2><p>Каталог, настройки цен и доставки, контакты, SEO и политика одним JSON‑файлом. Сами файлы фотографий в копию не входят; сохраняются только ссылки.</p></div><button id="siteSettingsBackup" class="btn secondary" type="button">Скачать резервную копию</button></section>
   </template>
 
   <div id="editor" class="modal hide">
@@ -240,6 +260,6 @@
 <script src="./global-discount-settings.js?v=20260922-1" defer></script>
   <script src="./admin-shell-2026.js?v=premium1" defer></script>
   <script src="./store-settings.js?v=20260925-2" defer></script>
-  <script src="./site-settings.js?v=20260928-1" defer></script>
+  <script src="./site-settings.js?v=20260928-2" defer></script>
 </body>
 </html>
