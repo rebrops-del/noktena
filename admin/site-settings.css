@@ -34,11 +34,15 @@
 .site-upload-label{display:inline-flex!important;width:auto;cursor:pointer;margin-top:15px;padding:10px 13px;border:1px solid #d7dbd4;border-radius:6px;background:#f8f8f3;font-size:.83rem}
 .site-upload-label input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
 .site-og-preview{display:block;width:100%;aspect-ratio:1200/630;object-fit:cover;border-radius:6px;border:1px solid #e1e2dd;background:#eee}
+.site-hero-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(280px,.9fr);gap:24px;align-items:start}
+.site-hero-preview{display:block;width:100%;aspect-ratio:1.22;object-fit:cover;object-position:53% center;border:1px solid #e1e2dd;background:#eee}
+.site-hero-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}
+.site-hero-form #siteHeroStatus{margin:0;min-height:1.5em}
 .site-settings-main-save{margin:0 0 22px;padding:18px 22px;border:1px solid #d5e2d7;border-radius:7px;background:#f1f7f2}
 .site-history{display:grid;gap:0;max-height:440px;overflow:auto}
 .site-history-row{display:flex;align-items:center;justify-content:space-between;gap:15px;padding:13px 2px;border-bottom:1px solid #e9e9e3;font-size:.84rem}
 .site-history-row:last-child{border-bottom:0}.site-history-row strong{display:block;color:#2d4434}.site-history-row small{display:block;margin-top:4px;color:#788177}
 .site-history-row .btn{flex:0 0 auto}.site-history-empty{color:#778077;font-size:.84rem}
-@media(max-width:700px){.site-og-grid,.site-fields-row{grid-template-columns:1fr}.site-og-preview{max-width:360px}}
+@media(max-width:700px){.site-og-grid,.site-fields-row,.site-hero-grid{grid-template-columns:1fr}.site-og-preview{max-width:360px}.site-hero-preview{max-width:520px}}
 @media(max-width:800px){.site-settings-block{padding:19px}.site-settings-grid{grid-template-columns:1fr 1fr}}
-@media(max-width:580px){.site-settings-block{padding:16px}.site-settings-grid{grid-template-columns:1fr}.site-settings-card{min-height:155px}.site-settings-save{align-items:stretch;flex-direction:column}.site-settings-save .btn{width:100%}}
+@media(max-width:580px){.site-settings-block{padding:16px}.site-settings-grid{grid-template-columns:1fr}.site-settings-card{min-height:155px}.site-settings-save{align-items:stretch;flex-direction:column}.site-settings-save .btn{width:100%}.site-hero-actions{flex-direction:column}.site-hero-actions .btn{width:100%}}

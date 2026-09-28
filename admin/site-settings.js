@@ -2,9 +2,11 @@
   'use strict';
   const BOOT='https://admin-proxy-v2-production.up.railway.app/catalog-bootstrap.js';
   const KEY='settings:seo_v1';
+  const HERO_KEY='settings:hero_v1';
   const DEFAULT_TITLE='Матрасы, кровати и диваны в Екатеринбурге — НОКТЕНА';
   const DEFAULT_DESCRIPTION='НОКТЕНА — матрасы, кровати и диваны с подбором размера и консультацией. Онлайн-магазин в Екатеринбурге, склад в Берёзовском, доставка по Екатеринбургу.';
   const DEFAULT_IMAGE='https://noktena.ru/assets/noktena-editorial-bedroom.webp';
+  const DEFAULT_HERO_ALT='Светлая спальня с мягкой кроватью и матрасом';
   const $=selector=>document.querySelector(selector);
   const template=$('#siteSettingsTemplate');
   const main=$('.main');
@@ -18,7 +20,12 @@
   main.append(pane);
   const form=$('#siteSeoForm');
   const submit=form.querySelector('[type="submit"]');
-  let saved={},bootstrap=null,busy=false;
+  const heroForm=$('#siteHeroForm');
+  const heroSubmit=heroForm.querySelector('[type="submit"]');
+  const heroReset=$('#siteHeroReset');
+  let saved={},heroSaved={},bootstrap=null,busy=false,heroBusy=false;
+  heroSubmit.disabled=true;
+  heroReset.disabled=true;
   const fields={operator:'sitePrivacyOperator',inn:'sitePrivacyInn',ogrn:'sitePrivacyOgrn',address:'sitePrivacyAddress',contact:'sitePrivacyContact',retention:'sitePrivacyRetention',published_at:'sitePrivacyDate'};
 
   function snapshot(data){
@@ -36,6 +43,26 @@
     for(const [key,id] of Object.entries(fields))$('#'+id).value=value.privacy[key];
     preview();
   }
+  function validImageUrl(raw){
+    try{const url=new URL(raw);return url.protocol==='https:'&&!url.username&&!url.password?url.href:''}catch{return ''}
+  }
+  function previewHero(){
+    const url=$('#siteHeroUrl').value.trim();
+    const image=validImageUrl(url)||DEFAULT_IMAGE;
+    if($('#siteHeroPreview').src!==image)$('#siteHeroPreview').src=image;
+    $('#siteHeroPreview').alt=$('#siteHeroAlt').value.trim()||DEFAULT_HERO_ALT;
+  }
+  function fillHero(data){
+    $('#siteHeroUrl').value=String(data?.url||'');
+    $('#siteHeroAlt').value=String(data?.alt||'');
+    $('#siteHeroStatus').textContent='';
+    previewHero();
+  }
+  for(const id of ['siteHeroUrl','siteHeroAlt'])$('#'+id).addEventListener('input',previewHero);
+  $('#siteHeroPreview').addEventListener('error',()=>{
+    if($('#siteHeroPreview').src!==DEFAULT_IMAGE)$('#siteHeroPreview').src=DEFAULT_IMAGE;
+    $('#siteHeroStatus').textContent='Фото по ссылке не открылось. Проверьте адрес перед сохранением.';
+  });
   function privacyReady(value){
     const p=value.privacy;
     return !!p.operator&&[10,12].includes(p.inn.replace(/\D/g,'').length)&&[13,15].includes(p.ogrn.replace(/\D/g,'').length)&&!!p.address;
@@ -88,10 +115,13 @@
     $('#adminTabs')?.classList.add('hide');
     pane.classList.remove('hide');
     submit.disabled=true;
+    heroSubmit.disabled=true;
+    heroReset.disabled=true;
     try{
       bootstrap=await readBootstrap();
       saved=(bootstrap.rows||[]).find(row=>row.product_key===KEY)?.payload||{};
-      fill(saved);renderHistory();submit.disabled=false;
+      heroSaved=(bootstrap.rows||[]).find(row=>row.product_key===HERO_KEY)?.payload||{};
+      fill(saved);fillHero(heroSaved);renderHistory();submit.disabled=false;heroSubmit.disabled=false;heroReset.disabled=false;
     }catch(error){toast(error.message,true)}
   }
   function close(){pane.classList.add('hide');$('#adminTabs')?.classList.remove('hide')}
@@ -130,6 +160,42 @@
     }catch(error){toast(error.message,true)}finally{busy=false;submit.disabled=false}
   }
   form.addEventListener('submit',event=>{event.preventDefault();return persist()});
+  heroForm.addEventListener('submit',async event=>{
+    event.preventDefault();
+    if(heroBusy)return;
+    const url=$('#siteHeroUrl').value.trim(),alt=$('#siteHeroAlt').value.trim();
+    if(url&&!validImageUrl(url)){toast('Укажите публичную ссылку HTTPS на фотографию',true);return}
+    const next={model:'__homepage_hero_v1__',url,alt};
+    heroBusy=true;heroSubmit.disabled=true;heroReset.disabled=true;
+    $('#siteHeroStatus').textContent='Сохраняем…';
+    try{
+      await request('save',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({key:HERO_KEY,kind:'mattress',item:next,hidden:false,is_custom:false})});
+      heroSaved=next;
+      $('#siteHeroStatus').textContent=url?'Изображение сохранено. На главной оно появится после обновления страницы.':'Исходная фотография восстановлена. Обновите главную страницу.';
+      toast('Изображение на главной сохранено');
+    }catch(error){$('#siteHeroStatus').textContent='Не удалось сохранить изображение';toast(error.message,true)}
+    finally{heroBusy=false;heroSubmit.disabled=false;heroReset.disabled=false}
+  });
+  heroReset.addEventListener('click',()=>{
+    if(heroBusy)return;
+    $('#siteHeroUrl').value='';$('#siteHeroAlt').value='';
+    $('#siteHeroStatus').textContent='Исходное фото выбрано. Нажмите «Сохранить изображение», чтобы применить его на сайте.';
+    previewHero();
+  });
+  $('#siteHeroFile').addEventListener('change',async event=>{
+    const file=event.target.files?.[0];if(!file||heroBusy)return;
+    if(!['image/png','image/jpeg','image/webp'].includes(file.type)||file.size>12*1024*1024){toast('Выберите JPEG, PNG или WebP до 12 МБ',true);event.target.value='';return}
+    heroBusy=true;heroSubmit.disabled=true;heroReset.disabled=true;
+    const status=$('#siteHeroStatus');status.textContent='Загружаем фотографию…';
+    try{
+      const data=new FormData();data.append('file',file);data.append('product_key','homepage-hero-image');
+      const uploaded=await request('upload',{method:'POST',body:data});
+      if(!validImageUrl(uploaded.url))throw new Error('Сервер вернул неверную ссылку на фотографию');
+      $('#siteHeroUrl').value=uploaded.url;previewHero();
+      status.textContent='Фотография загружена. Нажмите «Сохранить изображение», чтобы показать её на сайте.';
+    }catch(error){status.textContent='Не удалось загрузить фотографию';toast(error.message,true)}
+    finally{event.target.value='';heroBusy=false;heroSubmit.disabled=false;heroReset.disabled=false}
+  });
   $('#siteOgFile').addEventListener('change',async event=>{
     const file=event.target.files?.[0];if(!file)return;
     if(!['image/png','image/jpeg','image/webp'].includes(file.type)||file.size>12*1024*1024){toast('Выберите PNG, JPEG или WebP до 12 МБ',true);event.target.value='';return}

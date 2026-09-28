@@ -6,8 +6,8 @@ const vm=require('node:vm');
 
 const read=file=>fs.readFileSync(path.join(__dirname,'..',file),'utf8');
 
-function editorHarness(payload={}){
-  const nodes=new Map(),saved=[],messages=[];
+function editorHarness(payload={},heroPayload={}){
+  const nodes=new Map(),saved=[],uploads=[],messages=[];
   function node(key){
     if(!nodes.has(key)){
       const classes=new Set(key==='pane'?['hide']:[]);
@@ -20,11 +20,11 @@ function editorHarness(payload={}){
   }
   const document={querySelector:node,createElement:tag=>node(tag==='section'?'pane':Symbol()),body:{append(){}}};
   node('#siteSettingsTemplate').content={cloneNode:()=>({})};
-  const context={document,Date,URL,toast:(message,error)=>messages.push({message,error}),
-    fetch:async()=>({ok:true,text:async()=> 'window.NOKTENA_CATALOG_BOOTSTRAP='+JSON.stringify({rows:[{product_key:'settings:seo_v1',payload}]})+';'}),
-    request:async(action,options)=>{saved.push({action,body:JSON.parse(options.body)});return {ok:true}}};
+  const context={document,Date,URL,FormData,toast:(message,error)=>messages.push({message,error}),
+    fetch:async()=>({ok:true,text:async()=> 'window.NOKTENA_CATALOG_BOOTSTRAP='+JSON.stringify({rows:[{product_key:'settings:seo_v1',payload},{product_key:'settings:hero_v1',payload:heroPayload}]})+';'}),
+    request:async(action,options)=>{if(action==='upload'){uploads.push(options.body);return{url:'https://example.test/hero.webp'}}saved.push({action,body:JSON.parse(options.body)});return {ok:true}}};
   vm.runInNewContext(read('admin/site-settings.js'),context);
-  return {node,saved,messages};
+  return {node,saved,uploads,messages};
 }
 
 test('settings editor saves SEO and privacy, keeps the initial version and restores an older version',async()=>{
@@ -65,6 +65,49 @@ test('bad OG URL and malformed INN are rejected before saving',async()=>{
   await h.node('#siteSeoForm').handlers.submit({preventDefault(){}});
   assert.equal(h.saved.length,0);
   assert.match(h.messages.at(-1).message,/ИНН/);
+});
+
+test('homepage image uploads, saves separately from SEO and can return to default',async()=>{
+  const h=editorHarness({}, {url:'https://example.test/old.jpg',alt:'Старая спальня'});
+  await h.node('[data-admin-open="site-settings"]').handlers.click();
+  assert.equal(h.node('#siteHeroUrl').value,'https://example.test/old.jpg');
+  assert.equal(h.node('#siteHeroPreview').src,'https://example.test/old.jpg');
+  const input=h.node('#siteHeroFile');
+  input.files=[new File(['image'], 'new.webp', {type:'image/webp'})];
+  await input.handlers.change({target:input});
+  assert.equal(h.uploads.length,1);
+  assert.equal(h.uploads[0].get('product_key'),'homepage-hero-image');
+  assert.equal(h.node('#siteHeroUrl').value,'https://example.test/hero.webp');
+  h.node('#siteHeroAlt').value='Новая спальня';
+  await h.node('#siteHeroForm').handlers.submit({preventDefault(){}});
+  assert.equal(h.saved.length,1);
+  assert.equal(h.saved[0].body.key,'settings:hero_v1');
+  assert.equal(h.saved[0].body.item.alt,'Новая спальня');
+  assert.equal(h.saved[0].body.item.url,'https://example.test/hero.webp');
+  h.node('#siteHeroReset').handlers.click();
+  assert.equal(h.node('#siteHeroUrl').value,'');
+  await h.node('#siteHeroForm').handlers.submit({preventDefault(){}});
+  assert.equal(h.saved[1].body.item.url,'');
+  h.node('#siteHeroUrl').value='javascript:alert(1)';
+  await h.node('#siteHeroForm').handlers.submit({preventDefault(){}});
+  assert.equal(h.saved.length,2);
+});
+
+test('homepage uses saved image and reverts if it cannot be loaded',()=>{
+  const source=read('assets/homepage-image.js');
+  const image={src:'assets/noktena-editorial-bedroom.webp',alt:'Исходное фото',handlers:{},
+    getAttribute(name){assert.equal(name,'src');return this.src},
+    addEventListener(type,handler){this.handlers[type]=handler}};
+  const document={querySelector:()=>image};
+  const run=url=>vm.runInNewContext(source,{document,URL,window:{NOKTENA_CATALOG_BOOTSTRAP:{rows:[{product_key:'settings:hero_v1',payload:{url,alt:'Новая спальня'}}]}}});
+  run('javascript:alert(1)');
+  assert.equal(image.src,'assets/noktena-editorial-bedroom.webp');
+  run('https://example.test/hero.webp');
+  assert.equal(image.src,'https://example.test/hero.webp');
+  assert.equal(image.alt,'Новая спальня');
+  image.handlers.error();
+  assert.equal(image.src,'assets/noktena-editorial-bedroom.webp');
+  assert.equal(image.alt,'Исходное фото');
 });
 
 test('homepage runtime updates metadata and OG image from saved settings, keeping defaults without them',()=>{

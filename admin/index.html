@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="./admin.css?v=6">
   <link rel="stylesheet" href="./admin-luxe.css?v=premium1">
   <link rel="stylesheet" href="./admin-2026.css?v=premium3">
-  <link rel="stylesheet" href="./site-settings.css?v=20260928-2">
+  <link rel="stylesheet" href="./site-settings.css?v=20260928-hero1">
 </head>
 <body>
   <div id="toast" class="toast hide"></div>
@@ -78,7 +78,7 @@
   </div>
 
   <template id="siteSettingsTemplate">
-    <header class="site-settings-head"><span class="admin-overline">НОКТЕНА / УПРАВЛЕНИЕ</span><h1>Настройки и SEO</h1><p class="muted">Поисковое представление, политика конфиденциальности и резервная копия магазина.</p></header>
+    <header class="site-settings-head"><span class="admin-overline">НОКТЕНА / УПРАВЛЕНИЕ</span><h1>Настройки и SEO</h1><p class="muted">Главная страница, поисковое представление, политика конфиденциальности и резервная копия магазина.</p></header>
     <section class="site-settings-block" aria-labelledby="shopSettingsHeading">
       <div class="site-settings-section-head"><h2 id="shopSettingsHeading">Настройки магазина</h2><p>Изменения контактов и подборки появляются на сайте после сохранения.</p></div>
       <div class="site-settings-grid">
@@ -87,6 +87,21 @@
         <div class="site-settings-card"><span aria-hidden="true">◈</span><h3>Цены и доставка</h3><p>Наценки, доставка, подъём и сборка.</p><div class="site-settings-card-actions"><button type="button" class="btn secondary" data-settings-open="prices">Цены</button><button type="button" class="btn secondary" data-settings-open="delivery">Доставка</button></div></div>
         <div class="site-settings-card"><span aria-hidden="true">◇</span><h3>Доступ</h3><p>Смена пароля администратора.</p><button type="button" class="btn secondary" data-settings-open="password">Сменить пароль</button></div>
       </div>
+    </section>
+    <section class="site-settings-block" aria-labelledby="siteHeroHeading">
+      <div class="site-settings-section-head"><h2 id="siteHeroHeading">Изображение на главной</h2><p>Большая фотография рядом с заголовком «Дом начинается с хорошего сна».</p></div>
+      <form id="siteHeroForm" class="site-hero-form">
+        <div class="site-hero-grid">
+          <div class="site-settings-fields">
+            <div><label class="site-upload-label">Загрузить фотографию<input id="siteHeroFile" type="file" accept="image/jpeg,image/png,image/webp"></label><small class="site-settings-hint">JPEG, PNG или WebP до 12 МБ. Лучше горизонтальное фото от 1600 × 1000 пикселей; края могут обрезаться на телефоне.</small></div>
+            <label>Или вставить ссылку на фото<input id="siteHeroUrl" type="url" maxlength="1000" placeholder="https://…/photo.jpg"><small class="site-settings-hint">Публичная ссылка HTTPS. Загруженный файл подставится сюда автоматически.</small></label>
+            <label>Описание изображения<input id="siteHeroAlt" type="text" maxlength="160" placeholder="Светлая спальня с кроватью"><small class="site-settings-hint">Короткое описание для людей, которые не видят изображение.</small></label>
+            <p id="siteHeroStatus" class="site-settings-hint" role="status" aria-live="polite"></p>
+          </div>
+          <img id="siteHeroPreview" class="site-hero-preview" src="/assets/noktena-editorial-bedroom.webp" alt="Предпросмотр изображения на главной">
+        </div>
+        <div class="site-hero-actions"><button class="btn primary" type="submit">Сохранить изображение</button><button id="siteHeroReset" class="btn secondary" type="button">Вернуть исходное фото</button></div>
+      </form>
     </section>
     <form id="siteSeoForm">
       <section class="site-settings-block" aria-labelledby="siteSearchHeading">
@@ -268,6 +283,6 @@
 <script src="./global-discount-settings.js?v=20260922-1" defer></script>
   <script src="./admin-shell-2026.js?v=premium1" defer></script>
   <script src="./store-settings.js?v=20260925-2" defer></script>
-  <script src="./site-settings.js?v=20260928-2" defer></script>
+  <script src="./site-settings.js?v=20260928-hero1" defer></script>
 </body>
 </html>
