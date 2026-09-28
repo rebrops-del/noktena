@@ -1,0 +1,28 @@
+.site-settings-pane{max-width:1120px}
+.site-settings-head{margin-bottom:28px}
+.site-settings-head h1{font-family:Georgia,"Times New Roman",serif;font-size:clamp(2.3rem,3vw,3.5rem);font-weight:400;letter-spacing:-.045em;line-height:1.1;margin:9px 0 8px}
+.site-settings-head p{margin:0}
+.site-settings-block{margin:0 0 22px;padding:24px;border:1px solid #e5e0d7;border-radius:6px;background:#fffefa}
+.site-settings-section-head{margin-bottom:18px}
+.site-settings-section-head h2{font-family:Georgia,"Times New Roman",serif;font-size:1.7rem;font-weight:400;margin:0 0 5px;color:#293d32}
+.site-settings-section-head p{font-size:.82rem;line-height:1.5;color:#68726a;margin:0}
+.site-settings-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.site-settings-card{display:flex;align-items:flex-start;flex-direction:column;min-height:178px;padding:19px;border:1px solid #e8e2d9;border-radius:6px;background:#fcfaf6}
+.site-settings-card>span{color:#9b7a55;font-size:1.35rem;line-height:1}
+.site-settings-card h3{font-size:1rem;margin:12px 0 4px;color:#293d32}
+.site-settings-card p{font-size:.82rem;line-height:1.5;color:#69756c;margin:0 0 18px}
+.site-settings-card>.btn,.site-settings-card-actions{margin-top:auto}
+.site-settings-card-actions{display:flex;flex-wrap:wrap;gap:7px}
+.site-settings-fields{display:grid;gap:16px}
+.site-settings-fields label{display:grid;gap:8px;font-weight:700;color:#3d493f}
+.site-settings-fields input,.site-settings-fields textarea{width:100%;border:1px solid #ded9cf;background:#fff;padding:12px 13px}
+.site-settings-fields textarea{resize:vertical;min-height:94px}
+.site-seo-preview{display:grid;gap:4px;margin:21px 0 17px;padding:17px 19px;border:1px solid #e7e1d8;border-radius:6px;background:#fff}
+.site-seo-preview>span{color:#8a7770;font-size:.72rem;font-weight:700}
+.site-seo-preview strong{color:#24578d;font-size:1.07rem;font-weight:600;overflow-wrap:anywhere}
+.site-seo-preview small{color:#26704d}
+.site-seo-preview p{margin:2px 0 0;color:#49544c;font-size:.82rem;line-height:1.5;overflow-wrap:anywhere}
+.site-settings-save{display:flex;justify-content:space-between;align-items:center;gap:16px}
+.site-settings-save .muted{max-width:500px;line-height:1.5}
+@media(max-width:800px){.site-settings-block{padding:19px}.site-settings-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:580px){.site-settings-block{padding:16px}.site-settings-grid{grid-template-columns:1fr}.site-settings-card{min-height:155px}.site-settings-save{align-items:stretch;flex-direction:column}.site-settings-save .btn{width:100%}}

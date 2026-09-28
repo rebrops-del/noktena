@@ -1,0 +1,19 @@
+(() => {
+  'use strict';
+  const row=(window.NOKTENA_CATALOG_BOOTSTRAP?.rows||[]).find(item=>item.product_key==='settings:seo_v1');
+  const settings=row?.payload;
+  if(!settings)return;
+  const title=String(settings.home_title||'').trim().slice(0,100);
+  const description=String(settings.home_description||'').trim().slice(0,250);
+  if(!title||!description)return;
+  function meta(selector,value){
+    const node=document.querySelector(selector);
+    if(node)node.setAttribute('content',value);
+  }
+  document.title=title;
+  meta('meta[name="description"]',description);
+  meta('meta[property="og:title"]',title);
+  meta('meta[property="og:description"]',description);
+  meta('meta[name="twitter:title"]',title);
+  meta('meta[name="twitter:description"]',description);
+})();

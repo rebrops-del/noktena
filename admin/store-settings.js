@@ -42,14 +42,15 @@
     if(open)closeModal(open);
   });
 
-  document.querySelector('[data-admin-open="contacts"]')?.addEventListener('click',async()=>{
+  async function showContacts(){
     try{
       const settings=await readSettings(CONTACTS);
       $('storePhone').value=settings?.phone||'+7 (932) 120-76-35';
       $('storeMaxUrl').value=settings?.max_url||DEFAULT_MAX;
       openModal('contactsModal');
     }catch(error){toast(error.message,true)}
-  });
+  }
+  document.querySelector('[data-admin-open="contacts"]')?.addEventListener('click',showContacts);
   $('contactsForm').addEventListener('submit',async event=>{
     event.preventDefault();
     const form=event.currentTarget,button=form.querySelector('[type="submit"]');
@@ -83,13 +84,14 @@
     });
     $('popularSlots').innerHTML=Array.from({length:6},(_,index)=>`<label>Место ${index+1}<select data-popular-slot><option value="">Не показывать</option>${options.map(item=>`<option value="${escapeHtml(item._key)}" ${selected[index]===item._key?'selected':''}>${item._kind==='mattress'?'Матрас':item.category==='beds'?'Кровать':'Диван'} · ${escapeHtml(productName(item))}</option>`).join('')}</select></label>`).join('');
   }
-  document.querySelector('[data-admin-open="popular"]')?.addEventListener('click',async()=>{
+  async function showPopular(){
     try{
       const settings=await readSettings(POPULAR);
       renderPopular(Array.isArray(settings?.keys)?settings.keys:defaultPopular());
       openModal('popularModal');
     }catch(error){toast(error.message,true)}
-  });
+  }
+  document.querySelector('[data-admin-open="popular"]')?.addEventListener('click',showPopular);
   $('popularForm').addEventListener('submit',async event=>{
     event.preventDefault();
     const keys=[...document.querySelectorAll('[data-popular-slot]')].map(select=>select.value).filter(Boolean);
@@ -101,7 +103,14 @@
     }catch(error){toast(error.message,true)}finally{button.disabled=false}
   });
 
-  document.querySelector('[data-admin-open="password"]')?.addEventListener('click',()=>openModal('passwordModal'));
+  const showPassword=()=>openModal('passwordModal');
+  document.querySelector('[data-admin-open="password"]')?.addEventListener('click',showPassword);
+  document.addEventListener('click',event=>{
+    const action=event.target.closest?.('[data-settings-open]')?.dataset.settingsOpen;
+    if(action==='contacts')showContacts();
+    if(action==='popular')showPopular();
+    if(action==='password')showPassword();
+  });
   $('passwordForm').addEventListener('submit',async event=>{
     event.preventDefault();
     const current=$('currentAdminPassword').value,next=$('newAdminPassword').value;

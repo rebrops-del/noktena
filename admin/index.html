@@ -11,6 +11,7 @@
   <link rel="stylesheet" href="./admin.css?v=6">
   <link rel="stylesheet" href="./admin-luxe.css?v=premium1">
   <link rel="stylesheet" href="./admin-2026.css?v=premium3">
+  <link rel="stylesheet" href="./site-settings.css?v=20260928-1">
 </head>
 <body>
   <div id="toast" class="toast hide"></div>
@@ -33,7 +34,7 @@
   <div id="app" class="app hide">
     <aside class="side">
       <div class="side-head"><img class="admin-logo" src="../assets/logo-noktena-final.png" alt="НОКТЕНА"><small>ПАНЕЛЬ УПРАВЛЕНИЯ</small></div>
-      <div class="side-nav"><span class="side-label">МАГАЗИН</span><button class="side-link is-current" type="button" data-admin-open="catalog"><span aria-hidden="true">◫</span>Обзор и товары</button><button class="side-link" type="button" data-admin-open="orders"><span aria-hidden="true">▤</span>Заказы <span id="sideOrdersBadge" class="side-badge" hidden></span></button><button class="side-link" type="button" data-admin-open="popular"><span aria-hidden="true">✦</span>Популярные модели</button><span class="side-label">НАСТРОЙКИ</span><button class="side-link" type="button" data-admin-open="prices"><span aria-hidden="true">◈</span>Цены</button><button class="side-link" type="button" data-admin-open="delivery"><span aria-hidden="true">↗</span>Доставка</button><button class="side-link" type="button" data-admin-open="contacts"><span aria-hidden="true">☎</span>Контакты</button><button class="side-link" type="button" data-admin-open="password"><span aria-hidden="true">◇</span>Пароль</button></div>
+      <div class="side-nav"><span class="side-label">МАГАЗИН</span><button class="side-link is-current" type="button" data-admin-open="catalog"><span aria-hidden="true">◫</span>Обзор и товары</button><button class="side-link" type="button" data-admin-open="orders"><span aria-hidden="true">▤</span>Заказы <span id="sideOrdersBadge" class="side-badge" hidden></span></button><button class="side-link" type="button" data-admin-open="popular"><span aria-hidden="true">✦</span>Популярные модели</button><span class="side-label">НАСТРОЙКИ</span><button class="side-link" type="button" data-admin-open="site-settings"><span aria-hidden="true">⚙</span>Настройки и SEO</button><button class="side-link" type="button" data-admin-open="prices"><span aria-hidden="true">◈</span>Цены</button><button class="side-link" type="button" data-admin-open="delivery"><span aria-hidden="true">↗</span>Доставка</button><button class="side-link" type="button" data-admin-open="contacts"><span aria-hidden="true">☎</span>Контакты</button><button class="side-link" type="button" data-admin-open="password"><span aria-hidden="true">◇</span>Пароль</button></div>
       <div class="bottom"><a class="side-site-link" href="/" target="_blank" rel="noopener">Открыть магазин ↗</a><div id="adminEmail" class="muted"></div><button id="logout" class="btn secondary" type="button">Выйти</button></div>
     </aside>
 
@@ -75,6 +76,30 @@
       </div>
     </main>
   </div>
+
+  <template id="siteSettingsTemplate">
+    <header class="site-settings-head"><span class="admin-overline">НОКТЕНА / УПРАВЛЕНИЕ</span><h1>Настройки и SEO</h1><p class="muted">Контакты, условия магазина и отображение главной страницы в поиске.</p></header>
+    <section class="site-settings-block" aria-labelledby="shopSettingsHeading">
+      <div class="site-settings-section-head"><h2 id="shopSettingsHeading">Настройки магазина</h2><p>Изменения контактов и подборки появляются на сайте после сохранения.</p></div>
+      <div class="site-settings-grid">
+        <div class="site-settings-card"><span aria-hidden="true">☎</span><h3>Контакты</h3><p>Номер телефона и ссылка кнопки MAX.</p><button type="button" class="btn secondary" data-settings-open="contacts">Изменить контакты</button></div>
+        <div class="site-settings-card"><span aria-hidden="true">✦</span><h3>Популярные модели</h3><p>До шести товаров на главной странице.</p><button type="button" class="btn secondary" data-settings-open="popular">Выбрать модели</button></div>
+        <div class="site-settings-card"><span aria-hidden="true">◈</span><h3>Цены и доставка</h3><p>Наценки, доставка, подъём и сборка.</p><div class="site-settings-card-actions"><button type="button" class="btn secondary" data-settings-open="prices">Цены</button><button type="button" class="btn secondary" data-settings-open="delivery">Доставка</button></div></div>
+        <div class="site-settings-card"><span aria-hidden="true">◇</span><h3>Доступ</h3><p>Смена пароля администратора.</p><button type="button" class="btn secondary" data-settings-open="password">Сменить пароль</button></div>
+      </div>
+    </section>
+    <section class="site-settings-block site-settings-seo" aria-labelledby="siteSeoHeading">
+      <div class="site-settings-section-head"><h2 id="siteSeoHeading">SEO главной страницы</h2><p>SEO отдельных товаров редактируется в карточке каждого товара.</p></div>
+      <form id="siteSeoForm">
+        <div class="site-settings-fields">
+          <label>Заголовок страницы (title)<input id="siteSeoTitle" type="text" maxlength="100" required placeholder="Матрасы, кровати и диваны — НОКТЕНА"></label>
+          <label>Описание для поиска (description)<textarea id="siteSeoDescription" maxlength="250" rows="3" required placeholder="Кратко расскажите о товарах и доставке"></textarea></label>
+        </div>
+        <div class="site-seo-preview" aria-live="polite"><span>Предварительный вид в поиске</span><strong id="siteSeoPreviewTitle"></strong><small>noktena.ru</small><p id="siteSeoPreviewDescription"></p></div>
+        <div class="site-settings-save"><span class="muted">Поисковые системы сами решают, какой текст показать в выдаче.</span><button class="btn primary" type="submit">Сохранить SEO</button></div>
+      </form>
+    </section>
+  </template>
 
   <div id="editor" class="modal hide">
     <div class="modalbox">
@@ -215,5 +240,6 @@
 <script src="./global-discount-settings.js?v=20260922-1" defer></script>
   <script src="./admin-shell-2026.js?v=premium1" defer></script>
   <script src="./store-settings.js?v=20260925-2" defer></script>
+  <script src="./site-settings.js?v=20260928-1" defer></script>
 </body>
 </html>
