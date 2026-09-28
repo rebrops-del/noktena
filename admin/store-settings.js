@@ -7,6 +7,17 @@
   const $=id=>document.getElementById(id);
   const escapeHtml=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   let lastFocus=null;
+  function socialUrl(raw,channel){
+    if(!raw)return '';
+    let url;try{url=new URL(raw)}catch{}
+    if(!url||url.protocol!=='https:'||url.username||url.password||url.port)return null;
+    const host=url.hostname.toLowerCase(),path=url.pathname.replace(/^\/+|\/+$/g,'');
+    if(channel==='telegram')return ['t.me','www.t.me','telegram.me'].includes(host)&&path&&!path.startsWith('share/')?url.href:null;
+    if(channel==='whatsapp')return host==='wa.me'&&(/^[1-9]\d{9,14}$/.test(path)||/^message\/[a-z0-9]+$/i.test(path))?url.href:
+      host==='api.whatsapp.com'&&path==='send'&&/^[1-9]\d{9,14}$/.test(url.searchParams.get('phone')||'')?url.href:null;
+    if(channel==='vk')return ['vk.com','www.vk.com','m.vk.com','vk.ru','www.vk.ru'].includes(host)&&!!path?url.href:null;
+    return null;
+  }
 
   async function readSettings(key){
     const response=await fetch(BOOT+'?settings='+Date.now(),{cache:'no-store'});
@@ -47,6 +58,9 @@
       const settings=await readSettings(CONTACTS);
       $('storePhone').value=settings?.phone||'+7 (932) 120-76-35';
       $('storeMaxUrl').value=settings?.max_url||DEFAULT_MAX;
+      $('storeTelegramUrl').value=settings?.telegram_url||'';
+      $('storeWhatsappUrl').value=settings?.whatsapp_url||'';
+      $('storeVkUrl').value=settings?.vk_url||'';
       openModal('contactsModal');
     }catch(error){toast(error.message,true)}
   }
@@ -59,9 +73,15 @@
     let url;
     try{url=new URL($('storeMaxUrl').value.trim())}catch{}
     if(!url||url.protocol!=='https:'||!['max.ru','www.max.ru'].includes(url.hostname)||url.pathname==='/'||url.username||url.password||url.port){toast('Укажите ссылку на профиль в MAX, например https://max.ru/u/...',true);return}
+    const telegram_url=socialUrl($('storeTelegramUrl').value.trim(),'telegram');
+    const whatsapp_url=socialUrl($('storeWhatsappUrl').value.trim(),'whatsapp');
+    const vk_url=socialUrl($('storeVkUrl').value.trim(),'vk');
+    if(telegram_url===null){toast('Telegram: укажите ссылку вида https://t.me/username',true);return}
+    if(whatsapp_url===null){toast('WhatsApp: укажите ссылку вида https://wa.me/79001234567',true);return}
+    if(vk_url===null){toast('VK: укажите ссылку вида https://vk.com/your_page',true);return}
     button.disabled=true;
     try{
-      await saveSettings(CONTACTS,{model:'__contacts_v1__',phone,phone_href:'tel:+'+digits,max_url:url.href});
+      await saveSettings(CONTACTS,{model:'__contacts_v1__',phone,phone_href:'tel:+'+digits,max_url:url.href,telegram_url,whatsapp_url,vk_url});
       closeModal($('contactsModal'));
       toast('Контакты сохранены на сайте');
     }catch(error){toast(error.message,true)}finally{button.disabled=false}

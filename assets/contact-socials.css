@@ -1,0 +1,14 @@
+.contact-social-links{display:flex;flex-wrap:wrap;align-items:center;gap:9px;margin-top:11px}
+.contact-social-links[hidden]{display:none!important}
+.contact-social-links a.contact-social-link{display:inline-flex;align-items:center;gap:8px;min-height:42px;padding:6px 11px 6px 7px;border:1px solid rgba(255,255,255,.28);border-radius:12px;background:rgba(255,255,255,.10);color:#fff;text-decoration:none;font-size:12px;font-weight:700;line-height:1.2;transition:background .18s,transform .18s}
+.contact-social-links a.contact-social-link:hover{background:rgba(255,255,255,.18);text-decoration:none;transform:translateY(-1px)}
+.contact-social-links a.contact-social-link:focus-visible{outline:2px solid #e4c78e;outline-offset:3px}
+.contact-social-icon{display:grid;place-items:center;width:29px;height:29px;flex:0 0 29px;padding:4px;border-radius:8px;background:#fff}
+.contact-social-icon img{display:block;width:21px;height:21px;object-fit:contain}
+.contact-social-links--light a.contact-social-link{border-color:#dce6df;background:#fff;color:#204538;box-shadow:0 4px 12px rgba(22,48,40,.05)}
+.contact-social-links--light a.contact-social-link:hover{background:#f6faf7}
+.contact-social-links--light .contact-social-icon{border:1px solid #e9eeea}
+.networkbox .contact-social-links{margin-top:18px}
+.pd-help-box .contact-social-links{margin-top:17px}
+.premium-footer .contact-social-links{margin-top:4px}
+@media(max-width:420px){.contact-social-links{gap:7px}.contact-social-links a.contact-social-link{font-size:11px;padding-right:8px}}

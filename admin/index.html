@@ -82,7 +82,7 @@
     <section class="site-settings-block" aria-labelledby="shopSettingsHeading">
       <div class="site-settings-section-head"><h2 id="shopSettingsHeading">Настройки магазина</h2><p>Изменения контактов и подборки появляются на сайте после сохранения.</p></div>
       <div class="site-settings-grid">
-        <div class="site-settings-card"><span aria-hidden="true">☎</span><h3>Контакты</h3><p>Номер телефона и ссылка кнопки MAX.</p><button type="button" class="btn secondary" data-settings-open="contacts">Изменить контакты</button></div>
+        <div class="site-settings-card"><span aria-hidden="true">☎</span><h3>Контакты</h3><p>Телефон, MAX, Telegram, WhatsApp и VK.</p><button type="button" class="btn secondary" data-settings-open="contacts">Изменить контакты</button></div>
         <div class="site-settings-card"><span aria-hidden="true">✦</span><h3>Популярные модели</h3><p>До шести товаров на главной странице.</p><button type="button" class="btn secondary" data-settings-open="popular">Выбрать модели</button></div>
         <div class="site-settings-card"><span aria-hidden="true">◈</span><h3>Цены и доставка</h3><p>Наценки, доставка, подъём и сборка.</p><div class="site-settings-card-actions"><button type="button" class="btn secondary" data-settings-open="prices">Цены</button><button type="button" class="btn secondary" data-settings-open="delivery">Доставка</button></div></div>
         <div class="site-settings-card"><span aria-hidden="true">◇</span><h3>Доступ</h3><p>Смена пароля администратора.</p><button type="button" class="btn secondary" data-settings-open="password">Сменить пароль</button></div>
@@ -233,8 +233,16 @@
   </div>
 
   <div id="contactsModal" class="modal hide" role="dialog" aria-modal="true" aria-labelledby="contactsTitle">
-    <div class="modalbox small"><div class="modalhead"><div><b id="contactsTitle">Контакты магазина</b><div class="muted">Телефон и ссылка MAX на всех страницах сайта.</div></div><button type="button" class="btn secondary" data-close-store-modal>Закрыть</button></div>
-      <form id="contactsForm"><label>Телефон<input id="storePhone" type="tel" autocomplete="tel" required placeholder="+7 (999) 123-45-67"></label><label>Ссылка на MAX<input id="storeMaxUrl" type="url" inputmode="url" required placeholder="https://max.ru/u/..."></label><div class="savebar"><span></span><button class="btn primary" type="submit">Сохранить контакты</button></div></form>
+    <div class="modalbox small"><div class="modalhead"><div><b id="contactsTitle">Контакты магазина</b><div class="muted">Заполненные способы связи появятся на сайте после сохранения.</div></div><button type="button" class="btn secondary" data-close-store-modal>Закрыть</button></div>
+      <form id="contactsForm">
+        <label>Телефон<input id="storePhone" type="tel" autocomplete="tel" required placeholder="+7 (999) 123-45-67"></label>
+        <label>Ссылка на MAX<input id="storeMaxUrl" type="url" inputmode="url" required placeholder="https://max.ru/u/..."></label>
+        <div class="muted">Дополнительные каналы необязательны. Удалите ссылку и сохраните, чтобы скрыть кнопку.</div>
+        <label>Telegram<input id="storeTelegramUrl" type="url" inputmode="url" placeholder="https://t.me/username"></label>
+        <label>WhatsApp<input id="storeWhatsappUrl" type="url" inputmode="url" placeholder="https://wa.me/79001234567"></label>
+        <label>VK<input id="storeVkUrl" type="url" inputmode="url" placeholder="https://vk.com/your_page"></label>
+        <div class="savebar"><span></span><button class="btn primary" type="submit">Сохранить контакты</button></div>
+      </form>
     </div>
   </div>
 
