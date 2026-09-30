@@ -54,13 +54,15 @@ test('city descriptions survive normalization and update only the selected city 
   const restored=core.normalize(payload);
   assert.equal(restored.cities[1].about_description,'О магазине в Казани');
   assert.equal(restored.cities[0].hero_description,'');
+  const about={textContent:'',appended:[],querySelectorAll:()=>[{href:'mailto:noktena@mail.ru',cloneNode(){return {href:this.href}}}],append(...items){this.appended.push(...items)}};
   const selectors=new Map([
     ['.hero-copy',{textContent:''}],['.hero-copy p',{textContent:'Исходный текст'}],
-    ['.delivery-lead',{textContent:'Исходная доставка'}],['#homeService .service-layout p',{textContent:''}],['.networkbox > div > p',{textContent:''}]
+    ['.delivery-lead',{textContent:'Исходная доставка'}],['#homeService .service-layout p',{textContent:''}],['.networkbox > div > p',about]
   ]);
   const metas=new Map(['description','og:title','og:description','twitter:title','twitter:description'].map(key=>[key,{content:'Исходное значение'}]));
   const document={readyState:'complete',title:'Исходный заголовок',querySelector:s=>selectors.get(s)||null,
-    querySelectorAll:s=>s.startsWith('meta[')?[...metas].filter(([key])=>s.includes(`name="${key}"`)||s.includes(`property="${key}"`)).map(([,el])=>el):[],addEventListener(){}};
+    querySelectorAll:s=>s.startsWith('meta[')?[...metas].filter(([key])=>s.includes(`name="${key}"`)||s.includes(`property="${key}"`)).map(([,el])=>el):[],
+    createTextNode:text=>({textContent:text}),addEventListener(){}};
   const context={document,window:{NoktenaCityCatalogCore:core,NOKTENA_CATALOG_BOOTSTRAP:{rows:[{product_key:core.KEY,payload:restored}]}},
     location:{search:'?city=city-kazan',pathname:'/',href:'https://noktena.ru/?city=city-kazan'},URL,URLSearchParams,
     localStorage:{getItem(){return''},setItem(){}}};
@@ -68,6 +70,7 @@ test('city descriptions survive normalization and update only the selected city 
   assert.equal(selectors.get('.hero-copy p').textContent,'Матрасы для Казани');
   assert.equal(selectors.get('.delivery-lead').textContent,'Доставка по Казани');
   assert.equal(selectors.get('.networkbox > div > p').textContent,'О магазине в Казани');
+  assert.equal(about.appended.at(-1).href,'mailto:noktena@mail.ru');
   assert.equal(document.title,'Каталог Казань — НОКТЕНА');
   assert.equal(metas.get('description').content,'Кровати и матрасы для Казани');
   assert.equal(metas.get('og:title').content,'Каталог Казань — НОКТЕНА');

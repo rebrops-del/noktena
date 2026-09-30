@@ -41,6 +41,8 @@
   function text(selector,value){const el=document.querySelector(selector);if(el)el.textContent=value}
   function renderRegion(){
     renderPicker();
+    const about=document.querySelector('.networkbox > div > p');
+    const contactLinks=[...(about?.querySelectorAll?.('a')||[])].map(link=>link.cloneNode(true));
     text('.mobile-location','Ваш город · '+selected.name);
     text('.nav-contact span',selected.name+' · онлайн-магазин');
     const cityInput=document.querySelector('#orderCity');if(cityInput){cityInput.value=selected.name;cityInput.readOnly=true}
@@ -69,6 +71,10 @@
     }
     for(const [field,selector] of [['hero_description','.hero-copy p'],['delivery_description','.delivery-lead'],['service_description','#homeService .service-layout p'],['about_description','.networkbox > div > p']]){
       if(selected[field])text(selector,selected[field]);
+    }
+    if(about&&(regional||selected.about_description)&&contactLinks.length){
+      about.append(document.createTextNode(' Связаться с нами: '));
+      contactLinks.forEach((link,index)=>{if(index)about.append(document.createTextNode(' · '));about.append(link)});
     }
     if(regional){
       if(document.title.includes('Екатеринбург'))document.title=document.title.replace(/Екатеринбург[еа]?/g,selected.name);
