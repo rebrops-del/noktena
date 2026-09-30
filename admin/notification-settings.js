@@ -11,7 +11,8 @@
   const telegramChat=$('#notificationTelegramChat');
   const save=$('#notificationSave');
   const test=$('#notificationTest');
-  let busy=false,loaded=false,readiness={};
+  let busy=false,loaded=false,readiness={},loadVersion=0;
+  const cityId=()=>window.NoktenaCitySettings.cityId();
 
   function selected(channel){return messenger.value===channel||messenger.value==='both'}
   function updateFields(){
@@ -48,17 +49,19 @@
   function message(value,isError=false){const target=$('#notificationResult');target.textContent=value;target.classList.toggle('is-error',isError)}
   async function load(){
     if(busy)return;
+    const version=++loadVersion,id=cityId();loaded=false;
     test.disabled=true;save.disabled=true;message('Загружаем настройки…');
     try{
-      const response=await request('notification-settings');
+      const response=await request('notification-settings',{query:{city_id:id}});
+      if(version!==loadVersion||id!==cityId())return;
       readiness=response.readiness||{};fill(response.settings||{});loaded=true;message('Настройки загружены. Проверка отправки не создаёт заказ.');test.disabled=false;
-    }catch(error){loaded=false;message(errorMessage(error),true)}finally{save.disabled=false}
+    }catch(error){if(version===loadVersion){loaded=false;message(errorMessage(error),true)}}finally{if(version===loadVersion)save.disabled=false}
   }
   form.addEventListener('change',()=>{updateFields();status();if(loaded){message('Сохраните изменения перед проверкой.');test.disabled=true}});
   form.addEventListener('input',()=>{if(loaded){message('Сохраните изменения перед проверкой.');test.disabled=true}});
   form.addEventListener('submit',async event=>{
     event.preventDefault();if(busy)return;
-    const data=values();try{validate(data)}catch(error){message(errorMessage(error),true);return}
+    const data={...values(),city_id:cityId()};try{validate(data)}catch(error){message(errorMessage(error),true);return}
     busy=true;save.disabled=true;test.disabled=true;message('Сохраняем…');
     try{
       const response=await request('notification-settings-save',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(data)});
@@ -69,7 +72,7 @@
     if(busy||!loaded)return;
     busy=true;test.disabled=true;save.disabled=true;message('Отправляем проверку…');
     try{
-      const response=await request('notification-test',{method:'POST'});
+      const response=await request('notification-test',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({city_id:cityId()})});
       const labels={email:'Почта',max:'MAX',telegram:'Telegram'};
       const results=Object.entries(response.results||{});
       const failed=results.filter(([,result])=>!result.sent);

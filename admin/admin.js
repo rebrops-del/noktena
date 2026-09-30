@@ -37,9 +37,10 @@ function saveSession(value){
 try{session=JSON.parse(localStorage.getItem(SESSION_KEY)||'null')}catch{saveSession(null)}
 
 async function request(action,options={},auth=true,retry=true){
+  const {query,...init}=options;
   const headers={...(options.headers||{})};
   if(auth&&session?.access_token)headers.Authorization='Bearer '+session.access_token;
-  let response=await fetch(API+'?action='+encodeURIComponent(action),{...options,headers});
+  let response=await fetch(API+'?action='+encodeURIComponent(action)+(query?'&'+new URLSearchParams(query):''),{...init,headers});
 
   if(response.status===401&&auth&&retry&&session?.refresh_token){
     const refreshResponse=await fetch(API+'?action=refresh',{
@@ -428,13 +429,35 @@ function renderCategorySettings(){
   $('#settingsRows').innerHTML=merged.map(s=>`<section class="settings-card" data-settings-category="${s.category}"><h3>${settingsLabel(s.category)}</h3><label>Изменение цены<select data-settings-mode><option value="percent" ${s.price_mode==='percent'?'selected':''}>Процент, %</option><option value="fixed" ${s.price_mode==='fixed'?'selected':''}>Сумма, ₽</option></select></label><label>Наценка / скидка<input data-settings-value type="number" step="1" value="${Number(s.price_value)||0}"></label><div class="muted">Положительное значение повышает цену, отрицательное — снижает.</div></section>`).join('');
 }
 async function openCategorySettings(){
-  try{const data=await request('settings');categorySettings=Array.isArray(data.settings)?data.settings:[];renderCategorySettings();$('#settingsModal').classList.remove('hide')}catch(error){toast(error.message,true)}
+  try{
+    const cityId=window.NoktenaCitySettings.cityId();
+    const data=await request('settings');
+    if(cityId!==window.NoktenaCitySettings.cityId())return;
+    categorySettings=Array.isArray(data.settings)?data.settings:[];
+    if(cityId!=='ekaterinburg'){
+      const response=await fetch('https://admin-proxy-v2-production.up.railway.app/catalog-bootstrap.js?prices='+Date.now(),{cache:'no-store'});
+      if(!response.ok)throw new Error('Не удалось загрузить цены города');
+      const source=await response.text(),marker='window.NOKTENA_CATALOG_BOOTSTRAP=',at=source.indexOf(marker);
+      if(at<0)throw new Error('Не удалось прочитать цены города');
+      const bootstrap=JSON.parse(source.slice(at+marker.length).trim().replace(/;+\s*$/,''));
+      categorySettings=window.NoktenaCitySettings.payload(bootstrap.rows,'settings:category_prices_v1',cityId,false)?.rows||categorySettings;
+    }
+    if(cityId!==window.NoktenaCitySettings.cityId())return;
+    renderCategorySettings();$('#settingsModal').classList.remove('hide');
+  }catch(error){toast(error.message,true)}
 }
 function closeCategorySettings(){$('#settingsModal').classList.add('hide')}
 async function saveCategorySettings(event){
   event.preventDefault();
   const rows=$$('[data-settings-category]').map(card=>({category:card.dataset.settingsCategory,price_mode:card.querySelector('[data-settings-mode]').value,price_value:Number(card.querySelector('[data-settings-value]').value)||0}));
-  try{const data=await request('settings-save',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({rows})});categorySettings=data.settings||rows;closeCategorySettings();toast('Настройки цен сохранены')}catch(error){toast(error.message,true)}
+  const cityId=window.NoktenaCitySettings.cityId();
+  if(rows.some(row=>!['mattress','beds','sofas'].includes(row.category)||!['percent','fixed'].includes(row.price_mode)||!Number.isFinite(row.price_value)||row.price_value<(row.price_mode==='percent'?-90:-1000000)||row.price_value>1000000))return toast('Проверьте значения наценки и скидки',true);
+  try{
+    const data=cityId==='ekaterinburg'
+      ?await request('settings-save',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({rows})})
+      :await request('save',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({key:window.NoktenaCitySettings.key('settings:category_prices_v1',cityId),kind:'mattress',item:{model:'__category_prices_v1__',rows},hidden:false,is_custom:false})});
+    categorySettings=data.settings||rows;closeCategorySettings();toast('Настройки цен сохранены');
+  }catch(error){toast(error.message,true)}
 }
 
 function fillDeliverySettings(){

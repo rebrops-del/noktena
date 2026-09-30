@@ -9,13 +9,8 @@
   let baseDelivery={};
   function renderCity(deliverySettings){
     if(deliverySettings)baseDelivery=deliverySettings;
-    const manager=window.NoktenaCityAdmin,select=$('#deliveryCitySelect');if(!manager||!select)return;
+    const manager=window.NoktenaCityAdmin;if(!manager)return;
     const current=manager.currentCity(),id=current?.id||'ekaterinburg';
-    select.replaceChildren();
-    for(const city of manager.cities()){
-      const option=document.createElement('option');option.value=city.id;option.textContent=city.name;select.append(option);
-    }
-    select.value=id;
     const regional=id!=='ekaterinburg';
     const active=window.NoktenaCityCatalogCore.deliveryForCity(current,baseDelivery);
     $('#globalDeliveryPriceWrap').hidden=regional;
@@ -27,15 +22,12 @@
       $('#'+field).value=active[key];
     }
   }
-  $('#deliveryCitySelect')?.addEventListener('change',event=>{
-    window.NoktenaCityAdmin?.selectCity(event.target.value);
-    renderCity();
-  });
+  document.addEventListener('noktena:admin-city-change',()=>{if(!$('#deliverySettingsModal')?.classList.contains('hide'))renderCity()});
   window.NoktenaAdminDeliveryUi=Object.freeze({render:renderCity});
   ensure();const modal=$('#deliverySettingsModal');
   $('#deliverySettingsForm')?.addEventListener('submit',async event=>{
     event.preventDefault();event.stopImmediatePropagation();ensure();const submit=event.currentTarget.querySelector('button[type="submit"]');if(submit)submit.disabled=true;
-    const cityId=$('#deliveryCitySelect').value;
+    const cityId=window.NoktenaCityAdmin?.currentCity()?.id||'ekaterinburg';
     if(cityId!=='ekaterinburg'){
       try{
         await window.NoktenaCityAdmin.saveDeliverySettings(cityId,{

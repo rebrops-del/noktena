@@ -1,5 +1,12 @@
 export const NOTIFICATION_KEY='settings:order_notifications_v1';
 const DEFAULT_EMAIL='noktena@mail.ru';
+export const notificationKey=cityId=>cityId==='ekaterinburg'?NOTIFICATION_KEY:NOTIFICATION_KEY+':city:'+cityId;
+export function validatedCityId(bootstrap,cityId){
+  if(!cityId||cityId==='ekaterinburg')return 'ekaterinburg';
+  const cities=(bootstrap.rows||[]).find(row=>row.product_key==='settings:city_catalogs_v1')?.payload?.cities||[];
+  if(!cities.some(city=>city.id===cityId))throw new Error('CITY_UNAVAILABLE');
+  return cityId;
+}
 
 export function normalizeNotifications(payload={},environment={}){
   const source=payload&&typeof payload==='object'?payload:{};
@@ -16,11 +23,13 @@ export function normalizeNotifications(payload={},environment={}){
   return {email_enabled:source.email_enabled!==false,email_to,messenger,max_target_type,max_target,telegram_chat};
 }
 
-export function parseNotificationBootstrap(source,environment={}){
+export function parseNotificationBootstrap(source,environment={},cityId='ekaterinburg'){
   const marker='window.NOKTENA_CATALOG_BOOTSTRAP=';
   const position=source.indexOf(marker);
   if(position<0)throw new Error('NOTIFICATION_SETTINGS_UNAVAILABLE');
   const bootstrap=JSON.parse(source.slice(position+marker.length).trim().replace(/;+\s*$/,''));
-  const payload=(bootstrap.rows||[]).find(row=>row.product_key===NOTIFICATION_KEY)?.payload;
+  const id=validatedCityId(bootstrap,cityId);
+  const payload=(bootstrap.rows||[]).find(row=>row.product_key===notificationKey(id))?.payload
+    ||(bootstrap.rows||[]).find(row=>row.product_key===NOTIFICATION_KEY)?.payload;
   return normalizeNotifications(payload,environment);
 }

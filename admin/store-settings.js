@@ -3,6 +3,7 @@
   const BOOT='https://admin-proxy-v2-production.up.railway.app/catalog-bootstrap.js';
   const CONTACTS='settings:contacts_v1';
   const POPULAR='settings:popular_v1';
+  const scope=window.NoktenaCitySettings;
   const DEFAULT_MAX='https://max.ru/u/f9LHodD0cOKZqie3BJvn11xgsNvxJK_kFOqYtKyFuZ2uMitoxZIwNaH8-NY';
   const $=id=>document.getElementById(id);
   const escapeHtml=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -27,10 +28,10 @@
     const start=source.indexOf(marker);
     if(start<0)throw new Error('Не удалось прочитать настройки');
     const data=JSON.parse(source.slice(start+marker.length).trim().replace(/;+\s*$/,''));
-    return (data.rows||[]).find(row=>row.product_key===key)?.payload||null;
+    return scope.payload(data.rows,key,scope.cityId());
   }
   async function saveSettings(key,payload){
-    return request('save',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({key,kind:'mattress',item:payload,hidden:false,is_custom:false})});
+    return request('save',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({key:scope.key(key,scope.cityId()),kind:'mattress',item:payload,hidden:false,is_custom:false})});
   }
   function openModal(id){
     lastFocus=document.activeElement;
@@ -89,8 +90,8 @@
 
   const publicItems=()=>{
     const base=window.NoktenaAdminCatalog?.baseItems()||items;
-    const ekaterinburg=window.NoktenaCityAdmin?.productsFor('ekaterinburg',base)||base;
-    return ekaterinburg.filter(item=>!item._hidden&&item._key&&((item._kind==='furniture'&&item.id)||(item._kind==='mattress'&&item.model)));
+    const available=window.NoktenaCityAdmin?.productsFor(scope.cityId(),base)||base;
+    return available.filter(item=>!item._hidden&&item._key&&((item._kind==='furniture'&&item.id)||(item._kind==='mattress'&&item.model)));
   };
   function defaultPopular(){
     const beds=publicItems().filter(item=>item.category==='beds');

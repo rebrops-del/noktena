@@ -123,10 +123,10 @@
         if(!!banner.button.trim()!==!!banner.link.trim()||banner.link&&!config.validLink(banner.link)){toast(`Баннер ${number}: выберите назначение, укажите текст кнопки и корректную ссылку`,true);return}
         if(banner.image&&!config.validImage(banner.image)){toast(`Баннер ${number}: укажите ссылку на картинку HTTPS`,true);return}
       }
-      busy=true;save.disabled=true;add.disabled=true;status.textContent='Сохраняем баннеры…';
+      const cityId=window.NoktenaCitySettings.cityId();busy=true;save.disabled=true;add.disabled=true;status.textContent='Сохраняем баннеры…';
       try{
         const banners=draft.map(config.normalise);
-        await request('save',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({key:config.KEY,kind:'mattress',item:{model:'__home_banners_v1__',banners},hidden:false,is_custom:false})});
+        await request('save',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({key:window.NoktenaCitySettings.key(config.KEY,cityId),kind:'mattress',item:{model:'__home_banners_v1__',banners},hidden:false,is_custom:false})});
         status.textContent='Баннеры сохранены. Обновите главную страницу, чтобы увидеть результат.';
         toast('Баннеры на главной сохранены');
       }catch(error){status.textContent='Не удалось сохранить баннеры';toast(error.message,true)}

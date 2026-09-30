@@ -8,7 +8,7 @@
   const getSession=()=>{try{return JSON.parse(localStorage.getItem('nkt-adm2')||'null')}catch{return null}};
   async function api(action,options={}){const s=getSession(),headers={...(options.headers||{})};if(s?.access_token)headers.Authorization='Bearer '+s.access_token;const r=await fetch(API+'?action='+encodeURIComponent(action),{...options,headers});const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||'Ошибка сервера');return d;}
   async function loadBootstrap(){const text=await fetch(BOOT+'?discount='+Date.now(),{cache:'no-store'}).then(r=>r.text());const marker='window.NOKTENA_CATALOG_BOOTSTRAP=';const p=text.indexOf(marker);if(p<0)return{};return JSON.parse(text.slice(p+marker.length).trim().replace(/;+\s*$/,''));}
-  function currentSettings(b){const row=(b.rows||[]).find(r=>r.product_key===KEY);if(!row)return{enabled:true,percent:DEFAULT_PERCENT};const p=row.payload||{};return{enabled:p.enabled!==false,percent:clamp(Object.prototype.hasOwnProperty.call(p,'percent')?p.percent:DEFAULT_PERCENT)};}
+  function currentSettings(b){const p=window.NoktenaCitySettings.payload(b.rows,KEY);if(!p)return{enabled:true,percent:DEFAULT_PERCENT};return{enabled:p.enabled!==false,percent:clamp(Object.prototype.hasOwnProperty.call(p,'percent')?p.percent:DEFAULT_PERCENT)};}
   function toastMsg(msg,error=false){if(typeof toast==='function')toast(msg,error);else alert(msg)}
 
   function buildModal(){
@@ -23,7 +23,7 @@
       e.preventDefault();const btn=e.submitter;if(btn)btn.disabled=true;
       try{
         const payload={discountGlobalV1:true,enabled:document.getElementById('globalDiscountEnabled').checked,percent:clamp(document.getElementById('globalDiscountPercent').value)};
-        await api('save',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({key:KEY,kind:'mattress',item:payload,hidden:false,is_custom:false})});
+        await api('save',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({key:window.NoktenaCitySettings.key(KEY,window.NoktenaCitySettings.cityId()),kind:'mattress',item:payload,hidden:false,is_custom:false})});
         close();toastMsg(`Скидка ${payload.percent}% сохранена для всех карточек`);
       }catch(err){toastMsg(err.message,true)}finally{if(btn)btn.disabled=false;}
     });

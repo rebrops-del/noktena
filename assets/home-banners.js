@@ -3,8 +3,8 @@
   const config=window.NoktenaHomeBanners;
   const section=document.getElementById('homeBanners');
   if(!config||!section)return;
-  const payload=(window.NOKTENA_CATALOG_BOOTSTRAP?.rows||[]).find(row=>row.product_key===config.KEY)?.payload;
-  const contacts=(window.NOKTENA_CATALOG_BOOTSTRAP?.rows||[]).find(row=>row.product_key==='settings:contacts_v1')?.payload;
+  const payload=window.NoktenaCitySettings?.payload(window.NOKTENA_CATALOG_BOOTSTRAP?.rows,config.KEY);
+  const contacts=window.NoktenaCitySettings?.payload(window.NOKTENA_CATALOG_BOOTSTRAP?.rows,'settings:contacts_v1');
   const banners=config.fromPayload(payload).filter(item=>item.enabled&&item.title);
   if(!banners.length)return;
   const slides=document.getElementById('homeBannersSlides');

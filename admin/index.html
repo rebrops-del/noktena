@@ -12,7 +12,7 @@
   <link rel="stylesheet" href="./admin-luxe.css?v=premium1">
   <link rel="stylesheet" href="./admin-2026.css?v=premium3">
   <link rel="stylesheet" href="./site-settings.css?v=20260928-hero1">
-  <link rel="stylesheet" href="./city-catalog.css?v=20261001-3">
+  <link rel="stylesheet" href="./city-catalog.css?v=20261001-4">
   <link rel="stylesheet" href="./banner-settings.css?v=20260930-2">
 </head>
 <body>
@@ -41,6 +41,7 @@
     </aside>
 
     <main class="main">
+      <div class="admin-city-bar"><label for="adminCitySelect">Настройки города <select id="adminCitySelect" aria-describedby="adminCitySummary" disabled><option value="ekaterinburg">Екатеринбург</option></select></label><span id="adminCitySummary">Выберите город один раз: каталог, цены и настройки ниже относятся к нему.</span></div>
       <div class="top">
         <div><span class="admin-overline">НОКТЕНА / УПРАВЛЕНИЕ</span><h1>Обзор товаров</h1><div class="muted">Карточки и цены выбранного города</div></div>
         <div class="actions">
@@ -52,7 +53,7 @@
         </div>
       </div>
 
-      <div class="catalog-city-control"><label for="catalogCitySelect">Каталог города<select id="catalogCitySelect" aria-describedby="catalogCityHint"></select></label><div><strong id="catalogCityName">Екатеринбург</strong><p id="catalogCityHint">Загружаем города…</p></div><button id="catalogManageCity" type="button" class="btn secondary">Города и загрузка каталога</button></div>
+      <div class="catalog-city-control"><div><strong id="catalogCityName">Екатеринбург</strong><p id="catalogCityHint">Загружаем города…</p></div><button id="catalogManageCity" type="button" class="btn secondary">Города и загрузка каталога</button></div>
       <section class="admin-overview" id="adminOverview" aria-label="Сводка по каталогу"><div><span>Всего товаров</span><strong id="statAll">—</strong><small>В каталоге</small></div><div><span>Матрасы</span><strong id="statMattresses">—</strong><small>Для сна</small></div><div><span>Кровати</span><strong id="statBeds">—</strong><small>Для спальни</small></div><div><span>Диваны</span><strong id="statSofas">—</strong><small>Для отдыха</small></div></section>
       <div class="panel">
         <div class="toolbar">
@@ -165,7 +166,7 @@
     <header class="site-settings-head"><span class="admin-overline">НОКТЕНА / УПРАВЛЕНИЕ</span><h1>Города и каталоги</h1><p class="muted">Добавляйте города, загружайте каталог файлом и редактируйте описание. Карточки товаров редактируются в «Обзоре товаров» после выбора города.</p></header>
     <section class="site-settings-block">
       <div class="site-settings-section-head"><h2>Город</h2><p>Екатеринбург продолжит показывать текущий каталог. Новый город создаётся с пустым каталогом.</p></div>
-      <div class="city-toolbar"><div class="city-selected"><label>Редактировать город<select id="cityAdminSelect"></select></label><button id="cityAdminDelete" class="btn secondary city-delete" type="button" hidden disabled>Удалить город</button></div><form id="cityAddForm"><label>Новый город<input id="cityAddName" type="text" maxlength="80" required placeholder="Например, Казань"></label><button class="btn secondary" type="submit">+ Добавить город</button></form></div>
+      <div class="city-toolbar"><div class="city-selected"><button id="cityAdminDelete" class="btn secondary city-delete" type="button" hidden disabled>Удалить выбранный город</button></div><form id="cityAddForm"><label>Новый город<input id="cityAddName" type="text" maxlength="80" required placeholder="Например, Казань"></label><button class="btn secondary" type="submit">+ Добавить город</button></form></div>
       <form id="cityDetailsForm" class="city-details"><label>Название<input id="cityAdminName" type="text" maxlength="80" required></label><label>Город склада<input id="cityAdminWarehouse" type="text" maxlength="120" placeholder="Пусто — самовывоз недоступен"></label><button class="btn secondary" type="submit">Сохранить данные города</button></form>
       <small class="site-settings-hint">Удаление города убирает его каталог и описание с сайта. Уже оформленные заказы остаются в разделе «Заказы».</small>
     </section>
@@ -176,7 +177,7 @@
         <label>Текст о доставке<textarea id="cityDeliveryDescription" rows="2" maxlength="350" placeholder="Условия доставки и подъёма для выбранного города"></textarea></label>
         <label>Текст в разделе «Сервис»<textarea id="cityServiceDescription" rows="2" maxlength="500" placeholder="Как вы помогаете с выбором и доставкой"></textarea></label>
         <label>Текст в разделе «О нас»<textarea id="cityAboutDescription" rows="3" maxlength="800" placeholder="Описание работы магазина в выбранном городе"></textarea></label>
-        <div class="city-content-grid"><label>Title для поисковиков<input id="citySeoTitle" type="text" maxlength="100" placeholder="Название магазина и город"></label><label>Description для поисковиков<textarea id="citySeoDescription" rows="3" maxlength="250" placeholder="Краткое описание товаров и доставки в этом городе"></textarea></label></div>
+        <small class="site-settings-hint">Заголовок, описание для поисковиков и политика редактируются в «Настройки и SEO» для выбранного наверху города.</small>
         <div class="city-savebar"><span class="site-settings-hint">Эти поля действуют только для выбранного города. Пустое поле возвращает стандартный текст.</span><button class="btn primary" type="submit">Сохранить описание города</button></div>
       </form>
     </section>
@@ -270,7 +271,7 @@
         <button id="deliverySettingsClose" type="button" class="btn secondary">Закрыть</button>
       </div>
       <form id="deliverySettingsForm">
-        <label class="delivery-city-select">Город<select id="deliveryCitySelect" required></select></label>
+        <p class="site-settings-hint">Условия сохраняются для города, выбранного вверху админ-панели.</p>
         <div id="deliveryGlobalFields">
           <div class="delivery-settings-grid">
             <label id="globalDeliveryPriceWrap">Стоимость доставки, ₽<input id="globalDeliveryPrice" type="number" min="0" max="1000000" step="1"></label>
@@ -340,22 +341,23 @@
     </div>
   </div>
 
-  <script src="./admin.js?v=20261001-2" defer></script>
+  <script src="../assets/city-settings-core.js?v=20261001-4" defer></script>
+  <script src="./admin.js?v=20261001-4" defer></script>
   <script src="./admin-enhancements.js?v=20261001-3" defer></script>
   <script src="./admin-card-settings.js?v=20260930-width1" defer></script>
   <script src="./admin-mattress-card-settings.js?v=20260922-2" defer></script>
-  <script src="./cart-settings.js?v=20261001-3" defer></script>
+  <script src="./cart-settings.js?v=20261001-4" defer></script>
   <script src="./orders.js?v=3" defer></script>
-  <script src="./global-promo-settings.js?v=20260922-1" defer></script>
-<script src="./global-discount-settings.js?v=20260922-1" defer></script>
+  <script src="./global-promo-settings.js?v=20261001-4" defer></script>
+  <script src="./global-discount-settings.js?v=20261001-4" defer></script>
   <script src="./admin-shell-2026.js?v=20260930-city1" defer></script>
-  <script src="./store-settings.js?v=20261001-2" defer></script>
+  <script src="./store-settings.js?v=20261001-4" defer></script>
   <script src="../assets/home-banners-config.js?v=20260930-2" defer></script>
-  <script src="./banner-settings.js?v=20260930-2" defer></script>
-  <script src="./site-settings.js?v=20260930-city1" defer></script>
-  <script src="./notification-settings.js?v=20260930-1" defer></script>
+  <script src="./banner-settings.js?v=20261001-4" defer></script>
+  <script src="./site-settings.js?v=20261001-4" defer></script>
+  <script src="./notification-settings.js?v=20261001-4" defer></script>
   <script src="../assets/city-catalog-core.js?v=20261001-3" defer></script>
   <script src="./city-import.js?v=20260930-1" defer></script>
-  <script src="./city-catalog.js?v=20261001-3" defer></script>
+  <script src="./city-catalog.js?v=20261001-4" defer></script>
 </body>
 </html>

@@ -8,7 +8,12 @@
   const headers=()=>({apikey:cfg.supabaseAnonKey,Accept:'application/json'});
   const productKey=(kind,product)=>kind==='furniture'?`furniture:${product?.id||''}`:`mattress:${product?.model||''}`;
   const bootstrap=()=>window.NOKTENA_CATALOG_BOOTSTRAP||{};
-  const settingsList=()=>Array.isArray(bootstrap().categorySettings)?bootstrap().categorySettings:[];
+  const settingsList=()=>{
+    const base=Array.isArray(bootstrap().categorySettings)?bootstrap().categorySettings:[];
+    if(!window.NoktenaCitySettings)return base;
+    const regional=window.NoktenaCitySettings.payload(bootstrap().rows,'settings:category_prices_v1',window.NoktenaCitySettings.cityId(),false)?.rows;
+    return Array.isArray(regional)?regional:base;
+  };
   const getCategorySettings=()=>settingsList().map(x=>({...x,price_value:Number(x.price_value)||0}));
   const settingFor=category=>getCategorySettings().find(x=>x.category===category)||{category,price_mode:'percent',price_value:0};
   const deliveryV2=()=>{const row=(bootstrap().rows||[]).find(r=>r.product_key==='settings:delivery_v2');return row?.payload||{}};

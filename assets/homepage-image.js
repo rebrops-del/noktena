@@ -1,7 +1,7 @@
 (() => {
   'use strict';
   const image=document.querySelector('#homeHeroImage');
-  const settings=(window.NOKTENA_CATALOG_BOOTSTRAP?.rows||[]).find(row=>row.product_key==='settings:hero_v1')?.payload;
+  const settings=window.NoktenaCitySettings?.payload(window.NOKTENA_CATALOG_BOOTSTRAP?.rows,'settings:hero_v1');
   if(!image||!settings?.url)return;
   let url;
   try{url=new URL(String(settings.url))}catch{return}

@@ -5,8 +5,9 @@ const path=require('node:path');
 const vm=require('node:vm');
 
 const read=file=>fs.readFileSync(path.join(__dirname,'..',file),'utf8');
+const citySettings=require('../assets/city-settings-core.js');
 
-function editorHarness(payload={},heroPayload={}){
+function editorHarness(payload={},heroPayload={},region=null){
   const nodes=new Map(),saved=[],uploads=[],messages=[];
   function node(key){
     if(!nodes.has(key)){
@@ -18,11 +19,16 @@ function editorHarness(payload={},heroPayload={}){
     }
     return nodes.get(key);
   }
-  const document={querySelector:node,createElement:tag=>node(tag==='section'?'pane':Symbol()),body:{append(){}}};
+  const document={querySelector:node,createElement:tag=>node(tag==='section'?'pane':Symbol()),body:{append(){}},addEventListener(){}};
   node('#siteSettingsTemplate').content={cloneNode:()=>({})};
-  const context={document,window:{},Date,URL,FormData,toast:(message,error)=>messages.push({message,error}),
-    fetch:async()=>({ok:true,text:async()=> 'window.NOKTENA_CATALOG_BOOTSTRAP='+JSON.stringify({rows:[{product_key:'settings:seo_v1',payload},{product_key:'settings:hero_v1',payload:heroPayload}]})+';'}),
+  const rows=[{product_key:'settings:seo_v1',payload},{product_key:'settings:hero_v1',payload:heroPayload}];
+  if(region)rows.push({product_key:'settings:city_catalogs_v1',payload:{cities:[{id:'ekaterinburg',name:'Екатеринбург'},{id:region.id,name:region.name}]}},
+    {product_key:'settings:seo_v1:city:'+region.id,payload:region.seo},
+    {product_key:'settings:hero_v1:city:'+region.id,payload:region.hero});
+  const context={document,window:region?{NoktenaCityAdmin:{currentCity:()=>({id:region.id})}}:{NoktenaCitySettings:citySettings},Date,URL,FormData,toast:(message,error)=>messages.push({message,error}),
+    fetch:async()=>({ok:true,text:async()=> 'window.NOKTENA_CATALOG_BOOTSTRAP='+JSON.stringify({rows})+';'}),
     request:async(action,options)=>{if(action==='upload'){uploads.push(options.body);return{url:'https://example.test/hero.webp'}}saved.push({action,body:JSON.parse(options.body)});return {ok:true}}};
+  if(region)vm.runInNewContext(read('assets/city-settings-core.js'),context);
   vm.runInNewContext(read('admin/site-settings.js'),context);
   return {node,saved,uploads,messages};
 }
@@ -54,6 +60,19 @@ test('settings editor saves SEO and privacy, keeps the initial version and resto
   assert.equal(h.saved[1].body.item.history.length,3);
   h.node('#catalogTab').handlers.click();
   assert.equal(h.node('pane').classList.contains('hide'),true);
+});
+
+test('site editor reads and writes the selected city without changing Ekaterinburg',async()=>{
+  const h=editorHarness({home_title:'Екатеринбург',home_description:'Екатеринбург'},
+    {url:'https://example.test/ekb.webp'},
+    {id:'city-kazan',name:'Казань',seo:{home_title:'Казань',home_description:'Описание Казани',privacy:{}},hero:{url:'https://example.test/kazan.webp'}});
+  await h.node('[data-admin-open="site-settings"]').handlers.click();
+  assert.equal(h.node('#siteSeoTitle').value,'Казань');
+  assert.equal(h.node('#siteHeroUrl').value,'https://example.test/kazan.webp');
+  h.node('#siteSeoTitle').value='Матрасы в Казани';
+  await h.node('#siteSeoForm').handlers.submit({preventDefault(){}});
+  await h.node('#siteHeroForm').handlers.submit({preventDefault(){}});
+  assert.deepEqual(h.saved.map(entry=>entry.body.key),['settings:seo_v1:city:city-kazan','settings:hero_v1:city:city-kazan']);
 });
 
 test('bad OG URL and malformed INN are rejected before saving',async()=>{
@@ -99,7 +118,7 @@ test('homepage uses saved image and reverts if it cannot be loaded',()=>{
     getAttribute(name){assert.equal(name,'src');return this.src},
     addEventListener(type,handler){this.handlers[type]=handler}};
   const document={querySelector:()=>image};
-  const run=url=>vm.runInNewContext(source,{document,URL,window:{NOKTENA_CATALOG_BOOTSTRAP:{rows:[{product_key:'settings:hero_v1',payload:{url,alt:'Новая спальня'}}]}}});
+  const run=url=>vm.runInNewContext(source,{document,URL,window:{NoktenaCitySettings:citySettings,NOKTENA_CATALOG_BOOTSTRAP:{rows:[{product_key:'settings:hero_v1',payload:{url,alt:'Новая спальня'}}]}}});
   run('javascript:alert(1)');
   assert.equal(image.src,'assets/noktena-editorial-bedroom.webp');
   run('https://example.test/hero.webp');
@@ -114,10 +133,10 @@ test('homepage runtime updates metadata and OG image from saved settings, keepin
   const metadata=new Map(['description','og:title','og:description','og:image','og:image:secure_url','og:image:type','twitter:title','twitter:description','twitter:image'].map(key=>[key,{content:'Исходное значение',setAttribute(name,value){assert.equal(name,'content');this.content=value}}]));
   const document={title:'Исходный заголовок',querySelector(selector){return metadata.get(selector.match(/(?:name|property)="([^"]+)"/)?.[1])||null}};
   const code=read('assets/seo-settings.js');
-  vm.runInNewContext(code,{document,URL,window:{NOKTENA_CATALOG_BOOTSTRAP:{rows:[]}}});
+  vm.runInNewContext(code,{document,URL,window:{NoktenaCitySettings:citySettings,NOKTENA_CATALOG_BOOTSTRAP:{rows:[]}}});
   assert.equal(document.title,'Исходный заголовок');
   const title='Матрасы — НОКТЕНА',description='Удобный выбор матраса с доставкой.',image='https://example.org/preview.png';
-  vm.runInNewContext(code,{document,URL,window:{NOKTENA_CATALOG_BOOTSTRAP:{rows:[{
+  vm.runInNewContext(code,{document,URL,window:{NoktenaCitySettings:citySettings,NOKTENA_CATALOG_BOOTSTRAP:{rows:[{
     product_key:'settings:seo_v1',payload:{home_title:title,home_description:description,og_image:image}
   }]}}});
   assert.equal(document.title,title);
@@ -133,10 +152,10 @@ test('privacy page reveals policy only after operator details are complete',()=>
   const status={textContent:''},body={hidden:true},draft={hidden:false};
   const document={querySelector:selector=>({'#privacyStatus':status,'#privacyBody':body,'#privacyDraft':draft}[selector]),querySelectorAll:()=>fields};
   const code=read('assets/privacy-settings.js');
-  vm.runInNewContext(code,{document,window:{NOKTENA_CATALOG_BOOTSTRAP:{rows:[]}}});
+  vm.runInNewContext(code,{document,window:{NoktenaCitySettings:citySettings,NOKTENA_CATALOG_BOOTSTRAP:{rows:[]}}});
   assert.equal(body.hidden,true);
   const payload={privacy:{operator:'ИП Иванов',inn:'123456789012',ogrn:'123456789012345',address:'Екатеринбург'}};
-  vm.runInNewContext(code,{document,window:{NOKTENA_CATALOG_BOOTSTRAP:{rows:[{product_key:'settings:seo_v1',payload}]}}});
+  vm.runInNewContext(code,{document,window:{NoktenaCitySettings:citySettings,NOKTENA_CATALOG_BOOTSTRAP:{rows:[{product_key:'settings:seo_v1',payload}]}}});
   assert.equal(body.hidden,false);assert.equal(draft.hidden,true);
   assert.equal(fields[0].textContent,'ИП Иванов');
 });

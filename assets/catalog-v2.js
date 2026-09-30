@@ -159,8 +159,7 @@
     if(!mount)return;
     if(!state.loaded){mount.innerHTML='<div class="f-loading">Подбираем модели…</div>';return;}
     syncPopularMattresses();
-    const row=(window.NOKTENA_CATALOG_BOOTSTRAP?.rows||[]).find(item=>item.product_key==='settings:popular_v1');
-    const selected=row?.payload?.keys;
+    const selected=window.NoktenaCitySettings?.payload(window.NOKTENA_CATALOG_BOOTSTRAP?.rows,'settings:popular_v1')?.keys;
     if(Array.isArray(selected)){
       const catalog=new Map([...state.data.beds,...state.data.sofas,...state.data.mattresses].map(p=>[p.category==='mattress'?'mattress:'+p.model:'furniture:'+p.id,p]));
       const picked=selected.slice(0,6).map(key=>catalog.get(key)).filter(Boolean);

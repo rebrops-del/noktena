@@ -6,13 +6,14 @@
   if(!core||!importer||!template||!main||!link)return;
   const pane=document.createElement('section');pane.id='adminCityPane';pane.className='admin-pane city-pane hide';pane.append(template.content.cloneNode(true));main.append(pane);
   const BOOT='https://admin-proxy-v2-production.up.railway.app/catalog-bootstrap.js';
+  const citySelect=$('#adminCitySelect');
   const SELECTED_CITY_KEY='noktena-admin-city-v1';
   let remembered='';try{remembered=localStorage.getItem(SELECTED_CITY_KEY)||''}catch{}
   let state=core.normalize(),base=[],selectedId=remembered||'ekaterinburg',pending=null,busy=false,loaded=false;
   function rememberCity(){try{localStorage.setItem(SELECTED_CITY_KEY,selectedId)}catch{}}
   const city=()=>state.cities.find(c=>c.id===selectedId);
   const catalog=()=>state.catalogs[selectedId];
-  const contentFields={hero_description:'cityHeroDescription',delivery_description:'cityDeliveryDescription',service_description:'cityServiceDescription',about_description:'cityAboutDescription',seo_title:'citySeoTitle',seo_description:'citySeoDescription'};
+  const contentFields={hero_description:'cityHeroDescription',delivery_description:'cityDeliveryDescription',service_description:'cityServiceDescription',about_description:'cityAboutDescription'};
   const keyOf=item=>item._key||item._catalogKey||core.keyFor(item._kind,item);
   const nameOf=item=>item.model||item.title||'Без названия';
   const ownKeys=c=>c.keys===null?[...new Set([...base.map(keyOf),...Object.keys(c.products)])]:c.keys;
@@ -31,11 +32,11 @@
   }
   function status(message,error=false){const el=$('#cityCatalogStatus');el.textContent=message;el.classList.toggle('is-error',error)}
   function optionList(){
-    for(const select of [$('#cityAdminSelect'),$('#catalogCitySelect')]){
-      select.replaceChildren();
-      for(const item of state.cities){const opt=document.createElement('option');opt.value=item.id;opt.textContent=item.name;select.append(opt)}
-      select.value=selectedId;
-    }
+    citySelect.replaceChildren();
+    for(const item of state.cities){const opt=document.createElement('option');opt.value=item.id;opt.textContent=item.name;citySelect.append(opt)}
+    citySelect.value=selectedId;
+    citySelect.disabled=!loaded||busy;
+    $('#adminCitySummary').textContent='Каталог, цены и настройки: '+(city()?.name||'Екатеринбург')+'.';
   }
   function fillCityForms(){
     optionList();const c=city();if(!c)return;
@@ -71,10 +72,10 @@
     const [data,bootstrap]=await Promise.all([source?Promise.resolve({items:source}):request('catalog'),readBootstrap()]);
     base=Array.isArray(data.items)?data.items:[];state=core.fromBootstrap(bootstrap);
     if(!state.cities.some(x=>x.id===selectedId)){selectedId='ekaterinburg';rememberCity()}
-    loaded=true;fillCityForms();render();status('Изменения появятся на сайте после сохранения и обновления страницы.');
+    loaded=true;fillCityForms();render();status('Изменения появятся на сайте после сохранения и обновления страницы.');announceCity();
   }
   async function ensureLoaded(source){
-    if(loaded){base=source;return}
+    if(loaded){if(Array.isArray(source))base=source;return}
     await reload(source);
   }
   async function open(){
@@ -88,12 +89,12 @@
     if(!loaded)throw new Error('Сначала загрузите настройки городов');
     const payload=core.normalize(state),bytes=new Blob([JSON.stringify(payload)]).size;
     if(bytes>5*1024*1024)throw new Error('Каталог превышает 5 МБ. Уменьшите описания или разделите ассортимент.');
-    busy=true;$('#cityAdminSelect').disabled=true;$('#catalogCitySelect').disabled=true;$('#cityCatalogSave').disabled=true;$('#cityImportSave').disabled=true;$('#cityAdminDelete').disabled=true;$('#deliveryCitySelect').disabled=true;status('Сохраняем…');
+    busy=true;citySelect.disabled=true;$('#cityCatalogSave').disabled=true;$('#cityImportSave').disabled=true;$('#cityAdminDelete').disabled=true;status('Сохраняем…');
     try{
       await request('save',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({key:core.KEY,kind:'mattress',item:payload,hidden:false,is_custom:false})});
-      state=payload;fillCityForms();status(message);toast(message);render();notifyOverview();
+      state=payload;fillCityForms();status(message);toast(message);render();notifyOverview();announceCity();
     }catch(error){status(error.message,true);throw error}
-    finally{busy=false;$('#cityAdminSelect').disabled=false;$('#catalogCitySelect').disabled=false;$('#cityCatalogSave').disabled=false;$('#cityImportSave').disabled=!pending;$('#cityAdminDelete').disabled=selectedId==='ekaterinburg';$('#deliveryCitySelect').disabled=false}
+    finally{busy=false;citySelect.disabled=false;$('#cityCatalogSave').disabled=false;$('#cityImportSave').disabled=!pending;$('#cityAdminDelete').disabled=selectedId==='ekaterinburg'}
   }
   async function saveDeliverySettings(cityId,values){
     const selected=state.cities.find(item=>item.id===cityId);
@@ -163,13 +164,14 @@
   }
   link.addEventListener('click',()=>open());
   $('#catalogTab')?.addEventListener('click',close);$('#ordersTab')?.addEventListener('click',close);
+  function announceCity(){document.dispatchEvent(new CustomEvent('noktena:admin-city-change',{detail:{city:city()}}))}
   function selectCity(id){
-    if(busy||!state.cities.some(item=>item.id===id))return;
+    if(busy||!loaded||!state.cities.some(item=>item.id===id)){citySelect.value=selectedId;return}
+    if(id===selectedId)return;
     selectedId=id;rememberCity();pending=null;$('#cityCatalogFile').value='';$('#cityImportPreview').textContent='';$('#cityImportSave').disabled=true;
-    fillCityForms();render();notifyOverview();status('Выбран город '+city().name);
+    fillCityForms();render();notifyOverview();status('Выбран город '+city().name);announceCity();
   }
-  $('#cityAdminSelect').addEventListener('change',event=>selectCity(event.target.value));
-  $('#catalogCitySelect').addEventListener('change',event=>selectCity(event.target.value));
+  citySelect.addEventListener('change',event=>selectCity(event.target.value));
   $('#cityAddForm').addEventListener('submit',async event=>{
     event.preventDefault();const name=$('#cityAddName').value.trim();if(!name)return;
     if(state.cities.some(x=>x.name.toLocaleLowerCase('ru')===name.toLocaleLowerCase('ru')))return toast('Такой город уже добавлен',true);
@@ -186,20 +188,23 @@
   $('#cityAdminDelete').addEventListener('click',async()=>{
     const removed=city();if(!removed||removed.id==='ekaterinburg'||busy)return;
     const count=ownKeys(catalog()).length;
-    if(!confirm('Удалить город «'+removed.name+'» вместе с каталогом (товаров: '+count+'), ценой доставки и описанием? Ранее оформленные заказы останутся.'))return;
+    if(!confirm('Удалить город «'+removed.name+'» вместе с каталогом (товаров: '+count+'), доставкой и настройками? Ранее оформленные заказы останутся.'))return;
     const before=state,beforeId=selectedId;
     state=core.removeCity(state,removed.id);selectedId='ekaterinburg';
     try{
       await persist('Город '+removed.name+' удалён');
       rememberCity();
       pending=null;$('#cityCatalogFile').value='';$('#cityImportPreview').textContent='';$('#cityImportSave').disabled=true;
+      const keys=window.NoktenaCitySettings.CITY_KEYS.map(key=>window.NoktenaCitySettings.key(key,removed.id));
+      const cleared=await Promise.allSettled(keys.map(key=>request('reset',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({key})})));
+      if(cleared.some(result=>result.status==='rejected'))toast('Город удалён, но часть старых настроек не удалось очистить.',true);
     }catch(error){
       state=before;selectedId=beforeId;fillCityForms();render();toast(error.message,true);
     }
   });
   $('#cityContentForm').addEventListener('input',event=>{
     const field=Object.entries(contentFields).find(([,id])=>id===event.target.id);
-    if(field){city()[field[0]]=event.target.value.trim().slice(0,core.TEXT_LIMITS[field[0]]);status('Описание ещё не сохранено.')}
+    if(field)status('Описание ещё не сохранено.');
   });
   $('#cityContentForm').addEventListener('submit',async event=>{
     event.preventDefault();const selected=city();

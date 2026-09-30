@@ -85,7 +85,8 @@
         try{const data=JSON.parse(script.textContent);if(data['@type']==='Store'&&data.areaServed){data.areaServed={'@type':'City',name:selected.name};script.textContent=JSON.stringify(data)}}catch{}
       }
     }
-    if(document.querySelector('.hero-copy')){
+    const ownSeo=window.NoktenaCitySettings?.ownRow(window.NOKTENA_CATALOG_BOOTSTRAP?.rows,'settings:seo_v1',selected.id);
+    if(document.querySelector('.hero-copy')&&!ownSeo){
       const title=selected.seo_title||(regional?`Матрасы, кровати и диваны — НОКТЕНА, г. ${selected.name}`:'');
       const description=selected.seo_description||(regional?`Матрасы, кровати и диваны в г. ${selected.name}. Подбор размера, заказ онлайн и доставка. Условия подтвердит менеджер.`:'');
       if(title){document.title=title;for(const meta of document.querySelectorAll('meta[property="og:title"],meta[name="twitter:title"]'))meta.content=title}

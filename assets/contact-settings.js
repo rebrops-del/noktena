@@ -1,7 +1,7 @@
 (() => {
   'use strict';
-  const row=(window.NOKTENA_CATALOG_BOOTSTRAP?.rows||[]).find(item=>item.product_key==='settings:contacts_v1');
-  const settings=row?.payload;
+  const settings=window.NoktenaCitySettings?.payload(window.NOKTENA_CATALOG_BOOTSTRAP?.rows,'settings:contacts_v1')
+    ||(window.NOKTENA_CATALOG_BOOTSTRAP?.rows||[]).find(item=>item.product_key==='settings:contacts_v1')?.payload;
   if(!settings)return;
   const phone=String(settings.phone||'').trim();
   const digits=phone.replace(/\D/g,'');

@@ -1,6 +1,6 @@
 import http from 'node:http';
 import nodemailer from 'nodemailer';
-import {NOTIFICATION_KEY,normalizeNotifications,parseNotificationBootstrap} from './notification-settings.js';
+import {notificationKey,normalizeNotifications,parseNotificationBootstrap} from './notification-settings.js';
 
 const PORT = Number(process.env.PORT || 3000);
 const PROJECT = 'https://oldtlbkrftflfthfsqdv.supabase.co';
@@ -42,10 +42,10 @@ function mailReady(){return !!(SMTP_HOST&&SMTP_USER&&SMTP_PASS&&ORDER_EMAIL_TO);
 function maxReady(settings){return !!(MAX_BOT_TOKEN&&settings.max_target);}
 function telegramReady(settings){return !!(TELEGRAM_BOT_TOKEN&&settings.telegram_chat);}
 function transporter(){if(!mailer)mailer=nodemailer.createTransport({host:SMTP_HOST,port:SMTP_PORT,secure:SMTP_SECURE,auth:{user:SMTP_USER,pass:SMTP_PASS},connectionTimeout:8000,greetingTimeout:8000,socketTimeout:12000});return mailer;}
-async function notificationSettings(){
+async function notificationSettings(cityId='ekaterinburg'){
   const response=await fetch(PUBLIC_BOOTSTRAP+'&notifications='+Date.now(),{headers:{accept:'application/javascript'},cache:'no-store',signal:AbortSignal.timeout(8000)});
   if(!response.ok)throw new Error('NOTIFICATION_SETTINGS_HTTP_'+response.status);
-  return parseNotificationBootstrap(await response.text(),process.env);
+  return parseNotificationBootstrap(await response.text(),process.env,cityId);
 }
 function readiness(settings){return {mail_configured:mailReady(),max_configured:maxReady(settings),telegram_configured:telegramReady(settings),max_bot_configured:!!MAX_BOT_TOKEN,telegram_bot_configured:!!TELEGRAM_BOT_TOKEN};}
 async function authorizeAdmin(req){
@@ -150,17 +150,21 @@ const server=http.createServer(async(req,res)=>{
     if(['notification-settings','notification-settings-save','notification-test'].includes(action)){
       if(!await authorizeAdmin(req))return sendJson(res,401,{ok:false,error:'AUTH_EXPIRED'});
       if(action==='notification-settings'&&req.method==='GET'){
-        const settings=await notificationSettings();return sendJson(res,200,{ok:true,settings,readiness:readiness(settings)});
+        const settings=await notificationSettings(incoming.searchParams.get('city_id')||'ekaterinburg');return sendJson(res,200,{ok:true,settings,readiness:readiness(settings)});
       }
       if(action==='notification-settings-save'&&req.method==='POST'){
         const payload=JSON.parse((await readBody(req)??Buffer.from('{}')).toString('utf8'));
+        const cityId=String(payload.city_id||'ekaterinburg');
+        if(!/^[a-z0-9][a-z0-9-]{0,47}$/.test(cityId))return sendJson(res,400,{ok:false,error:'CITY_UNAVAILABLE'});
+        await notificationSettings(cityId);
         const settings=normalizeNotifications(payload,process.env);
-        const saved=await fetch(ADMIN_API+'?action=save',{method:'POST',headers:{Authorization:req.headers.authorization,'content-type':'application/json'},body:JSON.stringify({key:NOTIFICATION_KEY,kind:'mattress',item:{model:'__order_notifications_v1__',...settings},hidden:false,is_custom:false}),signal:AbortSignal.timeout(8000)});
+        const saved=await fetch(ADMIN_API+'?action=save',{method:'POST',headers:{Authorization:req.headers.authorization,'content-type':'application/json'},body:JSON.stringify({key:notificationKey(cityId),kind:'mattress',item:{model:'__order_notifications_v1__',...settings},hidden:false,is_custom:false}),signal:AbortSignal.timeout(8000)});
         if(!saved.ok)return sendJson(res,saved.status,{ok:false,error:'NOTIFICATION_SAVE_FAILED'});
         return sendJson(res,200,{ok:true,settings,readiness:readiness(settings)});
       }
       if(action==='notification-test'&&req.method==='POST'){
-        const settings=await notificationSettings();return sendJson(res,200,{ok:true,results:await sendNotificationTest(settings)});
+        const payload=JSON.parse((await readBody(req)??Buffer.from('{}')).toString('utf8'));
+        const settings=await notificationSettings(payload.city_id||'ekaterinburg');return sendJson(res,200,{ok:true,results:await sendNotificationTest(settings)});
       }
       return sendJson(res,405,{ok:false,error:'METHOD_NOT_ALLOWED'});
     }
@@ -173,10 +177,10 @@ const server=http.createServer(async(req,res)=>{
     const raw=Buffer.from(await upstream.arrayBuffer());
     res.statusCode=upstream.status;res.setHeader('Content-Type',contentType);res.setHeader('X-Noktena-Proxy','railway');
     if(contentType.includes('application/json')){
-      try{const data=rewriteValue(req,JSON.parse(raw.toString('utf8')));if(upstream.ok&&orderRequest&&data?.order){res.end(JSON.stringify(data));void notificationSettings().then(settings=>deliverNotifications(orderRequest,data.order,settings)).catch(error=>console.error('Order notification setup failed',error));return}return res.end(JSON.stringify(data))}catch{}
+      try{const data=rewriteValue(req,JSON.parse(raw.toString('utf8')));if(upstream.ok&&orderRequest&&data?.order){res.end(JSON.stringify(data));void notificationSettings(orderRequest.city_id||'ekaterinburg').then(settings=>deliverNotifications(orderRequest,data.order,settings)).catch(error=>console.error('Order notification setup failed',error));return}return res.end(JSON.stringify(data))}catch{}
     }
     return res.end(raw);
-  }catch(error){return sendJson(res,502,{ok:false,error:'UPSTREAM_UNAVAILABLE',message:error instanceof Error?error.message:String(error)})}
+  }catch(error){const message=error instanceof Error?error.message:String(error);return message==='CITY_UNAVAILABLE'?sendJson(res,400,{ok:false,error:message}):sendJson(res,502,{ok:false,error:'UPSTREAM_UNAVAILABLE',message})}
 });
 server.listen(PORT,'0.0.0.0',()=>console.log(`noktena admin proxy listening on ${PORT}`));
 // railway-watch: itemized-lift-checkout-v2

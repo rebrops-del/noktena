@@ -1,6 +1,6 @@
 (() => {
   'use strict';
-  const settings=(window.NOKTENA_CATALOG_BOOTSTRAP?.rows||[]).find(row=>row.product_key==='settings:seo_v1')?.payload;
+  const settings=window.NoktenaCitySettings?.seo(window.NOKTENA_CATALOG_BOOTSTRAP?.rows);
   const p=settings?.privacy||{};
   const publication=/^\d{4}-\d{2}-\d{2}$/.test(String(p.published_at||''))?String(p.published_at).split('-').reverse().join('.'):'—';
   const values={operator:p.operator,inn:p.inn,ogrn:p.ogrn,address:p.address,contact:p.contact||'noktena@mail.ru',retention:p.retention||'до достижения целей обработки',published_at:publication};

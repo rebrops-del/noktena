@@ -8,6 +8,7 @@
   const DEFAULT_DESCRIPTION='НОКТЕНА — матрасы, кровати и диваны с подбором размера и консультацией. Онлайн-магазин в Екатеринбурге, склад в Берёзовском, доставка по Екатеринбургу.';
   const DEFAULT_IMAGE='https://noktena.ru/assets/noktena-editorial-bedroom.webp';
   const DEFAULT_HERO_ALT='Светлая спальня с мягкой кроватью и матрасом';
+  const scope=window.NoktenaCitySettings;
   const $=selector=>document.querySelector(selector);
   const template=$('#siteSettingsTemplate');
   const main=$('.main');
@@ -27,7 +28,7 @@
   const heroForm=$('#siteHeroForm');
   const heroSubmit=heroForm.querySelector('[type="submit"]');
   const heroReset=$('#siteHeroReset');
-  let saved={},heroSaved={},bootstrap=null,busy=false,heroBusy=false;
+  let saved={},heroSaved={},bootstrap=null,busy=false,heroBusy=false,loadVersion=0;
   heroSubmit.disabled=true;
   heroReset.disabled=true;
   const fields={operator:'sitePrivacyOperator',inn:'sitePrivacyInn',ogrn:'sitePrivacyOgrn',address:'sitePrivacyAddress',contact:'sitePrivacyContact',retention:'sitePrivacyRetention',published_at:'sitePrivacyDate'};
@@ -112,6 +113,21 @@
       target.append(row);
     }
   }
+  async function loadSettings(){
+    const version=++loadVersion,cityId=scope.cityId();
+    submit.disabled=true;heroSubmit.disabled=true;heroReset.disabled=true;
+    try{
+      const data=await readBootstrap();
+      if(version!==loadVersion||cityId!==scope.cityId())return;
+      bootstrap=data;
+      const rows=data.rows||[];
+      saved=scope.seo(rows,cityId)||{};
+      heroSaved=scope.payload(rows,HERO_KEY,cityId)||{};
+      banners?.fill(scope.payload(rows,BANNER_KEY,cityId),scope.payload(rows,'settings:contacts_v1',cityId));
+      fill(saved);fillHero(heroSaved);renderHistory();
+    }catch(error){if(version===loadVersion)toast(error.message,true)}
+    finally{if(version===loadVersion){submit.disabled=false;heroSubmit.disabled=false;heroReset.disabled=false}}
+  }
   async function open(){
     if(!pane.classList.contains('hide')&&!submit.disabled)return;
     $('#adminCityPane')?.classList.add('hide');
@@ -120,17 +136,9 @@
     $('#adminTabs')?.classList.add('hide');
     pane.classList.remove('hide');
     window.NoktenaNotificationEditor?.load();
-    submit.disabled=true;
-    heroSubmit.disabled=true;
-    heroReset.disabled=true;
-    try{
-      bootstrap=await readBootstrap();
-      saved=(bootstrap.rows||[]).find(row=>row.product_key===KEY)?.payload||{};
-      heroSaved=(bootstrap.rows||[]).find(row=>row.product_key===HERO_KEY)?.payload||{};
-      banners?.fill((bootstrap.rows||[]).find(row=>row.product_key===BANNER_KEY)?.payload,(bootstrap.rows||[]).find(row=>row.product_key==='settings:contacts_v1')?.payload);
-      fill(saved);fillHero(heroSaved);renderHistory();submit.disabled=false;heroSubmit.disabled=false;heroReset.disabled=false;
-    }catch(error){toast(error.message,true)}
+    await loadSettings();
   }
+  document.addEventListener('noktena:admin-city-change',()=>{if(!pane.classList.contains('hide')){loadSettings();window.NoktenaNotificationEditor?.load()}});
   function close(){pane.classList.add('hide');$('#adminTabs')?.classList.remove('hide')}
   link.addEventListener('click',open);
   bannerLink?.addEventListener('click',async()=>{await open();$('#siteBannersHeading')?.scrollIntoView({block:'start',behavior:'smooth'})});
@@ -159,15 +167,15 @@
     if(busy)return;
     const value=readForm();
     try{validate(value)}catch(error){toast(error.message,true);return}
-    busy=true;submit.disabled=true;
+    const cityId=scope.cityId();busy=true;submit.disabled=true;
     try{
       const old=Array.isArray(saved.history)?saved.history:[];
       const history=old.length?[...old]:[{number:0,at:new Date().toISOString(),action:'Исходная версия',snapshot:snapshot(saved)}];
       const number=Math.max(...history.map(entry=>Number(entry.number)||0))+1;
       history.push({number,at:new Date().toISOString(),action,snapshot:value});
       const next={model:'__seo_v1__',...value,history:[history[0],...history.slice(1).slice(-100)]};
-      await request('save',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({key:KEY,kind:'mattress',item:next,hidden:false,is_custom:false})});
-      saved=next;renderHistory();toast(action==='Сохранение'?'Настройки и SEO сохранены':'Настройки восстановлены и сохранены новой версией');
+      await request('save',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({key:scope.key(KEY,cityId),kind:'mattress',item:next,hidden:false,is_custom:false})});
+      if(cityId===scope.cityId()){saved=next;renderHistory()}toast(action==='Сохранение'?'Настройки и SEO сохранены':'Настройки восстановлены и сохранены новой версией');
     }catch(error){toast(error.message,true)}finally{busy=false;submit.disabled=false}
   }
   form.addEventListener('submit',event=>{event.preventDefault();return persist()});
@@ -177,11 +185,11 @@
     const url=$('#siteHeroUrl').value.trim(),alt=$('#siteHeroAlt').value.trim();
     if(url&&!validImageUrl(url)){toast('Укажите публичную ссылку HTTPS на фотографию',true);return}
     const next={model:'__homepage_hero_v1__',url,alt};
-    heroBusy=true;heroSubmit.disabled=true;heroReset.disabled=true;
+    const cityId=scope.cityId();heroBusy=true;heroSubmit.disabled=true;heroReset.disabled=true;
     $('#siteHeroStatus').textContent='Сохраняем…';
     try{
-      await request('save',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({key:HERO_KEY,kind:'mattress',item:next,hidden:false,is_custom:false})});
-      heroSaved=next;
+      await request('save',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({key:scope.key(HERO_KEY,cityId),kind:'mattress',item:next,hidden:false,is_custom:false})});
+      if(cityId===scope.cityId())heroSaved=next;
       $('#siteHeroStatus').textContent=url?'Изображение сохранено. На главной оно появится после обновления страницы.':'Исходная фотография восстановлена. Обновите главную страницу.';
       toast('Изображение на главной сохранено');
     }catch(error){$('#siteHeroStatus').textContent='Не удалось сохранить изображение';toast(error.message,true)}

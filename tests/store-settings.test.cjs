@@ -3,6 +3,7 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const path=require('node:path');
 const vm=require('node:vm');
+const citySettings=require('../assets/city-settings-core.js');
 
 test('contact settings update links and structured data without repeated DOM writes',()=>{
   const source=fs.readFileSync(path.join(__dirname,'../assets/contact-settings.js'),'utf8');
@@ -59,7 +60,7 @@ test('admin forms save validated contacts and ordered popular models',async()=>{
   const document={activeElement:{focus(){}},getElementById:element,
     querySelector:element,querySelectorAll:selector=>selector==='[data-popular-slot]'?element('popularSlots').slots:[],
     addEventListener(){}};
-  const context={document,URL,items:[
+  const context={document,window:{NoktenaCitySettings:citySettings},URL,items:[
       {_key:'furniture:bed',_kind:'furniture',category:'beds',id:'bed',title:'Кровать'},
       {_key:'mattress:mat',_kind:'mattress',model:'mat',variants:[{size:'800×2000',price:7000}]}
     ],productName:item=>item.title||item.model,toast:(message,error)=>messages.push({message,error}),console,

@@ -5,8 +5,9 @@ const path=require('node:path');
 const vm=require('node:vm');
 
 const source=file=>fs.readFileSync(path.join(__dirname,'..',file),'utf8');
+const citySettings=require('../assets/city-settings-core.js');
 const sample=(id,title)=>({id,label:'ПОДБОРКА',title,description:'Текст предложения',button:'Смотреть',link:'#beds',image:'https://example.test/bed.webp',alt:'Кровать',enabled:true});
-function configContext(){const context={window:{},URL};vm.runInNewContext(source('assets/home-banners-config.js'),context);return context}
+function configContext(){const context={window:{NoktenaCitySettings:citySettings},URL};vm.runInNewContext(source('assets/home-banners-config.js'),context);return context}
 
 test('banner settings reject unsafe links and preserve an intentionally empty or disabled list',()=>{
   const {window}=configContext(),config=window.NoktenaHomeBanners;
