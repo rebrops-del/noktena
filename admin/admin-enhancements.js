@@ -254,7 +254,7 @@
     if(!document.getElementById('globalDeliverySchedule')){
       const label=document.createElement('label');
       label.className='delivery-schedule-label';
-      label.innerHTML='График доставки<textarea id="globalDeliverySchedule" rows="3" placeholder="Например: Вторник / Пятница, 10:00–20:00"></textarea>';
+      label.innerHTML='График доставки<textarea id="globalDeliverySchedule" rows="3" maxlength="200" placeholder="Например: Вторник / Пятница, 10:00–20:00"></textarea>';
       grid.appendChild(label);
     }
     const notice=document.querySelector('#deliverySettingsForm .notice');

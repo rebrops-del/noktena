@@ -35,9 +35,11 @@ async function createOrder(req:Request){
   const subtotal=items.reduce((s:number,x:any)=>s+x.price*x.qty,0),s=await deliverySettings();
   const deliveryMethod=['delivery','pickup'].includes(String(b.delivery_method))?String(b.delivery_method):'delivery';
   if(cityId!=='ekaterinburg'&&deliveryMethod==='pickup'&&!city.warehouse)throw new Error('PICKUP_UNAVAILABLE');
-  const deliveryPrice=cityId==='ekaterinburg'?Math.max(0,Number(s.delivery_price)||0):Math.max(0,Number(city.delivery_price)||0),freeFrom=cityId==='ekaterinburg'?Math.max(0,Number(s.free_delivery_from)||0):0;
+  const regional=cityId!=='ekaterinburg',own=regional&&city.delivery_settings&&typeof city.delivery_settings==='object'?city.delivery_settings:{};
+  const deliveryPrice=regional?Math.max(0,Number(city.delivery_price)||0):Math.max(0,Number(s.delivery_price)||0);
+  const freeFrom=Math.max(0,Number(regional?own.free_delivery_from??0:s.free_delivery_from)||0);
   const deliveryCost=deliveryMethod==='pickup'||(freeFrom>0&&subtotal>=freeFrom)?0:deliveryPrice;
-  const cargo=Math.max(0,Number(s.cargo_lift_price)||0),stairs=Math.max(0,Number(s.stair_lift_price)||0),sofaSurcharge=Math.max(0,Number(s.sofa_lift_surcharge)||0),assemblyPrice=Math.max(0,Number(s.bed_assembly_price)||1500);
+  const cargo=Math.max(0,Number(own.cargo_lift_price??s.cargo_lift_price)||0),stairs=Math.max(0,Number(own.stair_lift_price??s.stair_lift_price)||0),sofaSurcharge=Math.max(0,Number(own.sofa_lift_surcharge??s.sofa_lift_surcharge)||0),assemblyPrice=Math.max(0,Number(own.bed_assembly_price??s.bed_assembly_price??1500)||0);
   let liftCost=0,liftCount=0;const methods=new Set<string>();let maxFloor=0;
   for(const x of items){
     if(deliveryMethod!=='delivery'){x.lift_method='none';x.lift_qty=0;x.lift_floor=0;x.lift_cost=0;continue}

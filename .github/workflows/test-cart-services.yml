@@ -8,6 +8,8 @@ on:
       - 'index.html'
       - 'product.html'
       - 'assets/cart.js'
+      - 'assets/catalog-runtime.js'
+      - 'assets/category-settings-ui.js'
       - 'assets/city-catalog-core.js'
       - 'assets/city-catalog.js'
       - 'admin/index.html'
@@ -19,9 +21,11 @@ on:
       - 'admin/store-settings.js'
       - 'tests/city-catalog.test.cjs'
       - 'tests/admin-delivery-city.test.cjs'
+      - 'tests/city-order.test.cjs'
       - 'assets/checkout.js'
       - 'assets/cart.css'
       - 'railway-admin/**'
+      - 'supabase/functions/noktena-order-api/**'
       - '.github/workflows/test-cart-services.yml'
 
 permissions:
@@ -38,6 +42,9 @@ jobs:
           node --check assets/checkout.js
           node --check assets/city-catalog-core.js
           node --check assets/city-catalog.js
+          node --check assets/cart.js
+          node --check assets/catalog-runtime.js
+          node --check assets/category-settings-ui.js
           node --check admin/city-catalog.js
           node --check admin/admin.js
           node --check admin/admin-enhancements.js

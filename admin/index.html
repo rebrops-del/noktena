@@ -12,7 +12,7 @@
   <link rel="stylesheet" href="./admin-luxe.css?v=premium1">
   <link rel="stylesheet" href="./admin-2026.css?v=premium3">
   <link rel="stylesheet" href="./site-settings.css?v=20260928-hero1">
-  <link rel="stylesheet" href="./city-catalog.css?v=20261001-2">
+  <link rel="stylesheet" href="./city-catalog.css?v=20261001-3">
   <link rel="stylesheet" href="./banner-settings.css?v=20260930-2">
 </head>
 <body>
@@ -266,14 +266,15 @@
   <div id="deliverySettingsModal" class="modal hide">
     <div class="modalbox small">
       <div class="modalhead">
-        <div><b>Доставка и подъём</b><div class="muted">Выберите город и сохраните стоимость доставки для него.</div></div>
+        <div><b>Доставка и подъём</b><div class="muted">Для каждого города отдельно задаются доставка, подъём, сборка и график.</div></div>
         <button id="deliverySettingsClose" type="button" class="btn secondary">Закрыть</button>
       </div>
       <form id="deliverySettingsForm">
         <label class="delivery-city-select">Город<select id="deliveryCitySelect" required></select></label>
         <div id="deliveryGlobalFields">
           <div class="delivery-settings-grid">
-            <label>Стоимость доставки, ₽<input id="globalDeliveryPrice" type="number" min="0" step="1"></label>
+            <label id="globalDeliveryPriceWrap">Стоимость доставки, ₽<input id="globalDeliveryPrice" type="number" min="0" max="1000000" step="1"></label>
+            <label id="regionalDeliveryPriceWrap" hidden>Стоимость доставки, ₽<input id="regionalDeliveryPrice" type="number" min="0" max="1000000" step="1" inputmode="numeric" placeholder="Уточняется менеджером"></label>
             <label>Стоимость подъёма, ₽<input id="globalLiftPrice" type="number" min="0" step="1"></label>
             <label>Доплата за подъём дивана, ₽<input id="globalSofaLiftSurcharge" type="number" min="0" step="1"></label>
             <label>Бесплатная доставка от, ₽<input id="globalFreeDeliveryFrom" type="number" min="0" step="1"></label>
@@ -281,8 +282,7 @@
           <div class="notice" style="margin-top:12px">Для дивана на сайте показывается базовая стоимость подъёма и дополнительная доплата за диван. Значение 0 отключает соответствующую доплату или порог бесплатной доставки.</div>
         </div>
         <div id="deliveryRegionalFields" hidden>
-          <label>Стоимость доставки в выбранный город, ₽<input id="regionalDeliveryPrice" type="number" min="0" max="1000000" step="1" inputmode="numeric" placeholder="Уточняется менеджером"></label>
-          <p class="site-settings-hint">0 ₽ — бесплатная доставка. Пустое поле — стоимость уточняется при заказе. Настройки подъёма и сборки действуют для всех городов.</p>
+          <p class="site-settings-hint">0 ₽ — бесплатная доставка. Если оставить стоимость пустой, менеджер уточнит её при заказе; остальные поля сохраняются для этого города.</p>
         </div>
         <div class="savebar"><span></span><div class="actions"><button id="deliverySettingsCancel" type="button" class="btn secondary">Отмена</button><button type="submit" class="btn primary">Сохранить доставку</button></div></div>
       </form>
@@ -341,10 +341,10 @@
   </div>
 
   <script src="./admin.js?v=20261001-2" defer></script>
-  <script src="./admin-enhancements.js?v=20261001-2" defer></script>
+  <script src="./admin-enhancements.js?v=20261001-3" defer></script>
   <script src="./admin-card-settings.js?v=20260930-width1" defer></script>
   <script src="./admin-mattress-card-settings.js?v=20260922-2" defer></script>
-  <script src="./cart-settings.js?v=20261001-2" defer></script>
+  <script src="./cart-settings.js?v=20261001-3" defer></script>
   <script src="./orders.js?v=3" defer></script>
   <script src="./global-promo-settings.js?v=20260922-1" defer></script>
 <script src="./global-discount-settings.js?v=20260922-1" defer></script>
@@ -354,8 +354,8 @@
   <script src="./banner-settings.js?v=20260930-2" defer></script>
   <script src="./site-settings.js?v=20260930-city1" defer></script>
   <script src="./notification-settings.js?v=20260930-1" defer></script>
-  <script src="../assets/city-catalog-core.js?v=20261001-2" defer></script>
+  <script src="../assets/city-catalog-core.js?v=20261001-3" defer></script>
   <script src="./city-import.js?v=20260930-1" defer></script>
-  <script src="./city-catalog.js?v=20261001-2" defer></script>
+  <script src="./city-catalog.js?v=20261001-3" defer></script>
 </body>
 </html>

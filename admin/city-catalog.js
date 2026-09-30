@@ -95,15 +95,24 @@
     }catch(error){status(error.message,true);throw error}
     finally{busy=false;$('#cityAdminSelect').disabled=false;$('#catalogCitySelect').disabled=false;$('#cityCatalogSave').disabled=false;$('#cityImportSave').disabled=!pending;$('#cityAdminDelete').disabled=selectedId==='ekaterinburg';$('#deliveryCitySelect').disabled=false}
   }
-  async function saveDeliveryPrice(cityId,raw){
+  async function saveDeliverySettings(cityId,values){
     const selected=state.cities.find(item=>item.id===cityId);
     if(!loaded||!selected||cityId==='ekaterinburg')throw new Error('Выберите дополнительный город');
-    const value=String(raw).trim(),price=value===''?null:Number(value);
+    const value=String(values.delivery_price??'').trim(),price=value===''?null:Number(value);
     if(value!==''&&(!Number.isSafeInteger(price)||price<0||price>1000000))throw new Error('Укажите целую стоимость доставки от 0 до 1 000 000 ₽');
-    const previous=selected.delivery_price;
+    const options={};
+    for(const key of core.DELIVERY_FIELDS){
+      const number=Number(values[key]),limit=key==='free_delivery_from'?10000000:1000000;
+      if(!Number.isSafeInteger(number)||number<0||number>limit)throw new Error('Укажите целую неотрицательную стоимость для всех услуг');
+      options[key]=number;
+    }
+    options.delivery_schedule=String(values.delivery_schedule||'').trim();
+    if(options.delivery_schedule.length>200)throw new Error('График доставки: не более 200 символов');
+    const previous=selected.delivery_price,oldOptions=selected.delivery_settings;
     selected.delivery_price=price;
-    try{await persist('Стоимость доставки для города '+selected.name+' сохранена')}
-    catch(error){selected.delivery_price=previous;throw error}
+    selected.delivery_settings=options;
+    try{await persist('Условия доставки для города '+selected.name+' сохранены')}
+    catch(error){selected.delivery_price=previous;if(oldOptions)selected.delivery_settings=oldOptions;else delete selected.delivery_settings;throw error}
   }
   function setKeys(keys){catalog().keys=[...new Set(keys)];render();notifyOverview();status('Изменения ещё не сохранены.')}
   function withoutFlags(item){
@@ -237,5 +246,5 @@
     try{await persist(replace?'Каталог города заменён':'Каталог города обновлён');pending=null;$('#cityCatalogFile').value='';$('#cityImportSave').disabled=true;$('#cityImportPreview').textContent='Каталог загружен. Обновите страницу магазина.'}
     catch(error){toast(error.message,true)}
   });
-  window.NoktenaCityAdmin=Object.freeze({saveProduct,removeProduct,removeFromCity,saveDeliveryPrice,bulkPrices,productsFor,currentCity:city,cities:()=>state.cities,selectCity,ensureLoaded,open,reload});
+  window.NoktenaCityAdmin=Object.freeze({saveProduct,removeProduct,removeFromCity,saveDeliverySettings,bulkPrices,productsFor,currentCity:city,cities:()=>state.cities,selectCity,ensureLoaded,open,reload});
 })();

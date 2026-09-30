@@ -64,17 +64,22 @@ test('deleting a city removes its catalog and delivery price without touching ot
   assert.throws(()=>core.removeCity(result,'city-kazan'),/не найден/);
 });
 
-test('cart uses a selected city delivery price, including free and pending delivery',()=>{
-  let selected={id:'city-kazan',name:'Казань',delivery_price:990};
-  const window={NoktenaCities:{current:()=>selected,id:()=>selected.id},
-    NOKTENA_CATALOG_BOOTSTRAP:{rows:[{product_key:'settings:delivery_v2',payload:{delivery_price:500,free_delivery_from:15000}}]},
+test('cart uses the selected city’s delivery, lift, assembly, threshold, and schedule',()=>{
+  let selected={id:'city-kazan',name:'Казань',delivery_price:990,delivery_settings:{cargo_lift_price:700,stair_lift_price:350,sofa_lift_surcharge:250,free_delivery_from:18000,bed_assembly_price:1200,delivery_schedule:'Среда'}};
+  const window={NoktenaCityCatalogCore:core,NoktenaCities:{current:()=>selected,id:()=>selected.id},
+    NOKTENA_CATALOG_BOOTSTRAP:{rows:[{product_key:'settings:delivery_v2',payload:{delivery_price:500,cargo_lift_price:600,stair_lift_price:300,sofa_lift_surcharge:400,free_delivery_from:15000,bed_assembly_price:1500,delivery_schedule:'Пятница'}}]},
     addEventListener(){}};
   const context={window,document:{querySelector(){return null},querySelectorAll(){return[]},body:{}},
     MutationObserver:class{observe(){}},requestAnimationFrame(){},localStorage:{getItem(){return null}}};
   vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../assets/cart.js'),'utf8'),context);
   assert.equal(window.NoktenaCart.settings().delivery_price,990);
   assert.equal(window.NoktenaCart.settings().delivery_pending,false);
-  assert.equal(window.NoktenaCart.settings().free_delivery_from,0);
+  assert.equal(window.NoktenaCart.settings().free_delivery_from,18000);
+  assert.equal(window.NoktenaCart.settings().cargo_lift_price,700);
+  assert.equal(window.NoktenaCart.settings().stair_lift_price,350);
+  assert.equal(window.NoktenaCart.settings().sofa_lift_surcharge,250);
+  assert.equal(window.NoktenaCart.settings().bed_assembly_price,1200);
+  assert.equal(window.NoktenaCart.settings().delivery_schedule,'Среда');
   selected={...selected,delivery_price:0};
   assert.equal(window.NoktenaCart.settings().delivery_price,0);
   assert.equal(window.NoktenaCart.settings().delivery_pending,false);
@@ -83,6 +88,21 @@ test('cart uses a selected city delivery price, including free and pending deliv
   selected={id:'ekaterinburg',name:'Екатеринбург',delivery_price:null};
   assert.equal(window.NoktenaCart.settings().delivery_price,500);
   assert.equal(window.NoktenaCart.settings().free_delivery_from,15000);
+  assert.equal(window.NoktenaCart.settings().cargo_lift_price,600);
+  assert.equal(window.NoktenaCart.settings().delivery_schedule,'Пятница');
+  selected={id:'city-legacy',name:'Пермь',delivery_price:800};
+  assert.equal(window.NoktenaCart.settings().free_delivery_from,0);
+  assert.equal(window.NoktenaCart.settings().cargo_lift_price,600);
+  assert.equal(window.NoktenaCart.settings().bed_assembly_price,1500);
+  assert.equal(window.NoktenaCart.settings().delivery_schedule,'');
+});
+
+test('a city retains independent delivery settings through normalization',()=>{
+  const original=core.normalize({cities:[{id:'city-kazan',name:'Казань',delivery_price:0,delivery_settings:{cargo_lift_price:0,stair_lift_price:550,sofa_lift_surcharge:100,free_delivery_from:35000,bed_assembly_price:0,delivery_schedule:'Вторник / Суббота'}}]});
+  assert.deepEqual(core.normalize(original),original);
+  assert.equal(original.cities[1].delivery_settings.bed_assembly_price,0);
+  assert.equal(original.cities[0].delivery_settings,undefined);
+  assert.equal(core.deliveryForCity(original.cities[1],{cargo_lift_price:600}).cargo_lift_price,0);
 });
 
 test('CSV supports one product with multiple sizes, quoted fields, and stable re-import',()=>{

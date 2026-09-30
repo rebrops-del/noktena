@@ -14,7 +14,11 @@
   function clear(){save([])}
   function count(){return load().reduce((n,x)=>n+(Number(x.qty)||1),0)}
   function subtotal(){return load().reduce((n,x)=>n+(Number(x.price)||0)*(Number(x.qty)||1),0)}
-  function settings(){const b=window.NOKTENA_CATALOG_BOOTSTRAP||{},legacy=b.deliverySettings||{},row=(b.rows||[]).find(r=>r.product_key==='settings:delivery_v2'),r=row?.payload||{},city=window.NoktenaCities?.current(),cityPrice=city?.id==='ekaterinburg'?r.delivery_price??legacy.delivery_price:city?.delivery_price;return{delivery_price:Math.max(0,Number(cityPrice)||0),delivery_pending:!!city&&city.id!=='ekaterinburg'&&city.delivery_price==null,cargo_lift_price:Math.max(0,Number(r.cargo_lift_price??legacy.lift_price)||0),stair_lift_price:Math.max(0,Number(r.stair_lift_price)||0),sofa_lift_surcharge:Math.max(0,Number(r.sofa_lift_surcharge??legacy.sofa_lift_surcharge)||0),free_delivery_from:city?.id==='ekaterinburg'?Math.max(0,Number(r.free_delivery_from??legacy.free_delivery_from)||0):0,delivery_schedule:city?.id==='ekaterinburg'?String(r.delivery_schedule||'').trim():'',bed_assembly_price:Math.max(0,Number(r.bed_assembly_price)||1500)}}
+  function settings(){
+    const b=window.NOKTENA_CATALOG_BOOTSTRAP||{},legacy=b.deliverySettings||{},row=(b.rows||[]).find(r=>r.product_key==='settings:delivery_v2'),r=row?.payload||{};
+    const global={delivery_price:r.delivery_price??legacy.delivery_price,cargo_lift_price:r.cargo_lift_price??legacy.lift_price,stair_lift_price:r.stair_lift_price,sofa_lift_surcharge:r.sofa_lift_surcharge??legacy.sofa_lift_surcharge,free_delivery_from:r.free_delivery_from??legacy.free_delivery_from,delivery_schedule:r.delivery_schedule,bed_assembly_price:r.bed_assembly_price};
+    return window.NoktenaCityCatalogCore.deliveryForCity(window.NoktenaCities?.current(),global);
+  }
   function parseMoney(text){const nums=String(text||'').replace(/\s/g,'').match(/\d+/g)||[];return nums.length?Number(nums.join('')):0}
   function toast(text){let el=$('.cart-toast');if(!el){el=document.createElement('div');el.className='cart-toast';document.body.appendChild(el)}el.textContent=text;el.classList.add('is-visible');clearTimeout(toast.t);toast.t=setTimeout(()=>el.classList.remove('is-visible'),2200)}
   function updateCount(){const n=count();$$('.cart-head-count').forEach(el=>el.textContent=n)}

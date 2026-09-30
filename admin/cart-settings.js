@@ -6,8 +6,9 @@
   function session(){try{return JSON.parse(localStorage.getItem('nkt-adm2')||'null')}catch{return null}}
   async function api(action,options={}){const headers={...(options.headers||{})},s=session();if(s?.access_token)headers.Authorization='Bearer '+s.access_token;const r=await fetch(API+'?action='+encodeURIComponent(action),{...options,headers});const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||'Ошибка сервера');return d}
   function ensure(){const grid=$('#deliverySettingsForm .delivery-settings-grid');if(!grid||$('#globalBedAssemblyPrice'))return;const label=document.createElement('label');label.innerHTML='Сборка кровати, ₽ / кровать<input id="globalBedAssemblyPrice" type="number" min="0" step="1" value="1500">';const schedule=$('#globalDeliverySchedule')?.closest('label');if(schedule)grid.insertBefore(label,schedule);else grid.appendChild(label);const notice=$('#deliverySettingsForm .notice');if(notice)notice.textContent='Подъём по лестнице указывается за один этаж. Доплата за диван прибавляется к выбранному способу подъёма. Сборка кровати рассчитывается за каждую кровать в заказе.'}
+  let baseDelivery={};
   function renderCity(deliverySettings){
-    if(deliverySettings){const value=Number(deliverySettings.bed_assembly_price);$('#globalBedAssemblyPrice').value=Number.isFinite(value)&&value>=0?value:1500}
+    if(deliverySettings)baseDelivery=deliverySettings;
     const manager=window.NoktenaCityAdmin,select=$('#deliveryCitySelect');if(!manager||!select)return;
     const current=manager.currentCity(),id=current?.id||'ekaterinburg';
     select.replaceChildren();
@@ -16,9 +17,15 @@
     }
     select.value=id;
     const regional=id!=='ekaterinburg';
-    $('#deliveryGlobalFields').hidden=regional;
+    const active=window.NoktenaCityCatalogCore.deliveryForCity(current,baseDelivery);
+    $('#globalDeliveryPriceWrap').hidden=regional;
+    $('#regionalDeliveryPriceWrap').hidden=!regional;
     $('#deliveryRegionalFields').hidden=!regional;
+    $('#globalDeliveryPrice').value=regional?'':active.delivery_price;
     $('#regionalDeliveryPrice').value=regional?current.delivery_price??'':'';
+    for(const [key,field] of Object.entries({cargo_lift_price:'globalLiftPrice',stair_lift_price:'globalStairLiftPrice',sofa_lift_surcharge:'globalSofaLiftSurcharge',free_delivery_from:'globalFreeDeliveryFrom',bed_assembly_price:'globalBedAssemblyPrice',delivery_schedule:'globalDeliverySchedule'})){
+      $('#'+field).value=active[key];
+    }
   }
   $('#deliveryCitySelect')?.addEventListener('change',event=>{
     window.NoktenaCityAdmin?.selectCity(event.target.value);
@@ -31,7 +38,15 @@
     const cityId=$('#deliveryCitySelect').value;
     if(cityId!=='ekaterinburg'){
       try{
-        await window.NoktenaCityAdmin.saveDeliveryPrice(cityId,$('#regionalDeliveryPrice').value);
+        await window.NoktenaCityAdmin.saveDeliverySettings(cityId,{
+          delivery_price:$('#regionalDeliveryPrice').value,
+          cargo_lift_price:$('#globalLiftPrice').value,
+          stair_lift_price:$('#globalStairLiftPrice').value,
+          sofa_lift_surcharge:$('#globalSofaLiftSurcharge').value,
+          free_delivery_from:$('#globalFreeDeliveryFrom').value,
+          bed_assembly_price:$('#globalBedAssemblyPrice').value,
+          delivery_schedule:$('#globalDeliverySchedule').value
+        });
         modal.classList.add('hide');
       }catch(error){if(typeof toast==='function')toast(error.message,true);else alert(error.message)}
       finally{if(submit)submit.disabled=false}

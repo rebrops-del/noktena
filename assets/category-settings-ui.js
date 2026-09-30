@@ -11,13 +11,10 @@
     sofa_lift_surcharge:Math.max(0,Number(raw.sofa_lift_surcharge??legacy.sofa_lift_surcharge)||0),
     free_delivery_from:Math.max(0,Number(raw.free_delivery_from??legacy.free_delivery_from)||0),
     delivery_schedule:String(raw.delivery_schedule||'').trim(),
-    bed_assembly_price:Math.max(0,Number(raw.bed_assembly_price)||1500)
+    bed_assembly_price:raw.bed_assembly_price==null?1500:Math.max(0,Number(raw.bed_assembly_price)||0)
   };
   const city=window.NoktenaCities?.current();
-  const activeDelivery=city&&city.id!=='ekaterinburg'?{
-    ...delivery,delivery_price:city.delivery_price==null?0:Math.max(0,Number(city.delivery_price)||0),
-    free_delivery_from:0,delivery_schedule:''
-  }:delivery;
+  const activeDelivery=window.NoktenaCityCatalogCore.deliveryForCity(city,delivery);
   const BADGES={
     hit:{label:'Хит продаж',className:'hit'},
     sale:{label:'Распродажа',className:'sale'},

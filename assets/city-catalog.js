@@ -54,7 +54,7 @@
       text('.delivery-lead','Условия доставки для города '+selected.name+' подтвердит менеджер при оформлении заказа.');
       text('.deliverybox .dgrid .d:first-child small',selected.delivery_price==null?'Стоимость и сроки уточнит менеджер':'Доставка по городу '+selected.name);
       text('.deliverybox .dgrid .d:first-child b',selected.delivery_price==null?'Уточняется':selected.delivery_price===0?'Бесплатно':Number(selected.delivery_price).toLocaleString('ru-RU')+' ₽');
-      text('.deliverybox .dgrid .d:nth-child(5) b','Уточняется');
+      text('.deliverybox .dgrid .d:nth-child(5) b',selected.delivery_settings?.delivery_schedule||'Уточняется');
       text('#homeService .service-layout p','Подберём размер, комплектацию и условия доставки для города '+selected.name+'.');
       text('.networkbox > div > p','Выберите товары вашего города и отправьте заказ. Менеджер подтвердит наличие, комплектацию и условия доставки.');
       text('.networkfacts .fact:nth-child(2) span','г. '+selected.name);
