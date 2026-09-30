@@ -20,6 +20,7 @@
   const sizeSortValue=value=>{const nums=String(value||'').replace(/×/g,'х').match(/\d+/g)?.map(Number)||[];return [nums[0]??Number.MAX_SAFE_INTEGER,nums[1]??Number.MAX_SAFE_INTEGER,String(value||'')];};
   const sortSizes=list=>uniq(list).sort((a,b)=>{const A=sizeSortValue(a),B=sizeSortValue(b);return A[0]-B[0]||A[1]-B[1]||A[2].localeCompare(B[2],'ru');});
   const sortVariantsBySize=list=>[...(list||[])].sort((a,b)=>{const A=sizeSortValue(a?.size),B=sizeSortValue(b?.size);return A[0]-B[0]||A[1]-B[1]||A[2].localeCompare(B[2],'ru');});
+  const sizeCountLabel=count=>`${count} ${count%10===1&&count%100!==11?'вариант':count%10>=2&&count%10<=4&&(count%100<12||count%100>14)?'варианта':'вариантов'}`;
   const detailSpecKey=window.NoktenaFurnitureDimensions.key;
   const params=new URLSearchParams(location.search);
   const root=$('#productRoot');
@@ -115,7 +116,7 @@
           <p class="pd-subtitle">${esc(product.summary||String(product.description||'').split(/(?<=[.!?])\s+/)[0]||'Выберите подходящий вариант модели.')}</p>
           <div class="pd-price-row"><div class="pd-price-stack"><div class="pd-price-caption">Цена выбранного варианта</div><div class="pd-old-row" ${discountPercent(product)>0?'':'style="display:none"'}><span class="pd-old-price" id="pdFurnitureOldPrice">${oldPrice(price,discountPercent(product))?rub(oldPrice(price,discountPercent(product))):''}</span><span class="pd-discount" id="pdFurnitureDiscount">−${discountPercent(product)}%</span></div><div class="pd-price" id="pdFurniturePrice">${rub(price)}</div></div>${detailPromoMarkup(product)}</div>
           ${colors.length?`<div class="pd-choice"><div class="pd-choice-head"><label>Цвет</label><b id="pdColorName">${esc(selectedColor)}</b></div><div class="pd-colors">${colors.map((c,i)=>`<button type="button" class="pd-color ${i===0?'is-active':''}" data-pd-color="${esc(c)}">${esc(c)}</button>`).join('')}</div></div>`:''}
-          ${sizes.length?`<div class="pd-choice"><div class="pd-choice-head"><label>${isBed?'Спальное место':'Размер / вариант'}</label><b>${sizes.length} вариантов</b></div><div class="pd-size-grid">${sizes.map((s,i)=>`<button type="button" class="pd-size ${i===0?'is-active':''}" data-pd-size="${esc(s)}">${esc(s)}</button>`).join('')}</div></div>`:''}
+          ${sizes.length?`<div class="pd-choice"><div class="pd-choice-head"><label>${isBed?'Спальное место':'Размер / вариант'}</label><b>${sizeCountLabel(sizes.length)}</b></div><div class="pd-size-grid">${sizes.map((s,i)=>`<button type="button" class="pd-size ${i===0?'is-active':''}" data-pd-size="${esc(s)}">${esc(s)}</button>`).join('')}</div></div>`:''}
           <div class="pd-action-stack"><a class="pd-max-btn" href="${MAX_LINK}" target="_blank" rel="noopener"><img src="${MAX_ICON}" alt="" aria-hidden="true"><span>Получить консультацию в MAX</span></a><div class="pd-note">Перед оформлением подтвердим актуальное наличие, выбранный цвет и комплектацию.</div></div>
         </section>
         <section class="pd-section-card"><div class="pd-section-title"><span>01</span><h2>Характеристики</h2></div>${specsMarkup(product.specs)}<div id="pdVariantSpecs"></div></section>

@@ -175,7 +175,7 @@
     if(kuba){const kubaHit={...kuba,hit:true};if(bedPicks.length>=3)bedPicks[2]=kubaHit;else bedPicks.push(kubaHit)}
     mount.innerHTML=[...bedPicks,...(sofaHits.length>=3?sofaHits:sofas).slice(0,3)].map(cardMarkup).join('');
   }
-  async function loadFurniture(){try{const r=await fetch('data/furniture.json?v=20260919-cache1',{cache:'force-cache'});if(!r.ok)throw new Error(`HTTP ${r.status}`);const raw=await r.json();const data=window.NoktenaCatalog?await window.NoktenaCatalog.mergeFurniture(raw):raw;state.data.beds=Array.isArray(data.beds)?data.beds:[];state.data.sofas=Array.isArray(data.sofas)?data.sofas:[];state.loaded=true;}catch(e){console.error('Furniture catalog load failed',e);state.loaded=true;}applyView(routeFromHash(),{scroll:false});}
+  async function loadFurniture(){try{const r=await fetch('data/furniture.json?v=20260930-dimensions2',{cache:'force-cache'});if(!r.ok)throw new Error(`HTTP ${r.status}`);const raw=await r.json();const data=window.NoktenaCatalog?await window.NoktenaCatalog.mergeFurniture(raw):raw;state.data.beds=Array.isArray(data.beds)?data.beds:[];state.data.sofas=Array.isArray(data.sofas)?data.sofas:[];state.loaded=true;}catch(e){console.error('Furniture catalog load failed',e);state.loaded=true;}applyView(routeFromHash(),{scroll:false});}
   function bind(){
     document.addEventListener('click',e=>{
       const galleryBtn=e.target.closest('[data-gallery-dir]');if(galleryBtn){e.preventDefault();e.stopPropagation();const g=galleryBtn.closest('[data-gallery-id]');if(g)setGallery(g.dataset.galleryId,Number(galleryBtn.dataset.galleryDir)||1);return;}
