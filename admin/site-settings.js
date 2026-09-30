@@ -13,6 +13,7 @@
   const main=$('.main');
   const link=$('[data-admin-open="site-settings"]');
   const bannerLink=$('[data-admin-open="banners"]');
+  const notificationLink=$('[data-admin-open="notifications"]');
   if(!template||!main||!link)return;
 
   const pane=document.createElement('section');
@@ -117,6 +118,7 @@
     $('#adminOrdersPane')?.classList.add('hide');
     $('#adminTabs')?.classList.add('hide');
     pane.classList.remove('hide');
+    window.NoktenaNotificationEditor?.load();
     submit.disabled=true;
     heroSubmit.disabled=true;
     heroReset.disabled=true;
@@ -131,6 +133,7 @@
   function close(){pane.classList.add('hide');$('#adminTabs')?.classList.remove('hide')}
   link.addEventListener('click',open);
   bannerLink?.addEventListener('click',async()=>{await open();$('#siteBannersHeading')?.scrollIntoView({block:'start',behavior:'smooth'})});
+  notificationLink?.addEventListener('click',async()=>{await open();$('#siteNotificationsHeading')?.scrollIntoView({block:'start',behavior:'smooth'})});
   $('#catalogTab')?.addEventListener('click',close);
   $('#ordersTab')?.addEventListener('click',close);
   pane.addEventListener('click',event=>{
@@ -138,6 +141,7 @@
     if(action==='prices')$('#settingsOpen')?.click();
     if(action==='delivery')$('#deliverySettingsOpen')?.click();
     if(action==='banners')$('#siteBannersHeading')?.scrollIntoView({block:'start',behavior:'smooth'});
+    if(action==='notifications')$('#siteNotificationsHeading')?.scrollIntoView({block:'start',behavior:'smooth'});
     const restore=event.target.closest('[data-restore]')?.dataset.restore;
     if(restore!==undefined){
       const version=(saved.history||[]).find(item=>String(item.number)===restore);
