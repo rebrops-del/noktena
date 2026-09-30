@@ -20,7 +20,7 @@ function editorHarness(payload={},heroPayload={}){
   }
   const document={querySelector:node,createElement:tag=>node(tag==='section'?'pane':Symbol()),body:{append(){}}};
   node('#siteSettingsTemplate').content={cloneNode:()=>({})};
-  const context={document,Date,URL,FormData,toast:(message,error)=>messages.push({message,error}),
+  const context={document,window:{},Date,URL,FormData,toast:(message,error)=>messages.push({message,error}),
     fetch:async()=>({ok:true,text:async()=> 'window.NOKTENA_CATALOG_BOOTSTRAP='+JSON.stringify({rows:[{product_key:'settings:seo_v1',payload},{product_key:'settings:hero_v1',payload:heroPayload}]})+';'}),
     request:async(action,options)=>{if(action==='upload'){uploads.push(options.body);return{url:'https://example.test/hero.webp'}}saved.push({action,body:JSON.parse(options.body)});return {ok:true}}};
   vm.runInNewContext(read('admin/site-settings.js'),context);

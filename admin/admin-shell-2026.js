@@ -6,7 +6,7 @@
   links.forEach(link=>link.addEventListener('click',()=>{
     const view=link.dataset.adminOpen;
     if(view==='orders'){$('#ordersTab')?.click();active('orders')}
-    else if(view==='site-settings'){active('site-settings')}
+    else if(view==='site-settings'||view==='banners'){active(view)}
     else{
       $('#catalogTab')?.click();
       active(view==='catalog'?'catalog':view);

@@ -3,6 +3,7 @@
   const BOOT='https://admin-proxy-v2-production.up.railway.app/catalog-bootstrap.js';
   const KEY='settings:seo_v1';
   const HERO_KEY='settings:hero_v1';
+  const BANNER_KEY='settings:home_banners_v1';
   const DEFAULT_TITLE='Матрасы, кровати и диваны в Екатеринбурге — НОКТЕНА';
   const DEFAULT_DESCRIPTION='НОКТЕНА — матрасы, кровати и диваны с подбором размера и консультацией. Онлайн-магазин в Екатеринбурге, склад в Берёзовском, доставка по Екатеринбургу.';
   const DEFAULT_IMAGE='https://noktena.ru/assets/noktena-editorial-bedroom.webp';
@@ -11,6 +12,7 @@
   const template=$('#siteSettingsTemplate');
   const main=$('.main');
   const link=$('[data-admin-open="site-settings"]');
+  const bannerLink=$('[data-admin-open="banners"]');
   if(!template||!main||!link)return;
 
   const pane=document.createElement('section');
@@ -18,6 +20,7 @@
   pane.className='admin-pane site-settings-pane hide';
   pane.append(template.content.cloneNode(true));
   main.append(pane);
+  const banners=window.NoktenaBannerEditor?.init(pane);
   const form=$('#siteSeoForm');
   const submit=form.querySelector('[type="submit"]');
   const heroForm=$('#siteHeroForm');
@@ -121,17 +124,20 @@
       bootstrap=await readBootstrap();
       saved=(bootstrap.rows||[]).find(row=>row.product_key===KEY)?.payload||{};
       heroSaved=(bootstrap.rows||[]).find(row=>row.product_key===HERO_KEY)?.payload||{};
+      banners?.fill((bootstrap.rows||[]).find(row=>row.product_key===BANNER_KEY)?.payload);
       fill(saved);fillHero(heroSaved);renderHistory();submit.disabled=false;heroSubmit.disabled=false;heroReset.disabled=false;
     }catch(error){toast(error.message,true)}
   }
   function close(){pane.classList.add('hide');$('#adminTabs')?.classList.remove('hide')}
   link.addEventListener('click',open);
+  bannerLink?.addEventListener('click',async()=>{await open();$('#siteBannersHeading')?.scrollIntoView({block:'start',behavior:'smooth'})});
   $('#catalogTab')?.addEventListener('click',close);
   $('#ordersTab')?.addEventListener('click',close);
   pane.addEventListener('click',event=>{
     const action=event.target.closest('[data-settings-open]')?.dataset.settingsOpen;
     if(action==='prices')$('#settingsOpen')?.click();
     if(action==='delivery')$('#deliverySettingsOpen')?.click();
+    if(action==='banners')$('#siteBannersHeading')?.scrollIntoView({block:'start',behavior:'smooth'});
     const restore=event.target.closest('[data-restore]')?.dataset.restore;
     if(restore!==undefined){
       const version=(saved.history||[]).find(item=>String(item.number)===restore);
