@@ -29,12 +29,19 @@ jobs:
       - name: Wait for live premium pages
         run: |
           set -euo pipefail
+          city_script=$(grep -o 'assets/city-catalog.js?v=[^"]*' index.html | head -1)
+          product_script=$(grep -o 'assets/product-detail.js?v=[^"]*' product.html | head -1)
+          admin_script=$(grep -o './city-catalog.js?v=[^"]*' admin/index.html | head -1)
           for i in $(seq 1 40); do
             home=$(curl -fsSL --max-time 20 "https://noktena.ru/?release=$GITHUB_SHA" || true)
             product=$(curl -fsSL --max-time 20 "https://noktena.ru/product.html?release=$GITHUB_SHA" || true)
+            admin=$(curl -fsSL --max-time 20 "https://noktena.ru/admin/?release=$GITHUB_SHA" || true)
             css=$(curl -fsSL --max-time 20 "https://noktena.ru/assets/product-2026.css?release=$GITHUB_SHA" || true)
             if [[ "$home" == *'storefront-2026.css'* ]] \
-              && [[ "$product" == *'product-detail.js?v=20260925-gallery3'* ]] \
+              && [[ "$home" == *"$city_script"* ]] \
+              && [[ "$product" == *"$city_script"* ]] \
+              && [[ "$product" == *"$product_script"* ]] \
+              && [[ "$admin" == *"$admin_script"* ]] \
               && [[ "$css" == *'pd-main-media.pd-mattress-media'* ]]; then
               exit 0
             fi
