@@ -5,6 +5,15 @@ on:
     branches: [main]
     paths:
       - 'checkout.html'
+      - 'index.html'
+      - 'product.html'
+      - 'assets/cart.js'
+      - 'assets/city-catalog-core.js'
+      - 'assets/city-catalog.js'
+      - 'admin/index.html'
+      - 'admin/city-catalog.js'
+      - 'admin/city-catalog.css'
+      - 'tests/city-catalog.test.cjs'
       - 'assets/checkout.js'
       - 'assets/cart.css'
       - 'railway-admin/**'
@@ -22,8 +31,11 @@ jobs:
         run: |
           set -euxo pipefail
           node --check assets/checkout.js
+          node --check assets/city-catalog-core.js
+          node --check assets/city-catalog.js
+          node --check admin/city-catalog.js
           node --check railway-admin/server.js
-          node --test tests/analytics.test.cjs
+          node --test tests/analytics.test.cjs tests/city-catalog.test.cjs
           grep -q 'Подъём настраивается отдельно для каждого товара' checkout.html
           grep -q 'assemblyQty' assets/checkout.js
           grep -q 'data-lift-qty' assets/checkout.js

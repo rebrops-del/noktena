@@ -39,6 +39,14 @@
       return {...(original||{}),...(override||{}),_catalogKey:key};
     }).filter(Boolean);
   }
+  function removeCity(settings,id){
+    if(id===DEFAULT_CITY.id)throw new Error('Екатеринбург нельзя удалить');
+    const next=normalize(settings);
+    if(!next.cities.some(city=>city.id===id))throw new Error('Город не найден');
+    next.cities=next.cities.filter(city=>city.id!==id);
+    delete next.catalogs[id];
+    return next;
+  }
   function fromBootstrap(bootstrap){return normalize((bootstrap?.rows||[]).find(row=>row.product_key===KEY)?.payload)}
-  return Object.freeze({KEY,DEFAULT_CITY,TEXT_LIMITS,normalize,keyFor,applyCatalog,fromBootstrap});
+  return Object.freeze({KEY,DEFAULT_CITY,TEXT_LIMITS,normalize,keyFor,applyCatalog,fromBootstrap,removeCity});
 });

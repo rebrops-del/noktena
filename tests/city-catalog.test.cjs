@@ -24,6 +24,47 @@ test('new cities start empty, and overrides and added products affect only that 
   assert.deepEqual(core.applyCatalog(base,'mattress',settings,'city-kazan').map(x=>x.model),['Матрас К']);
 });
 
+test('deleting a city removes its catalog and delivery price without touching other cities',()=>{
+  const original=core.normalize({cities:[
+    {id:'city-kazan',name:'Казань',delivery_price:990,hero_description:'Товары в Казани'},
+    {id:'city-perm',name:'Пермь',delivery_price:0}
+  ],catalogs:{
+    'city-kazan':{keys:['mattress:kazan-only'],products:{'mattress:kazan-only':{model:'Казань'}}},
+    'city-perm':{keys:['mattress:perm-only'],products:{'mattress:perm-only':{model:'Пермь'}}}
+  }});
+  const result=core.removeCity(original,'city-kazan');
+  assert.deepEqual(result.cities.map(x=>x.id),['ekaterinburg','city-perm']);
+  assert.equal(result.catalogs['city-kazan'],undefined);
+  assert.equal(result.cities[1].delivery_price,0);
+  assert.equal(result.catalogs['city-perm'].products['mattress:perm-only'].model,'Пермь');
+  assert.equal(original.cities[1].delivery_price,990);
+  assert.equal(original.catalogs['city-kazan'].products['mattress:kazan-only'].model,'Казань');
+  assert.deepEqual(core.normalize(result),result);
+  assert.throws(()=>core.removeCity(result,'ekaterinburg'),/нельзя удалить/);
+  assert.throws(()=>core.removeCity(result,'city-kazan'),/не найден/);
+});
+
+test('cart uses a selected city delivery price, including free and pending delivery',()=>{
+  let selected={id:'city-kazan',name:'Казань',delivery_price:990};
+  const window={NoktenaCities:{current:()=>selected,id:()=>selected.id},
+    NOKTENA_CATALOG_BOOTSTRAP:{rows:[{product_key:'settings:delivery_v2',payload:{delivery_price:500,free_delivery_from:15000}}]},
+    addEventListener(){}};
+  const context={window,document:{querySelector(){return null},querySelectorAll(){return[]},body:{}},
+    MutationObserver:class{observe(){}},requestAnimationFrame(){},localStorage:{getItem(){return null}}};
+  vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../assets/cart.js'),'utf8'),context);
+  assert.equal(window.NoktenaCart.settings().delivery_price,990);
+  assert.equal(window.NoktenaCart.settings().delivery_pending,false);
+  assert.equal(window.NoktenaCart.settings().free_delivery_from,0);
+  selected={...selected,delivery_price:0};
+  assert.equal(window.NoktenaCart.settings().delivery_price,0);
+  assert.equal(window.NoktenaCart.settings().delivery_pending,false);
+  selected={...selected,delivery_price:null};
+  assert.equal(window.NoktenaCart.settings().delivery_pending,true);
+  selected={id:'ekaterinburg',name:'Екатеринбург',delivery_price:null};
+  assert.equal(window.NoktenaCart.settings().delivery_price,500);
+  assert.equal(window.NoktenaCart.settings().free_delivery_from,15000);
+});
+
 test('CSV supports one product with multiple sizes, quoted fields, and stable re-import',()=>{
   const source='key;type;name;size;price;color;description;image\r\n'+
     ';матрас;"Матрас; Город";80×190;12 000;;"Верхний; слой";https://example.test/one.jpg\r\n'+
@@ -49,7 +90,7 @@ test('invalid import rows are rejected before changing any catalog',()=>{
 test('city descriptions survive normalization and update only the selected city page',()=>{
   const payload=core.normalize({cities:[
     {id:'ekaterinburg',name:'Екатеринбург'},
-    {id:'city-kazan',name:'Казань',hero_description:'Матрасы для Казани',delivery_description:'Доставка по Казани',service_description:'Поможем в Казани',about_description:'О магазине в Казани',seo_title:'Каталог Казань — НОКТЕНА',seo_description:'Кровати и матрасы для Казани'}
+    {id:'city-kazan',name:'Казань',delivery_price:990,hero_description:'Матрасы для Казани',delivery_description:'Доставка по Казани',service_description:'Поможем в Казани',about_description:'О магазине в Казани',seo_title:'Каталог Казань — НОКТЕНА',seo_description:'Кровати и матрасы для Казани'}
   ]});
   const restored=core.normalize(payload);
   assert.equal(restored.cities[1].about_description,'О магазине в Казани');
@@ -57,7 +98,7 @@ test('city descriptions survive normalization and update only the selected city 
   const about={textContent:'',appended:[],querySelectorAll:()=>[{href:'mailto:noktena@mail.ru',cloneNode(){return {href:this.href}}}],append(...items){this.appended.push(...items)}};
   const selectors=new Map([
     ['.hero-copy',{textContent:''}],['.hero-copy p',{textContent:'Исходный текст'}],
-    ['.delivery-lead',{textContent:'Исходная доставка'}],['#homeService .service-layout p',{textContent:''}],['.networkbox > div > p',about]
+    ['.delivery-lead',{textContent:'Исходная доставка'}],['.pd-service-item:nth-child(2) span',{textContent:'Уточняется'}],['#homeService .service-layout p',{textContent:''}],['.networkbox > div > p',about]
   ]);
   const metas=new Map(['description','og:title','og:description','twitter:title','twitter:description'].map(key=>[key,{content:'Исходное значение'}]));
   const document={readyState:'complete',title:'Исходный заголовок',querySelector:s=>selectors.get(s)||null,
@@ -69,6 +110,7 @@ test('city descriptions survive normalization and update only the selected city 
   vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../assets/city-catalog.js'),'utf8'),context);
   assert.equal(selectors.get('.hero-copy p').textContent,'Матрасы для Казани');
   assert.equal(selectors.get('.delivery-lead').textContent,'Доставка по Казани');
+  assert.equal(selectors.get('.pd-service-item:nth-child(2) span').textContent,'Стоимость: 990 ₽');
   assert.equal(selectors.get('.networkbox > div > p').textContent,'О магазине в Казани');
   assert.equal(about.appended.at(-1).href,'mailto:noktena@mail.ru');
   assert.equal(document.title,'Каталог Казань — НОКТЕНА');

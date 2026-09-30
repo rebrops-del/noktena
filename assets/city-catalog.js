@@ -62,7 +62,7 @@
       text('.premium-footer > div:first-child > span',selected.name+(selected.warehouse?' · склад: '+selected.warehouse:''));
       text('.pd-service-item:first-child b',selected.warehouse?'Склад: г. '+selected.warehouse:'Наличие уточнит менеджер');
       text('.pd-service-item:nth-child(2) b','Доставка по г. '+selected.name);
-      text('.pd-service-item:nth-child(2) span','Стоимость и сроки уточнит менеджер');
+      text('.pd-service-item:nth-child(2) span',selected.delivery_price==null?'Стоимость и сроки уточнит менеджер':selected.delivery_price===0?'Бесплатно':'Стоимость: '+Number(selected.delivery_price).toLocaleString('ru-RU')+' ₽');
       text('.site-top-warehouse',selected.warehouse?'склад: г. '+selected.warehouse:'наличие уточняется');
       const footer=document.querySelector('.pd-footer span');if(footer){const privacy=footer.querySelector('a');footer.replaceChildren(document.createTextNode(selected.name+(selected.warehouse?' · склад: г. '+selected.warehouse:'')+' · '));if(privacy)footer.append(privacy)}
       text('.checkout-intro .overline','ВАШ ЗАКАЗ · '+selected.name.toUpperCase());

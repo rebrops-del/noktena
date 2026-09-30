@@ -33,7 +33,13 @@
   function fillCityForms(){
     optionList();const c=city();if(!c)return;
     $('#cityAdminName').value=c.name;$('#cityAdminWarehouse').value=c.warehouse;
+    const other=selectedId!=='ekaterinburg',remove=$('#cityAdminDelete');
+    remove.hidden=!other;remove.disabled=!other||busy;
+    $('#cityDeliveryForm').hidden=!other;$('#cityDeliveryDefault').hidden=other;$('#cityDeliveryNote').hidden=!other;
+    $('#cityDeliveryHint').textContent=other?'Задайте цену для города '+c.name+'. Она появится в карточках и в оформлении заказа.':'Для Екатеринбурга действует общая стоимость доставки.';
+    $('#cityDeliveryCity').textContent=c.name;
     $('#cityAdminDelivery').value=c.delivery_price??'';
+    $('#cityDeliverySave').disabled=!other||busy;
     for(const [key,id] of Object.entries(contentFields))$('#'+id).value=c[key]||'';
   }
   function render(){
@@ -76,12 +82,12 @@
     if(busy)throw new Error('Дождитесь завершения сохранения');
     const payload=core.normalize(state),bytes=new Blob([JSON.stringify(payload)]).size;
     if(bytes>5*1024*1024)throw new Error('Каталог превышает 5 МБ. Уменьшите описания или разделите ассортимент.');
-    busy=true;$('#cityCatalogSave').disabled=true;$('#cityImportSave').disabled=true;status('Сохраняем…');
+    busy=true;$('#cityAdminSelect').disabled=true;$('#cityCatalogSave').disabled=true;$('#cityImportSave').disabled=true;$('#cityAdminDelete').disabled=true;$('#cityDeliverySave').disabled=true;status('Сохраняем…');
     try{
       await request('save',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({key:core.KEY,kind:'mattress',item:payload,hidden:false,is_custom:false})});
       state=payload;fillCityForms();status(message);toast(message);render();
     }catch(error){status(error.message,true);throw error}
-    finally{busy=false;$('#cityCatalogSave').disabled=false;$('#cityImportSave').disabled=!pending}
+    finally{busy=false;$('#cityAdminSelect').disabled=false;$('#cityCatalogSave').disabled=false;$('#cityImportSave').disabled=!pending;$('#cityAdminDelete').disabled=selectedId==='ekaterinburg';$('#cityDeliverySave').disabled=selectedId==='ekaterinburg'}
   }
   function setKeys(keys){catalog().keys=[...new Set(keys)];render();status('Изменения ещё не сохранены.')}
   function withoutFlags(item){
@@ -122,11 +128,31 @@
     try{await persist('Город '+name+' добавлен с пустым каталогом');$('#cityAddName').value=''}catch(error){toast(error.message,true)}
   });
   $('#cityDetailsForm').addEventListener('submit',async event=>{
-    event.preventDefault();const name=$('#cityAdminName').value.trim(),warehouse=$('#cityAdminWarehouse').value.trim(),raw=$('#cityAdminDelivery').value;
+    event.preventDefault();const name=$('#cityAdminName').value.trim(),warehouse=$('#cityAdminWarehouse').value.trim();
     if(!name)return toast('Укажите название города',true);
-    if(raw!==''&&(!Number.isFinite(Number(raw))||Number(raw)<0||Number(raw)>1000000))return toast('Проверьте стоимость доставки',true);
-    Object.assign(city(),{name,warehouse,delivery_price:raw===''?null:Number(raw)});
+    Object.assign(city(),{name,warehouse});
     try{await persist('Данные города сохранены')}catch(error){toast(error.message,true)}
+  });
+  $('#cityDeliveryForm').addEventListener('submit',async event=>{
+    event.preventDefault();if(selectedId==='ekaterinburg'||busy)return;
+    const raw=$('#cityAdminDelivery').value.trim(),price=raw===''?null:Number(raw);
+    if(raw!==''&&(!Number.isSafeInteger(price)||price<0||price>1000000))return toast('Укажите целую стоимость доставки от 0 до 1 000 000 ₽',true);
+    city().delivery_price=price;
+    try{await persist('Стоимость доставки для города '+city().name+' сохранена')}catch(error){toast(error.message,true)}
+  });
+  $('#cityDeliveryDefaultButton').addEventListener('click',()=>$('.side-nav [data-admin-open="delivery"]')?.click());
+  $('#cityAdminDelete').addEventListener('click',async()=>{
+    const removed=city();if(!removed||removed.id==='ekaterinburg'||busy)return;
+    const count=ownKeys(catalog()).length;
+    if(!confirm('Удалить город «'+removed.name+'» вместе с каталогом (товаров: '+count+'), ценой доставки и описанием? Ранее оформленные заказы останутся.'))return;
+    const before=state,beforeId=selectedId;
+    state=core.removeCity(state,removed.id);selectedId='ekaterinburg';
+    try{
+      await persist('Город '+removed.name+' удалён');
+      pending=null;$('#cityCatalogFile').value='';$('#cityImportPreview').textContent='';$('#cityImportSave').disabled=true;
+    }catch(error){
+      state=before;selectedId=beforeId;fillCityForms();render();toast(error.message,true);
+    }
   });
   $('#cityContentForm').addEventListener('input',event=>{
     const field=Object.entries(contentFields).find(([,id])=>id===event.target.id);
