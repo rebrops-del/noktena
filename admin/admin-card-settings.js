@@ -9,12 +9,13 @@
     .dimension-settings{margin-top:14px;padding:16px;border:1px solid #dce8e2;border-radius:14px;background:#f8fbf9}
     .dimension-settings h3{margin:0 0 5px}
     .dimension-settings .muted{margin-bottom:12px}
-    .depth-size-grid{display:grid;gap:8px}
-    .depth-size-row{display:grid;grid-template-columns:minmax(150px,1fr) minmax(180px,240px);gap:12px;align-items:center;padding:10px 12px;border:1px solid #dfe9e3;border-radius:11px;background:#fff}
-    .depth-size-row b{font-size:13px}
-    .depth-size-row input{height:42px}
+    .dimension-size-grid{display:grid;gap:8px}
+    .dimension-size-row{display:grid;grid-template-columns:minmax(150px,1fr) repeat(2,minmax(150px,220px));gap:12px;align-items:center;padding:10px 12px;border:1px solid #dfe9e3;border-radius:11px;background:#fff}
+    .dimension-size-row b{font-size:13px}
+    .dimension-size-row label{font-size:12px;color:#52665b;font-weight:700}
+    .dimension-size-row input{height:42px;margin-top:5px}
     .admin-field-note{display:block;margin-top:5px;font-size:11px;color:#718078;font-weight:500}
-    @media(max-width:700px){.depth-size-row{grid-template-columns:1fr}}
+    @media(max-width:700px){.dimension-size-row{grid-template-columns:1fr}}
   `;
   document.head.appendChild(style);
 
@@ -76,68 +77,71 @@
     subtitle.value=Object.prototype.hasOwnProperty.call(draft,'promoSubtext')?String(draft.promoSubtext??''):DEFAULT_PROMO_SUBTITLE;
   }
 
-  function ensureDepthSection(){
+  const escape=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+  function ensureDimensionSection(){
     const variantsSection=document.getElementById('variants')?.closest('.section');
-    if(!variantsSection||document.getElementById('depthBySizeSection'))return;
+    if(!variantsSection||document.getElementById('dimensionBySizeSection'))return;
     const section=document.createElement('section');
-    section.id='depthBySizeSection';
+    section.id='dimensionBySizeSection';
     section.className='section dimension-settings';
-    section.innerHTML='<h3>Глубина по размерам</h3><div class="muted">Можно задать глубину вручную для каждого размера. Пустое поле = автоматический расчёт по характеристикам модели.</div><div id="depthBySizeRows" class="depth-size-grid"></div>';
+    section.innerHTML='<h3>Ширина и глубина по размерам</h3><div class="muted">Габариты кровати в миллиметрах. Укажите точные значения для каждого размера, если они отличаются от автоматического расчёта. Пустое поле = автоматический расчёт по спальному месту и исходным характеристикам.</div><div id="dimensionBySizeRows" class="dimension-size-grid"></div>';
     variantsSection.insertAdjacentElement('afterend',section);
   }
 
-  function renderDepthRows(){
-    ensureDepthSection();
-    const section=document.getElementById('depthBySizeSection');
-    const rows=document.getElementById('depthBySizeRows');
+  function renderDimensionRows(){
+    ensureDimensionSection();
+    const section=document.getElementById('dimensionBySizeSection');
+    const rows=document.getElementById('dimensionBySizeRows');
     if(!section||!rows||!hasDraft())return;
     const show=draft._kind==='furniture';
     section.classList.toggle('hide',!show);
     if(!show)return;
-    draft.depthBySize=(draft.depthBySize&&typeof draft.depthBySize==='object')?draft.depthBySize:{};
     const sizes=uniqueSizes();
     rows.innerHTML=sizes.length?sizes.map(size=>{
-      const raw=draft.depthBySize[size];
-      const value=Number(raw)>0?Math.round(Number(raw)):'';
-      return `<label class="depth-size-row"><b>${String(size).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}</b><input type="number" min="0" step="1" inputmode="numeric" data-depth-size="${String(size).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}" value="${value}" placeholder="Авто, мм"></label>`;
+      const value=map=>Number(draft[map]?.[size])>0?Math.round(Number(draft[map][size])):'';
+      return `<div class="dimension-size-row"><b>${escape(size)}</b><label>Ширина, мм<input type="number" min="1" step="1" inputmode="numeric" data-width-size="${escape(size)}" value="${value('widthBySize')}" placeholder="Авто"></label><label>Глубина, мм<input type="number" min="1" step="1" inputmode="numeric" data-depth-size="${escape(size)}" value="${value('depthBySize')}" placeholder="Авто"></label></div>`;
     }).join(''):'<div class="muted">Сначала добавьте размеры товара в блоке «Размеры / цвета / цены».</div>';
   }
 
-  function persistDepthInputs(){
+  function persistDimensionInputs(){
     if(!isFurniture())return;
-    draft.depthBySize=(draft.depthBySize&&typeof draft.depthBySize==='object')?draft.depthBySize:{};
-    document.querySelectorAll('[data-depth-size]').forEach(input=>{
-      const size=input.dataset.depthSize||'';
-      const raw=String(input.value||'').trim();
-      if(!size)return;
-      if(!raw){delete draft.depthBySize[size];return;}
-      const value=Math.max(0,Math.round(Number(raw)||0));
-      if(value>0)draft.depthBySize[size]=value;else delete draft.depthBySize[size];
-    });
-    if(!Object.keys(draft.depthBySize).length)delete draft.depthBySize;
+    for(const [selector,mapName,dataset] of [['[data-width-size]','widthBySize','widthSize'],['[data-depth-size]','depthBySize','depthSize']]){
+      const map={...(draft[mapName]||{})};
+      document.querySelectorAll(selector).forEach(input=>{
+        const size=input.dataset[dataset]||'';
+        const raw=String(input.value||'').trim();
+        if(!size)return;
+        const value=Number(raw);
+        if(raw&&Number.isFinite(value)&&value>0)map[size]=Math.round(value);
+        else delete map[size];
+      });
+      if(Object.keys(map).length)draft[mapName]=map;
+      else delete draft[mapName];
+    }
   }
 
   function syncAll(){
     if(!hasDraft())return;
     syncPromoFields();
-    renderDepthRows();
+    renderDimensionRows();
   }
 
   ensurePromoFields();
-  ensureDepthSection();
+  ensureDimensionSection();
 
   const editor=document.getElementById('editor');
   if(editor)new MutationObserver(()=>{
     if(!editor.classList.contains('hide'))queueMicrotask(syncAll);
   }).observe(editor,{attributes:true,attributeFilter:['class']});
 
-  document.getElementById('depthBySizeRows')?.addEventListener('input',e=>{
-    if(e.target.matches('[data-depth-size]'))persistDepthInputs();
+  document.getElementById('dimensionBySizeRows')?.addEventListener('input',e=>{
+    if(e.target.matches('[data-depth-size],[data-width-size]'))persistDimensionInputs();
   });
 
   document.getElementById('editorForm')?.addEventListener('submit',()=>{
     if(!hasDraft())return;
-    persistDepthInputs();
+    persistDimensionInputs();
     if(isFurniture()){
       const title=document.getElementById('promoLabel');
       const subtitle=document.getElementById('promoSubtext');
@@ -146,9 +150,9 @@
     }
   },true);
 
-  /* When variants are re-rendered, keep the unique-size depth editor in sync. */
+  /* When variants are re-rendered, keep the unique-size dimension editor in sync. */
   const variants=document.getElementById('variants');
   if(variants)new MutationObserver(()=>{
-    if(editor&&!editor.classList.contains('hide'))setTimeout(renderDepthRows,0);
+    if(editor&&!editor.classList.contains('hide'))setTimeout(renderDimensionRows,0);
   }).observe(variants,{childList:true});
 })();

@@ -20,26 +20,7 @@
   const sizeSortValue=value=>{const nums=String(value||'').replace(/×/g,'х').match(/\d+/g)?.map(Number)||[];return [nums[0]??Number.MAX_SAFE_INTEGER,nums[1]??Number.MAX_SAFE_INTEGER,String(value||'')];};
   const sortSizes=list=>uniq(list).sort((a,b)=>{const A=sizeSortValue(a),B=sizeSortValue(b);return A[0]-B[0]||A[1]-B[1]||A[2].localeCompare(B[2],'ru');});
   const sortVariantsBySize=list=>[...(list||[])].sort((a,b)=>{const A=sizeSortValue(a?.size),B=sizeSortValue(b?.size);return A[0]-B[0]||A[1]-B[1]||A[2].localeCompare(B[2],'ru');});
-  const detailSpecKey=value=>String(value||'').trim().toLowerCase().replace(/ё/g,'е').replace(/[^a-zа-я0-9]+/g,'');
-  const detailPair=value=>{const nums=String(value||'').match(/\d+/g)?.map(Number)||[];return nums.length>=2?[nums[0],nums[1]]:null;};
-  const detailFirst=value=>{const m=String(value||'').match(/\d+/);return m?Number(m[0]):null;};
-  function furnitureDepthValue(product,variant,size){
-    const manual=Number(product?.depthBySize?.[String(size||'')]??variant?.depthOverride);
-    if(Number.isFinite(manual)&&manual>0)return `${Math.round(manual)} мм`;
-    const attrs=variant?.attributes&&typeof variant.attributes==='object'?variant.attributes:{};
-    const attrKey=Object.keys(attrs).find(k=>detailSpecKey(k)==='глубина');
-    if(attrKey&&attrs[attrKey])return String(attrs[attrKey]);
-    if(product?.category!=='beds'||!size)return '';
-    const specs=product?.specs||{};
-    const depthKey=Object.keys(specs).find(k=>detailSpecKey(k)==='глубина');
-    const sleepKey=Object.keys(specs).find(k=>detailSpecKey(k)==='спальноеместо');
-    const selected=detailPair(variant?.attributes?.['Спальное место']||size),base=detailPair(sleepKey?specs[sleepKey]:'');
-    const frame=detailFirst(depthKey?specs[depthKey]:'');
-    if(!selected||!base||!Number.isFinite(frame))return depthKey?String(specs[depthKey]||''):'';
-    const unit=/мм/i.test(String(specs[depthKey]||''))?' мм':' мм';
-    if(frame<base[1])return `${selected[1]}${unit}`;
-    return `${Math.max(0,Math.round(frame+(selected[1]-base[1])))}${unit}`;
-  }
+  const detailSpecKey=window.NoktenaFurnitureDimensions.key;
   const params=new URLSearchParams(location.search);
   const root=$('#productRoot');
   let galleryImages=[];
@@ -153,17 +134,32 @@
       subtitle.textContent=synced.trim();
     }
     const attrs=variant?.attributes||{};
-    const normSpecKey=value=>String(value||'').trim().toLowerCase().replace(/ё/g,'е');
     $$('.pd-spec').forEach(row=>{
       const keyEl=row.querySelector('span'),valueEl=row.querySelector('b');
       if(!keyEl||!valueEl)return;
-      const key=normSpecKey(keyEl.textContent);
-      if(furnitureProduct.category==='beds'&&selectedSize&&/спальн.*мест/.test(key)){valueEl.textContent=selectedSize;return;}
-      if(key==='глубина'){const depth=furnitureDepthValue(furnitureProduct,variant,selectedSize);if(depth){valueEl.textContent=depth;return;}}
-      const attrKey=Object.keys(attrs).find(k=>normSpecKey(k)===key);
-      if(attrKey&&attrs[attrKey]){valueEl.textContent=attrs[attrKey];return;}
-      if(furnitureProduct.category==='beds'&&selectedSize&&(key==='размер'||key==='размеры'||key==='размер спального места'))valueEl.textContent=selectedSize;
+      const key=detailSpecKey(keyEl.textContent);
+      if(furnitureProduct.category==='beds'&&selectedSize&&key==='спальноеместо'){valueEl.textContent=selectedSize;return;}
+      if(key==='ширина'||key==='глубина'){
+        const dimension=window.NoktenaFurnitureDimensions.dimension(furnitureProduct,variant,selectedSize,keyEl.textContent);
+        if(dimension){valueEl.textContent=dimension;return;}
+        if(row.dataset.generatedDimension){row.remove();return;}
+      }
+      const attr=window.NoktenaFurnitureDimensions.entry(attrs,keyEl.textContent);
+      const base=window.NoktenaFurnitureDimensions.entry(furnitureProduct.specs,keyEl.textContent);
+      if(attr?.[1]!=null&&attr[1]!=='')valueEl.textContent=String(attr[1]);
+      else if(base)valueEl.textContent=String(base[1]);
+      else if(furnitureProduct.category==='beds'&&selectedSize&&['размер','размеры','размерспальногоместа'].includes(key))valueEl.textContent=selectedSize;
     });
+    const specs=$('.pd-section-card .pd-specs');
+    if(specs)for(const label of ['Ширина','Глубина']){
+      const exists=[...specs.querySelectorAll('.pd-spec span')].some(el=>detailSpecKey(el.textContent)===detailSpecKey(label));
+      const value=window.NoktenaFurnitureDimensions.dimension(furnitureProduct,variant,selectedSize,label);
+      if(!exists&&value){
+        const row=document.createElement('div');row.className='pd-spec';row.dataset.generatedDimension=label;
+        const name=document.createElement('span'),result=document.createElement('b');name.textContent=label;result.textContent=value;
+        row.append(name,result);specs.appendChild(row);
+      }
+    }
     const extra=$('#pdVariantSpecs');if(extra){const entries=Object.entries(attrs).filter(([k,v])=>k&&v&&!['Цвет фасада','Спальное место','Размер'].includes(k)&&!/производител|артикул|sku/i.test(k));extra.innerHTML=entries.length?`<div class="pd-variant-note"><b>Выбранный вариант</b><div>${selectedColor?`<span>Цвет: ${esc(selectedColor)}</span>`:''}${selectedSize?`<span>Размер: ${esc(selectedSize)}</span>`:''}${entries.slice(0,4).map(([k,v])=>`<span>${esc(k)}: ${esc(v)}</span>`).join('')}</div></div>`:'';}
   }
 
