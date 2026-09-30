@@ -301,7 +301,7 @@
     event.stopImmediatePropagation();
     ensureDeliveryFields();
     try{
-      const [legacy,b]=await Promise.all([api('delivery-settings'),loadBootstrap()]);
+      const [legacy,b]=await Promise.all([api('delivery-settings'),loadBootstrap(),window.NoktenaCityAdmin?.ensureLoaded(window.NoktenaAdminCatalog?.baseItems()||[])]);
       const old=legacy.settings||{};
       const d=v2FromBootstrap(b)||{
         delivery_price:old.delivery_price||0,
@@ -312,43 +312,11 @@
         delivery_schedule:'Вторник / Пятница'
       };
       fillV2(d);
+      window.NoktenaAdminDeliveryUi?.render(d);
       document.getElementById('deliverySettingsModal').classList.remove('hide');
     }catch(error){
       if(typeof toast==='function')toast(error.message,true);else alert(error.message);
     }
-  },true);
-
-  const form=document.getElementById('deliverySettingsForm');
-  form?.addEventListener('submit',async event=>{
-    event.preventDefault();
-    event.stopImmediatePropagation();
-    const payload={
-      deliveryV2:true,
-      delivery_price:Math.max(0,Number(document.getElementById('globalDeliveryPrice').value)||0),
-      cargo_lift_price:Math.max(0,Number(document.getElementById('globalLiftPrice').value)||0),
-      stair_lift_price:Math.max(0,Number(document.getElementById('globalStairLiftPrice').value)||0),
-      sofa_lift_surcharge:Math.max(0,Number(document.getElementById('globalSofaLiftSurcharge').value)||0),
-      free_delivery_from:Math.max(0,Number(document.getElementById('globalFreeDeliveryFrom').value)||0),
-      delivery_schedule:String(document.getElementById('globalDeliverySchedule').value||'').trim(),
-      model:'__delivery_v2__'
-    };
-    const submit=form.querySelector('button[type="submit"]');
-    if(submit)submit.disabled=true;
-    try{
-      await api('delivery-settings-save',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({
-        delivery_price:payload.delivery_price,
-        lift_price:payload.cargo_lift_price,
-        sofa_lift_surcharge:payload.sofa_lift_surcharge,
-        free_delivery_from:payload.free_delivery_from
-      })});
-      await api('save',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({
-        key:DELIVERY_KEY,kind:'mattress',item:payload,hidden:false,is_custom:false
-      })});
-      document.getElementById('deliverySettingsModal').classList.add('hide');
-      if(typeof toast==='function')toast('Настройки доставки и график сохранены');
-    }catch(error){
-      if(typeof toast==='function')toast(error.message,true);else alert(error.message);
-    }finally{if(submit)submit.disabled=false}
   },true);
 
   enhanceAdminRows();

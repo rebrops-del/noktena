@@ -13,7 +13,12 @@ on:
       - 'admin/index.html'
       - 'admin/city-catalog.js'
       - 'admin/city-catalog.css'
+      - 'admin/admin.js'
+      - 'admin/admin-enhancements.js'
+      - 'admin/cart-settings.js'
+      - 'admin/store-settings.js'
       - 'tests/city-catalog.test.cjs'
+      - 'tests/admin-delivery-city.test.cjs'
       - 'assets/checkout.js'
       - 'assets/cart.css'
       - 'railway-admin/**'
@@ -34,8 +39,11 @@ jobs:
           node --check assets/city-catalog-core.js
           node --check assets/city-catalog.js
           node --check admin/city-catalog.js
+          node --check admin/admin.js
+          node --check admin/admin-enhancements.js
+          node --check admin/cart-settings.js
           node --check railway-admin/server.js
-          node --test tests/analytics.test.cjs tests/city-catalog.test.cjs
+          node --test tests/analytics.test.cjs tests/city-catalog.test.cjs tests/admin-delivery-city.test.cjs
           grep -q 'Подъём настраивается отдельно для каждого товара' checkout.html
           grep -q 'assemblyQty' assets/checkout.js
           grep -q 'data-lift-qty' assets/checkout.js

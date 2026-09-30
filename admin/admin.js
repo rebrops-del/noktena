@@ -2,6 +2,7 @@ const API='https://admin-proxy-v2-production.up.railway.app/api/noktena-admin';
 const SESSION_KEY='nkt-adm2';
 let session=null;
 let items=[];
+let baseItems=[];
 let current=null;
 let draft=null;
 let cityEditorCityId='';
@@ -97,7 +98,8 @@ function draw(){
     const image=item.images?.[0];
     const badges=[
       item._isCustom?'<span class="pill custom">Новая</span>':'',
-      item._changed?'<span class="pill">Изменена</span>':''
+      item._changed?'<span class="pill">Изменена</span>':'',
+      item._hidden?'<span class="pill">Скрыта</span>':''
     ].filter(Boolean).join(' ');
     return `<tr>
       <td><div class="prod">${image?`<img class="thumb" src="${esc(image)}" alt="">`:'<div class="thumb"></div>'}<div><b>${esc(productName(item))}</b><div class="muted">${esc(item._key)}</div></div></div></td>
@@ -106,7 +108,7 @@ function draw(){
       <td>${badges||'Каталог'}</td>
       <td><button class="btn secondary" data-edit="${esc(item._key)}">Изменить</button></td>
     </tr>`;
-  }).join('')||'<tr><td colspan="5">Товары не найдены</td></tr>';
+  }).join('')||`<tr><td colspan="5">${items.length?'Товары не найдены по выбранным фильтрам':'В этом городе пока нет товаров. Добавьте карточку или загрузите каталог в разделе «Города и каталоги».'}</td></tr>`;
   const stat={mattress:0,beds:0,sofas:0};
   items.forEach(item=>{const kind=group(item);if(Object.hasOwn(stat,kind))stat[kind]++});
   for(const [id,value] of Object.entries({statAll:items.length,statMattresses:stat.mattress,statBeds:stat.beds,statSofas:stat.sofas})){
@@ -114,11 +116,22 @@ function draw(){
   }
 }
 
-async function loadCatalog(){
+function refreshCatalogCity(){
+  const manager=window.NoktenaCityAdmin;
+  const selected=manager?.currentCity();
+  items=selected?manager.productsFor(selected.id):baseItems;
+  $('#catalogCityName').textContent=selected?.name||'Екатеринбург';
+  $('#catalogCityHint').textContent=selected?'Все действия с карточками ниже относятся только к городу '+selected.name+'.':'Загружаем настройки городов…';
+  draw();
+}
+
+async function loadCatalog(force=false){
   $('#rows').innerHTML='<tr><td colspan="5">Загрузка…</td></tr>';
   const data=await request('catalog');
-  items=Array.isArray(data.items)?data.items:[];
-  draw();
+  baseItems=Array.isArray(data.items)?data.items:[];
+  const manager=window.NoktenaCityAdmin;
+  if(manager){if(force)await manager.reload(baseItems);else await manager.ensureLoaded(baseItems)}
+  refreshCatalogCity();
 }
 
 function readVariantRows(){
@@ -189,7 +202,7 @@ function renderColors(){
 }
 
 function openEditor(key){
-  cityEditorCityId='';
+  cityEditorCityId=window.NoktenaCityAdmin?.currentCity()?.id||'ekaterinburg';
   current=items.find(item=>item._key===key);
   if(!current)return;
   fillEditor();
@@ -198,7 +211,7 @@ function openEditor(key){
 function fillEditor(){
   draft=clone(current);
   originalBasePrice=Number(draft.price)||basePrice(draft);
-  $('#editorTitle').textContent=productName(draft);
+  $('#editorTitle').textContent=productName(draft)+' · '+(window.NoktenaCityAdmin?.currentCity()?.name||'Екатеринбург');
   $('#editorKey').textContent=draft._key;
   $('#name').value=productName(draft)||'';
   $('#category').value=draft.category||'';
@@ -212,7 +225,9 @@ function fillEditor(){
   $('#seoTitle').value=draft.seoTitle||'';
   $('#seoDescription').value=draft.seoDescription||'';
   $('#hidden').checked=!!draft._hidden;
-  $('#reset').textContent=draft._isCustom?'Удалить карточку':'Сбросить изменения';
+  $('#reset').textContent=draft._isCustom?'Удалить карточку':'Сбросить изменения карточки';
+  $('#reset').hidden=false;$('#reset').disabled=!draft._changed&&!draft._isCustom;
+  $('#removeFromCity').hidden=false;
   renderImages();
   renderVariants();
   $('#editor').classList.remove('hide');
@@ -300,6 +315,7 @@ function openFreshDraft(item){
   $('#seoDescription').value='';
   $('#hidden').checked=false;
   $('#reset').textContent='Удалить карточку';
+  $('#reset').hidden=true;$('#removeFromCity').hidden=true;
   renderImages();
   renderVariants();
   $('#editor').classList.remove('hide');
@@ -384,27 +400,24 @@ async function resetOrDelete(){
   }catch(error){toast(error.message,true)}
 }
 
+async function removeFromCity(){
+  if(!current||!cityEditorCityId)return;
+  const name=window.NoktenaCityAdmin?.currentCity()?.name||'выбранного города';
+  if(!confirm('Убрать «'+productName(current)+'» из каталога города '+name+'? Карточки других городов останутся без изменений.'))return;
+  try{await window.NoktenaCityAdmin.removeFromCity(cityEditorCityId,current);closeEditor()}
+  catch(error){toast(error.message,true)}
+}
+
 async function bulkPrices(){
   const value=prompt('Изменить все цены на %, например 10 или -5');
   if(value===null)return;
   const percent=Number(value);
   if(!Number.isFinite(percent)||percent===0)return toast('Укажите ненулевой процент',true);
-  if(!confirm(`Применить ${percent}% ко всем видимым товарам каталога?`))return;
+  const city=window.NoktenaCityAdmin?.currentCity();
+  if(!city)return toast('Сначала загрузите каталог города',true);
+  if(!confirm(`Изменить цены всех товаров города ${city.name} на ${percent}%? Другие города не изменятся.`))return;
   try{
-    const change=n=>Math.max(0,Math.round((Number(n)||0)*(1+percent/100)/100)*100);
-    const rows=items.map(item=>{
-      const changed=clone(item);
-      if(Number(changed.price)>0)changed.price=change(changed.price);
-      if(Array.isArray(changed.variants))changed.variants=changed.variants.map(variant=>({
-        ...variant,price:Number(variant.price)>0?change(variant.price):variant.price
-      }));
-      return {key:changed._key,kind:changed._kind,item:changed,hidden:false,is_custom:!!changed._isCustom};
-    });
-    await request('save-many',{
-      method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({rows})
-    });
-    await loadCatalog();
-    toast('Цены обновлены');
+    await window.NoktenaCityAdmin.bulkPrices(city.id,percent);
   }catch(error){toast(error.message,true)}
 }
 
@@ -448,9 +461,13 @@ async function start(){
     await loadCatalog();
   }catch(error){
     toast(error.message,true);
-    saveSession(null);
-    $('#app').classList.add('hide');
-    $('#login').classList.remove('hide');
+    if(/AUTH_EXPIRED|FORBIDDEN|Сессия истекла/i.test(error.message)){
+      saveSession(null);
+      $('#app').classList.add('hide');
+      $('#login').classList.remove('hide');
+    }else{
+      $('#rows').innerHTML='<tr><td colspan="5">Не удалось загрузить каталог. Проверьте соединение и нажмите «Обновить».</td></tr>';
+    }
   }
 }
 
@@ -481,8 +498,9 @@ $('#loginForm').addEventListener('submit',async event=>{
 });
 
 $('#logout').addEventListener('click',()=>{saveSession(null);location.reload()});
-$('#reload').addEventListener('click',()=>loadCatalog().catch(error=>toast(error.message,true)));
-$('#add').addEventListener('click',()=>{cityEditorCityId='';openNewCard()});
+$('#reload').addEventListener('click',()=>loadCatalog(true).catch(error=>toast(error.message,true)));
+$('#add').addEventListener('click',()=>{cityEditorCityId=window.NoktenaCityAdmin?.currentCity()?.id||'ekaterinburg';openNewCard()});
+$('#catalogManageCity').addEventListener('click',()=>document.querySelector('.side-nav [data-admin-open="cities"]')?.click());
 $('#bulk').addEventListener('click',bulkPrices);
 $('#settingsOpen').addEventListener('click',openCategorySettings);
 $('#settingsClose').addEventListener('click',closeCategorySettings);
@@ -495,6 +513,7 @@ $('#deliverySettingsForm').addEventListener('submit',saveDeliverySettings);
 $('#closeEditor').addEventListener('click',closeEditor);
 $('#cancel').addEventListener('click',closeEditor);
 $('#reset').addEventListener('click',resetOrDelete);
+$('#removeFromCity').addEventListener('click',removeFromCity);
 $('#editorForm').addEventListener('submit',saveEditor);
 $('#addVariant').addEventListener('click',addNewVariant);
 $('#closeNew').addEventListener('click',closeNewCard);
@@ -513,8 +532,9 @@ $('#newForm').addEventListener('submit',event=>{
 
 window.NoktenaAdminCityEditor=Object.freeze({
   openNew(cityId){cityEditorCityId=cityId;openNewCard()},
-  openExisting(cityId,item){cityEditorCityId=cityId;current=item;fillEditor();$('#editorTitle').textContent=productName(item)+' · для города';}
+  openExisting(cityId,item){cityEditorCityId=cityId;current=item;fillEditor();}
 });
+window.NoktenaAdminCatalog=Object.freeze({refresh:refreshCatalogCity,baseItems:()=>baseItems});
 
 $('#photo').addEventListener('change',async event=>{
   const file=event.target.files?.[0];

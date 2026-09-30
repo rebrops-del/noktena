@@ -87,7 +87,11 @@
     }catch(error){toast(error.message,true)}finally{button.disabled=false}
   });
 
-  const publicItems=()=>items.filter(item=>!item._hidden&&item._key&&((item._kind==='furniture'&&item.id)||(item._kind==='mattress'&&item.model)));
+  const publicItems=()=>{
+    const base=window.NoktenaAdminCatalog?.baseItems()||items;
+    const ekaterinburg=window.NoktenaCityAdmin?.productsFor('ekaterinburg',base)||base;
+    return ekaterinburg.filter(item=>!item._hidden&&item._key&&((item._kind==='furniture'&&item.id)||(item._kind==='mattress'&&item.model)));
+  };
   function defaultPopular(){
     const beds=publicItems().filter(item=>item.category==='beds');
     const sofas=publicItems().filter(item=>item.category==='sofas');

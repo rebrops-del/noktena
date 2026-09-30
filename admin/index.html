@@ -12,7 +12,7 @@
   <link rel="stylesheet" href="./admin-luxe.css?v=premium1">
   <link rel="stylesheet" href="./admin-2026.css?v=premium3">
   <link rel="stylesheet" href="./site-settings.css?v=20260928-hero1">
-  <link rel="stylesheet" href="./city-catalog.css?v=20260930-3">
+  <link rel="stylesheet" href="./city-catalog.css?v=20261001-2">
   <link rel="stylesheet" href="./banner-settings.css?v=20260930-2">
 </head>
 <body>
@@ -42,7 +42,7 @@
 
     <main class="main">
       <div class="top">
-        <div><span class="admin-overline">НОКТЕНА / УПРАВЛЕНИЕ</span><h1>Обзор каталога</h1><div class="muted">Товары, цены и актуальность коллекции</div></div>
+        <div><span class="admin-overline">НОКТЕНА / УПРАВЛЕНИЕ</span><h1>Обзор товаров</h1><div class="muted">Карточки и цены выбранного города</div></div>
         <div class="actions">
           <button id="reload" class="btn secondary" type="button">Обновить</button>
           <button id="bulk" class="btn secondary" type="button">Цены %</button>
@@ -52,6 +52,7 @@
         </div>
       </div>
 
+      <div class="catalog-city-control"><label for="catalogCitySelect">Каталог города<select id="catalogCitySelect" aria-describedby="catalogCityHint"></select></label><div><strong id="catalogCityName">Екатеринбург</strong><p id="catalogCityHint">Загружаем города…</p></div><button id="catalogManageCity" type="button" class="btn secondary">Города и загрузка каталога</button></div>
       <section class="admin-overview" id="adminOverview" aria-label="Сводка по каталогу"><div><span>Всего товаров</span><strong id="statAll">—</strong><small>В каталоге</small></div><div><span>Матрасы</span><strong id="statMattresses">—</strong><small>Для сна</small></div><div><span>Кровати</span><strong id="statBeds">—</strong><small>Для спальни</small></div><div><span>Диваны</span><strong id="statSofas">—</strong><small>Для отдыха</small></div></section>
       <div class="panel">
         <div class="toolbar">
@@ -161,18 +162,12 @@
   </template>
 
   <template id="cityCatalogTemplate">
-    <header class="site-settings-head"><span class="admin-overline">НОКТЕНА / УПРАВЛЕНИЕ</span><h1>Города и каталоги</h1><p class="muted">Для каждого города выбирайте доступные товары, добавляйте свои карточки и загружайте каталог файлом.</p></header>
+    <header class="site-settings-head"><span class="admin-overline">НОКТЕНА / УПРАВЛЕНИЕ</span><h1>Города и каталоги</h1><p class="muted">Добавляйте города, загружайте каталог файлом и редактируйте описание. Карточки товаров редактируются в «Обзоре товаров» после выбора города.</p></header>
     <section class="site-settings-block">
       <div class="site-settings-section-head"><h2>Город</h2><p>Екатеринбург продолжит показывать текущий каталог. Новый город создаётся с пустым каталогом.</p></div>
       <div class="city-toolbar"><div class="city-selected"><label>Редактировать город<select id="cityAdminSelect"></select></label><button id="cityAdminDelete" class="btn secondary city-delete" type="button" hidden disabled>Удалить город</button></div><form id="cityAddForm"><label>Новый город<input id="cityAddName" type="text" maxlength="80" required placeholder="Например, Казань"></label><button class="btn secondary" type="submit">+ Добавить город</button></form></div>
       <form id="cityDetailsForm" class="city-details"><label>Название<input id="cityAdminName" type="text" maxlength="80" required></label><label>Город склада<input id="cityAdminWarehouse" type="text" maxlength="120" placeholder="Пусто — самовывоз недоступен"></label><button class="btn secondary" type="submit">Сохранить данные города</button></form>
       <small class="site-settings-hint">Удаление города убирает его каталог и описание с сайта. Уже оформленные заказы остаются в разделе «Заказы».</small>
-    </section>
-    <section class="site-settings-block" aria-labelledby="cityDeliveryHeading">
-      <div class="site-settings-section-head"><h2 id="cityDeliveryHeading">Стоимость доставки для города</h2><p id="cityDeliveryHint"></p></div>
-      <form id="cityDeliveryForm" class="city-delivery-form"><label>Доставка по городу <span id="cityDeliveryCity"></span>, ₽<input id="cityAdminDelivery" type="number" min="0" max="1000000" step="1" inputmode="numeric" placeholder="Уточняется менеджером"></label><button id="cityDeliverySave" class="btn primary" type="submit">Сохранить стоимость</button></form>
-      <div id="cityDeliveryDefault" hidden><button id="cityDeliveryDefaultButton" class="btn secondary" type="button">Открыть общие настройки доставки</button></div>
-      <small id="cityDeliveryNote" class="site-settings-hint">0 ₽ — бесплатно. Если оставить поле пустым, стоимость уточнит менеджер; в заказе будет показан итог без доставки.</small>
     </section>
     <section class="site-settings-block">
       <div class="site-settings-section-head"><h2>Описание города на сайте</h2><p>Тексты показываются покупателю при выборе этого города. Если оставить поле пустым, останется обычный текст сайта для Екатеринбурга или автоматическое описание нового города.</p></div>
@@ -186,8 +181,8 @@
       </form>
     </section>
     <section class="site-settings-block">
-      <div class="site-settings-section-head"><h2>Товары города</h2><p>Отметьте позиции, которые будут видны покупателям. Изменения карточки для города сохраняются отдельно от остальных городов.</p></div>
-      <div class="city-actions"><button id="cityCopyCatalog" class="btn secondary" type="button">Скопировать из Екатеринбурга</button><button id="citySelectAll" class="btn secondary" type="button">Выбрать все товары</button><button id="cityClear" class="btn secondary" type="button">Очистить выбор</button><button id="cityAddProduct" class="btn secondary" type="button">+ Создать товар для города</button></div>
+      <div class="site-settings-section-head"><h2>Состав каталога города</h2><p>Подключите готовые товары к выбранному городу. Новые карточки и изменения описаний делайте в «Обзоре товаров».</p></div>
+      <div class="city-actions"><button id="cityCopyCatalog" class="btn secondary" type="button">Скопировать из Екатеринбурга</button><button id="citySelectAll" class="btn secondary" type="button">Выбрать все товары</button><button id="cityClear" class="btn secondary" type="button">Очистить выбор</button><button id="cityOpenProducts" class="btn secondary" type="button">Перейти к карточкам города</button></div>
       <label class="city-search-label">Поиск по каталогу<input id="cityCatalogSearch" type="search" placeholder="Название или артикул"></label>
       <p id="cityCatalogCount" class="site-settings-hint"></p><div id="cityCatalogList" class="city-catalog-list"></div>
       <div class="city-savebar"><span id="cityCatalogStatus" role="status" aria-live="polite"></span><button id="cityCatalogSave" class="btn primary" type="button">Сохранить товары города</button></div>
@@ -251,7 +246,7 @@
         <label class="check"><input id="skipCategoryPrice" type="checkbox"> Не применять наценку категории к этому товару</label>
 
         <div class="savebar">
-          <button id="reset" type="button" class="btn danger">Сбросить изменения</button>
+          <div class="actions"><button id="reset" type="button" class="btn danger">Сбросить изменения</button><button id="removeFromCity" type="button" class="btn danger">Убрать из каталога города</button></div>
           <div class="actions">
             <button id="cancel" type="button" class="btn secondary">Отмена</button>
             <button id="save" type="submit" class="btn primary">Сохранить</button>
@@ -271,17 +266,24 @@
   <div id="deliverySettingsModal" class="modal hide">
     <div class="modalbox small">
       <div class="modalhead">
-        <div><b>Доставка и подъём</b><div class="muted">Единые условия доставки для каталога. Для диванов можно добавить отдельную доплату за подъём.</div></div>
+        <div><b>Доставка и подъём</b><div class="muted">Выберите город и сохраните стоимость доставки для него.</div></div>
         <button id="deliverySettingsClose" type="button" class="btn secondary">Закрыть</button>
       </div>
       <form id="deliverySettingsForm">
-        <div class="delivery-settings-grid">
-          <label>Стоимость доставки, ₽<input id="globalDeliveryPrice" type="number" min="0" step="1"></label>
-          <label>Стоимость подъёма, ₽<input id="globalLiftPrice" type="number" min="0" step="1"></label>
-          <label>Доплата за подъём дивана, ₽<input id="globalSofaLiftSurcharge" type="number" min="0" step="1"></label>
-          <label>Бесплатная доставка от, ₽<input id="globalFreeDeliveryFrom" type="number" min="0" step="1"></label>
+        <label class="delivery-city-select">Город<select id="deliveryCitySelect" required></select></label>
+        <div id="deliveryGlobalFields">
+          <div class="delivery-settings-grid">
+            <label>Стоимость доставки, ₽<input id="globalDeliveryPrice" type="number" min="0" step="1"></label>
+            <label>Стоимость подъёма, ₽<input id="globalLiftPrice" type="number" min="0" step="1"></label>
+            <label>Доплата за подъём дивана, ₽<input id="globalSofaLiftSurcharge" type="number" min="0" step="1"></label>
+            <label>Бесплатная доставка от, ₽<input id="globalFreeDeliveryFrom" type="number" min="0" step="1"></label>
+          </div>
+          <div class="notice" style="margin-top:12px">Для дивана на сайте показывается базовая стоимость подъёма и дополнительная доплата за диван. Значение 0 отключает соответствующую доплату или порог бесплатной доставки.</div>
         </div>
-        <div class="notice" style="margin-top:12px">Для дивана на сайте показывается базовая стоимость подъёма и дополнительная доплата за диван. Значение 0 отключает соответствующую доплату или порог бесплатной доставки.</div>
+        <div id="deliveryRegionalFields" hidden>
+          <label>Стоимость доставки в выбранный город, ₽<input id="regionalDeliveryPrice" type="number" min="0" max="1000000" step="1" inputmode="numeric" placeholder="Уточняется менеджером"></label>
+          <p class="site-settings-hint">0 ₽ — бесплатная доставка. Пустое поле — стоимость уточняется при заказе. Настройки подъёма и сборки действуют для всех городов.</p>
+        </div>
         <div class="savebar"><span></span><div class="actions"><button id="deliverySettingsCancel" type="button" class="btn secondary">Отмена</button><button type="submit" class="btn primary">Сохранить доставку</button></div></div>
       </form>
     </div>
@@ -338,22 +340,22 @@
     </div>
   </div>
 
-  <script src="./admin.js?v=20260930-city1" defer></script>
-  <script src="./admin-enhancements.js?v=10" defer></script>
+  <script src="./admin.js?v=20261001-2" defer></script>
+  <script src="./admin-enhancements.js?v=20261001-2" defer></script>
   <script src="./admin-card-settings.js?v=20260930-width1" defer></script>
   <script src="./admin-mattress-card-settings.js?v=20260922-2" defer></script>
-  <script src="./cart-settings.js?v=1" defer></script>
+  <script src="./cart-settings.js?v=20261001-2" defer></script>
   <script src="./orders.js?v=3" defer></script>
   <script src="./global-promo-settings.js?v=20260922-1" defer></script>
 <script src="./global-discount-settings.js?v=20260922-1" defer></script>
   <script src="./admin-shell-2026.js?v=20260930-city1" defer></script>
-  <script src="./store-settings.js?v=20260925-2" defer></script>
+  <script src="./store-settings.js?v=20261001-2" defer></script>
   <script src="../assets/home-banners-config.js?v=20260930-2" defer></script>
   <script src="./banner-settings.js?v=20260930-2" defer></script>
   <script src="./site-settings.js?v=20260930-city1" defer></script>
   <script src="./notification-settings.js?v=20260930-1" defer></script>
-  <script src="../assets/city-catalog-core.js?v=20260930-3" defer></script>
+  <script src="../assets/city-catalog-core.js?v=20261001-2" defer></script>
   <script src="./city-import.js?v=20260930-1" defer></script>
-  <script src="./city-catalog.js?v=20260930-3" defer></script>
+  <script src="./city-catalog.js?v=20261001-2" defer></script>
 </body>
 </html>

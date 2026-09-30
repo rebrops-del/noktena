@@ -31,12 +31,22 @@
   function applyCatalog(baseItems,kind,settings,cityId){
     const config=normalize(settings),chosen=config.cities.find(x=>x.id===cityId)||config.cities[0],catalog=config.catalogs[chosen.id];
     const base=new Map((baseItems||[]).map(product=>[keyFor(kind,product),product]));
-    const keys=catalog.keys===null?[...base.keys()]:catalog.keys;
+    const keys=catalog.keys===null?[...new Set([...base.keys(),...Object.keys(catalog.products)])]:catalog.keys;
     return keys.filter(key=>key.startsWith(kind+':')).map(key=>{
       const original=base.get(key),override=catalog.products[key];
       if(!original&&!override)return null;
       if(override?.hidden)return null;
       return {...(original||{}),...(override||{}),_catalogKey:key};
+    }).filter(Boolean);
+  }
+  function adminCatalog(baseItems,settings,cityId){
+    const config=normalize(settings),chosen=config.cities.find(x=>x.id===cityId)||config.cities[0],catalog=config.catalogs[chosen.id];
+    const base=new Map((baseItems||[]).map(product=>[keyFor(product._kind,product),product]));
+    const keys=catalog.keys===null?[...new Set([...base.keys(),...Object.keys(catalog.products)])]:catalog.keys;
+    return keys.map(key=>{
+      const original=base.get(key),override=catalog.products[key];
+      if(!original&&!override)return null;
+      return {...(original||{}),...(override||{}),_key:key,_catalogKey:key,_kind:key.split(':')[0],_isCustom:!original,_changed:!!override,_hidden:!!(override?.hidden??original?._hidden)};
     }).filter(Boolean);
   }
   function removeCity(settings,id){
@@ -48,5 +58,5 @@
     return next;
   }
   function fromBootstrap(bootstrap){return normalize((bootstrap?.rows||[]).find(row=>row.product_key===KEY)?.payload)}
-  return Object.freeze({KEY,DEFAULT_CITY,TEXT_LIMITS,normalize,keyFor,applyCatalog,fromBootstrap,removeCity});
+  return Object.freeze({KEY,DEFAULT_CITY,TEXT_LIMITS,normalize,keyFor,applyCatalog,adminCatalog,fromBootstrap,removeCity});
 });

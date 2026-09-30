@@ -24,6 +24,26 @@ test('new cities start empty, and overrides and added products affect only that 
   assert.deepEqual(core.applyCatalog(base,'mattress',settings,'city-kazan').map(x=>x.model),['Матрас К']);
 });
 
+test('admin cards follow the selected city and a new Ekaterinburg card reaches the public catalog',()=>{
+  const base=[{_kind:'mattress',_key:'mattress:Матрас А',model:'Матрас А',variants:[{size:'80×190',price:12000}]}];
+  const settings=core.normalize({cities:[{id:'city-kazan',name:'Казань'}],catalogs:{
+    ekaterinburg:{products:{'mattress:custom-ekb':{model:'Матрас Е',variants:[{size:'90×190',price:20000}]}}},
+    'city-kazan':{keys:['mattress:Матрас А','mattress:custom-kazan'],products:{
+      'mattress:Матрас А':{model:'Матрас А',variants:[{size:'80×190',price:14000}],hidden:true},
+      'mattress:custom-kazan':{model:'Матрас К',variants:[{size:'80×200',price:18000}]}
+    }}
+  }});
+  assert.deepEqual(core.adminCatalog(base,settings,'ekaterinburg').map(item=>item.model),['Матрас А','Матрас Е']);
+  assert.deepEqual(core.applyCatalog(base,'mattress',settings,'ekaterinburg').map(item=>item.model),['Матрас А','Матрас Е']);
+  const kazan=core.adminCatalog(base,settings,'city-kazan');
+  assert.deepEqual(kazan.map(item=>item.model),['Матрас А','Матрас К']);
+  assert.equal(kazan[0]._hidden,true);
+  assert.equal(kazan[0].variants[0].price,14000);
+  assert.equal(kazan[1]._isCustom,true);
+  assert.deepEqual(core.applyCatalog(base,'mattress',settings,'city-kazan').map(item=>item.model),['Матрас К']);
+  assert.equal(core.adminCatalog(base,settings,'ekaterinburg')[0].variants[0].price,12000);
+});
+
 test('deleting a city removes its catalog and delivery price without touching other cities',()=>{
   const original=core.normalize({cities:[
     {id:'city-kazan',name:'Казань',delivery_price:990,hero_description:'Товары в Казани'},
