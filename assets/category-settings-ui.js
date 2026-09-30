@@ -13,6 +13,11 @@
     delivery_schedule:String(raw.delivery_schedule||'').trim(),
     bed_assembly_price:Math.max(0,Number(raw.bed_assembly_price)||1500)
   };
+  const city=window.NoktenaCities?.current();
+  const activeDelivery=city&&city.id!=='ekaterinburg'?{
+    ...delivery,delivery_price:city.delivery_price==null?0:Math.max(0,Number(city.delivery_price)||0),
+    free_delivery_from:0,delivery_schedule:''
+  }:delivery;
   const BADGES={
     hit:{label:'Хит продаж',className:'hit'},
     sale:{label:'Распродажа',className:'sale'},
@@ -20,6 +25,7 @@
     new:{label:'Новинка',className:'new'}
   };
   const money=n=>`${Math.round(Number(n)||0).toLocaleString('ru-RU')} ₽`;
+  const safe=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const style=document.createElement('style');
   style.textContent=`
     .global-delivery-chip{display:none!important}.global-delivery-product{margin-top:8px;padding:9px 11px;border-radius:10px;background:#f2f8f4;color:#315c4c;font-size:12px;font-weight:700}
@@ -38,17 +44,17 @@
   function updateDeliverySection(){
     const grid=document.querySelector('#delivery .dgrid');
     if(!grid)return;
-    const signature=[delivery.delivery_price,delivery.cargo_lift_price,delivery.stair_lift_price,delivery.sofa_lift_surcharge,delivery.free_delivery_from,delivery.delivery_schedule].join(':');
+    const signature=[city?.id,activeDelivery.delivery_price,activeDelivery.cargo_lift_price,activeDelivery.stair_lift_price,activeDelivery.sofa_lift_surcharge,activeDelivery.free_delivery_from,activeDelivery.delivery_schedule].join(':');
     if(grid.querySelector(`[data-global-delivery="${CSS.escape(signature)}"]`))return;
     const cards=[
-      `<div class="d" data-global-delivery="${signature.replace(/"/g,'&quot;')}">Доставка<b>${value(delivery.delivery_price)}</b><small>до подъезда по г. Екатеринбург</small></div>`,
-      `<div class="d">Грузовой лифт<b>${value(delivery.cargo_lift_price)}</b><small>подъём на этаж при наличии грузового лифта</small></div>`,
-      `<div class="d">По лестнице<b>${delivery.stair_lift_price>0?money(delivery.stair_lift_price)+' / этаж':'Уточняется'}</b><small>ручной подъём по лестнице, стоимость за один этаж</small></div>`,
-      `<div class="d">Подъём дивана<b>${delivery.sofa_lift_surcharge>0?'+'+money(delivery.sofa_lift_surcharge):'Без доплаты'}</b><small>доплата к выбранному способу подъёма дивана</small></div>`,
-      `<div class="d">График<b>${delivery.delivery_schedule||'Уточняется'}</b><small>плановые дни и время доставки</small></div>`,
-      `<div class="d">Сборка кровати<b>${money(delivery.bed_assembly_price)}</b><small>стоимость сборки одной кровати</small></div>`
+      `<div class="d" data-global-delivery="${safe(signature)}">Доставка<b>${city&&city.id!=='ekaterinburg'&&city.delivery_price==null?'Уточняется':activeDelivery.delivery_price===0?'Бесплатно':money(activeDelivery.delivery_price)}</b><small>${city&&city.id!=='ekaterinburg'?'по г. '+safe(city.name):'до подъезда по г. Екатеринбург'}</small></div>`,
+      `<div class="d">Грузовой лифт<b>${value(activeDelivery.cargo_lift_price)}</b><small>подъём на этаж при наличии грузового лифта</small></div>`,
+      `<div class="d">По лестнице<b>${activeDelivery.stair_lift_price>0?money(activeDelivery.stair_lift_price)+' / этаж':'Уточняется'}</b><small>ручной подъём по лестнице, стоимость за один этаж</small></div>`,
+      `<div class="d">Подъём дивана<b>${activeDelivery.sofa_lift_surcharge>0?'+'+money(activeDelivery.sofa_lift_surcharge):'Без доплаты'}</b><small>доплата к выбранному способу подъёма дивана</small></div>`,
+      `<div class="d">График<b>${activeDelivery.delivery_schedule||'Уточняется'}</b><small>плановые дни и время доставки</small></div>`,
+      `<div class="d">Сборка кровати<b>${money(activeDelivery.bed_assembly_price)}</b><small>стоимость сборки одной кровати</small></div>`
     ];
-    if(delivery.free_delivery_from>0)cards.push(`<div class="d">Бесплатная доставка<b>от ${money(delivery.free_delivery_from)}</b><small>порог бесплатной доставки</small></div>`);
+    if(activeDelivery.free_delivery_from>0)cards.push(`<div class="d">Бесплатная доставка<b>от ${money(activeDelivery.free_delivery_from)}</b><small>порог бесплатной доставки</small></div>`);
     grid.innerHTML=cards.join('');
   }
 
@@ -58,18 +64,19 @@
     furnitureMapPromise=(async()=>{try{const r=await fetch('data/furniture.json?delivery-ui=5',{cache:'force-cache'});if(!r.ok)return new Map();const d=await r.json();return new Map([...(d.beds||[]).map(x=>[String(x.id),'beds']),...(d.sofas||[]).map(x=>[String(x.id),'sofas'])])}catch{return new Map()}})();
     return furnitureMapPromise;
   }
-  function customCategory(id){const row=(b.rows||[]).find(r=>r.product_key===`furniture:${id}`);return row?.payload?.category||''}
-  function rowOverride(kind,key){const pk=kind==='mattress'?`mattress:${key}`:`furniture:${key}`;return(b.rows||[]).find(r=>r.product_key===pk)?.payload||null}
+  function cityOverride(kind,key){return window.NoktenaCities?.settings.catalogs[city?.id]?.products?.[`${kind}:${key}`]||null}
+  function customCategory(id){const row=(b.rows||[]).find(r=>r.product_key===`furniture:${id}`);return cityOverride('furniture',id)?.category||row?.payload?.category||''}
+  function rowOverride(kind,key){const pk=kind==='mattress'?`mattress:${key}`:`furniture:${key}`;return cityOverride(kind,key)||(b.rows||[]).find(r=>r.product_key===pk)?.payload||null}
   function effective(category,override){
     const hasD=override&&Object.prototype.hasOwnProperty.call(override,'deliveryPriceOverride')&&override.deliveryPriceOverride!==''&&override.deliveryPriceOverride!=null;
     const hasF=override&&Object.prototype.hasOwnProperty.call(override,'freeDeliveryFromOverride')&&override.freeDeliveryFromOverride!==''&&override.freeDeliveryFromOverride!=null;
     return{
-      delivery_price:hasD?Math.max(0,Number(override.deliveryPriceOverride)||0):delivery.delivery_price,
-      free_delivery_from:hasF?Math.max(0,Number(override.freeDeliveryFromOverride)||0):delivery.free_delivery_from,
-      cargo_lift_price:delivery.cargo_lift_price,
-      stair_lift_price:delivery.stair_lift_price,
-      sofa_lift_surcharge:category==='sofas'?delivery.sofa_lift_surcharge:0,
-      delivery_schedule:delivery.delivery_schedule
+      delivery_price:hasD?Math.max(0,Number(override.deliveryPriceOverride)||0):activeDelivery.delivery_price,
+      free_delivery_from:hasF?Math.max(0,Number(override.freeDeliveryFromOverride)||0):activeDelivery.free_delivery_from,
+      cargo_lift_price:activeDelivery.cargo_lift_price,
+      stair_lift_price:activeDelivery.stair_lift_price,
+      sofa_lift_surcharge:category==='sofas'?activeDelivery.sofa_lift_surcharge:0,
+      delivery_schedule:activeDelivery.delivery_schedule
     };
   }
   function chipText(s){

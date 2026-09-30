@@ -4,6 +4,7 @@ let session=null;
 let items=[];
 let current=null;
 let draft=null;
+let cityEditorCityId='';
 let originalBasePrice=0;
 let categorySettings=[];
 let deliverySettings={delivery_price:0,lift_price:0,sofa_lift_surcharge:0,free_delivery_from:0};
@@ -188,8 +189,13 @@ function renderColors(){
 }
 
 function openEditor(key){
+  cityEditorCityId='';
   current=items.find(item=>item._key===key);
   if(!current)return;
+  fillEditor();
+}
+
+function fillEditor(){
   draft=clone(current);
   originalBasePrice=Number(draft.price)||basePrice(draft);
   $('#editorTitle').textContent=productName(draft);
@@ -216,6 +222,7 @@ function closeEditor(){
   $('#editor').classList.add('hide');
   current=null;
   draft=null;
+  cityEditorCityId='';
 }
 
 async function uploadPhoto(file,color=''){
@@ -334,14 +341,19 @@ async function saveEditor(event){
       draft.colors=[...new Set((draft.variants||[]).map(v=>v.color).filter(Boolean))];
     }
 
-    await request('save',{
-      method:'POST',
-      headers:{'content-type':'application/json'},
-      body:JSON.stringify({key:draft._key,kind:draft._kind,item:draft,hidden:$('#hidden').checked,is_custom:!!draft._isCustom})
-    });
-    toast('Карточка сохранена');
-    closeEditor();
-    await loadCatalog();
+    if(cityEditorCityId){
+      await window.NoktenaCityAdmin.saveProduct(cityEditorCityId,draft,$('#hidden').checked);
+      closeEditor();
+    }else{
+      await request('save',{
+        method:'POST',
+        headers:{'content-type':'application/json'},
+        body:JSON.stringify({key:draft._key,kind:draft._kind,item:draft,hidden:$('#hidden').checked,is_custom:!!draft._isCustom})
+      });
+      toast('Карточка сохранена');
+      closeEditor();
+      await loadCatalog();
+    }
   }catch(error){
     toast(error.message,true);
   }finally{
@@ -351,6 +363,13 @@ async function saveEditor(event){
 
 async function resetOrDelete(){
   if(!current)return;
+  if(cityEditorCityId){
+    if(!current._changed&&!current._isCustom)return toast('Для этого города нет изменений в карточке',true);
+    if(!confirm(current._isCustom?'Удалить товар из этого города?':'Сбросить изменения карточки для этого города?'))return;
+    try{await window.NoktenaCityAdmin.removeProduct(cityEditorCityId,current);closeEditor()}
+    catch(error){toast(error.message,true)}
+    return;
+  }
   const isCustom=!!current._isCustom;
   if(!current._changed&&!isCustom)return toast('У карточки нет ручных изменений',true);
   const message=isCustom?'Удалить эту добавленную карточку?':'Сбросить все ручные изменения этой карточки?';
@@ -463,7 +482,7 @@ $('#loginForm').addEventListener('submit',async event=>{
 
 $('#logout').addEventListener('click',()=>{saveSession(null);location.reload()});
 $('#reload').addEventListener('click',()=>loadCatalog().catch(error=>toast(error.message,true)));
-$('#add').addEventListener('click',openNewCard);
+$('#add').addEventListener('click',()=>{cityEditorCityId='';openNewCard()});
 $('#bulk').addEventListener('click',bulkPrices);
 $('#settingsOpen').addEventListener('click',openCategorySettings);
 $('#settingsClose').addEventListener('click',closeCategorySettings);
@@ -490,6 +509,11 @@ $('#newForm').addEventListener('submit',event=>{
     closeNewCard();
     openFreshDraft(item);
   }catch(error){toast(error.message,true)}
+});
+
+window.NoktenaAdminCityEditor=Object.freeze({
+  openNew(cityId){cityEditorCityId=cityId;openNewCard()},
+  openExisting(cityId,item){cityEditorCityId=cityId;current=item;fillEditor();$('#editorTitle').textContent=productName(item)+' · для города';}
 });
 
 $('#photo').addEventListener('change',async event=>{

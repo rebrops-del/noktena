@@ -68,7 +68,7 @@
       const pp=PHOTO_POS[item.model];
       const visual=src?`<img src="${esc(src)}" alt="${esc(title)}" loading="lazy" decoding="async">`:pp?`<img class="pd-mattress-thumb" src="assets/admin-mattress-thumbs/r${pp[1]+1}-c${pp[0]+1}.webp" alt="${esc(title)}" width="1200" height="900" loading="lazy" decoding="async">`:'<div class="pd-similar-sprite"></div>';
       const price=kind==='mattress'?Math.min(...(item.variants||[]).map(v=>Number(v.price)||Infinity)):furniturePrice(item,null);
-      const href=kind==='mattress'?`product.html?kind=mattress&model=${encodeURIComponent(item.model)}`:`product.html?kind=furniture&id=${encodeURIComponent(item.id)}`;
+      const query=new URLSearchParams({kind,[kind==='mattress'?'model':'id']:kind==='mattress'?item.model:item.id});if(item._catalogKey)query.set('key',item._catalogKey);if(window.NoktenaCities)query.set('city',window.NoktenaCities.id());const href='product.html?'+query.toString();
       return `<a class="pd-similar-card" href="${href}">${visual}<b>${esc(title)}</b><span>${rub(price)}</span></a>`;
     }).join('')}</div>`;mount.hidden=false;
   }
@@ -246,9 +246,9 @@
     try{
       const kind=params.get('kind')||'furniture';
       if(kind==='mattress'){
-        const model=params.get('model')||'';const sets=await Promise.all(DATA_FILES.map(f=>fetch(`${f}?v=20260918-quality1`,{cache:'no-store'}).then(r=>r.json())));let all=sets.flat();if(window.NoktenaCatalog)all=await window.NoktenaCatalog.mergeMattresses(all);all=all.filter(x=>!REMOVE_MODELS.has(x.model));const product=all.find(x=>x.model===model);if(!product)throw new Error('Матрас не найден');renderMattress(product);productSEO(product,'mattress',product.variants?.[0]?.price);renderSimilar(all,product,'mattress');return;
+        const model=params.get('model')||'',key=params.get('key')||'';const sets=await Promise.all(DATA_FILES.map(f=>fetch(`${f}?v=20260918-quality1`,{cache:'no-store'}).then(r=>r.json())));let all=sets.flat();if(window.NoktenaCatalog)all=await window.NoktenaCatalog.mergeMattresses(all);all=all.filter(x=>!REMOVE_MODELS.has(x.model));const product=all.find(x=>key?x._catalogKey===key:x.model===model);if(!product)throw new Error('Матрас не найден');root.dataset.catalogKey=product._catalogKey||'';renderMattress(product);productSEO(product,'mattress',product.variants?.[0]?.price);renderSimilar(all,product,'mattress');return;
       }
-      const id=params.get('id')||'';const r=await fetch(`data/furniture.json?v=${Date.now()}`,{cache:'no-store'});if(!r.ok)throw new Error(`HTTP ${r.status}`);const raw=await r.json();const data=window.NoktenaCatalog?await window.NoktenaCatalog.mergeFurniture(raw):raw;const product=[...(data.beds||[]),...(data.sofas||[])].find(x=>x.id===id);if(!product)throw new Error('Товар не найден');renderFurniture(product);productSEO(product,'furniture',furniturePrice(product,null));renderSimilar([...(data.beds||[]),...(data.sofas||[])],product,'furniture');
+      const id=params.get('id')||'',key=params.get('key')||'';const r=await fetch(`data/furniture.json?v=${Date.now()}`,{cache:'no-store'});if(!r.ok)throw new Error(`HTTP ${r.status}`);const raw=await r.json();const data=window.NoktenaCatalog?await window.NoktenaCatalog.mergeFurniture(raw):raw;const product=[...(data.beds||[]),...(data.sofas||[])].find(x=>key?x._catalogKey===key:x.id===id);if(!product)throw new Error('Товар не найден');root.dataset.catalogKey=product._catalogKey||'';renderFurniture(product);productSEO(product,'furniture',furniturePrice(product,null));renderSimilar([...(data.beds||[]),...(data.sofas||[])],product,'furniture');
     }catch(e){console.error(e);root.innerHTML='<div class="pd-error"><h1>Не удалось открыть товар</h1><p>Вернитесь в каталог и выберите модель ещё раз.</p><a href="/">Вернуться на главную</a></div>';}
   }
   load();

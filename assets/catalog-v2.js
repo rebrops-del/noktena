@@ -43,7 +43,7 @@
     if(view==='beds'||view==='sofas')renderFurniture(view);if(view==='home')renderHomeHits();if(scroll)window.scrollTo({top:0,behavior:'smooth'});
   }
 
-  function detailUrl(product){return product.category==='mattress'?`product.html?kind=mattress&model=${encodeURIComponent(product.model)}`:`product.html?kind=furniture&id=${encodeURIComponent(product.id)}`;}
+  function detailUrl(product){const kind=product.category==='mattress'?'mattress':'furniture',params=new URLSearchParams({kind,[kind==='mattress'?'model':'id']:kind==='mattress'?product.model:product.id});if(product._catalogKey)params.set('key',product._catalogKey);if(window.NoktenaCities)params.set('city',window.NoktenaCities.id());return 'product.html?'+params.toString();}
   function uniq(list){return [...new Set((list||[]).filter(Boolean).map(v=>String(v).trim()).filter(Boolean))];}
   function sizeSortValue(value){const nums=String(value||'').replace(/×/g,'х').match(/\d+/g)?.map(Number)||[];return [nums[0]??Number.MAX_SAFE_INTEGER,nums[1]??Number.MAX_SAFE_INTEGER,String(value||'')];}
   function sortSizes(list){return uniq(list).sort((a,b)=>{const A=sizeSortValue(a),B=sizeSortValue(b);return A[0]-B[0]||A[1]-B[1]||A[2].localeCompare(B[2],'ru');});}
@@ -112,7 +112,7 @@
     const imgs=uniq(product.images);const category=product.category==='mattress'?'Матрас':product.category==='beds'?'Кровать':'Диван';const link=detailUrl(product);
     const sizes=sortSizes(product.sizes?.length?product.sizes:(product.variants||[]).map(v=>v.size));const initial=preferredVariant(product,'',sizes[0]||'');const quick=chooseSpecs(product,initial);const summary=shortTextForVariant(product,initial);const price=cardPrice(product,initial,sizes[0]||'');const discount=discountPercent(product);const comparePrice=oldPrice(price,discount);const first=imgs[0]||'assets/hero-noktena-final.png?v=20260908-final2';
     state.gallery.set(product.id,0);
-    return `<article class="f-card product-open-card" data-product-id="${esc(product.id)}" data-product-link="${esc(link)}" data-selected-size="${esc(sizes[0]||'')}">
+    return `<article class="f-card product-open-card" data-product-id="${esc(product.id)}" data-catalog-key="${esc(product._catalogKey||'')}" data-product-link="${esc(link)}" data-selected-size="${esc(sizes[0]||'')}">
       <div class="f-gallery" data-gallery-id="${esc(product.id)}">
         <img src="${esc(first)}" alt="${esc(product.title)}" loading="lazy" decoding="async" referrerpolicy="no-referrer">
         <div class="f-gallery-shade"></div>

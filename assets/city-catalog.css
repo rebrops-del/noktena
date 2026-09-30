@@ -1,0 +1,6 @@
+.city-choose{width:100%;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:10px 12px;border:1px solid #ded9cf;border-radius:8px;background:#fffefa;color:#293d32;font:inherit;font-size:.85rem;text-align:left;cursor:pointer}
+.city-choose:hover,.city-choose[aria-current="true"]{border-color:#9b7a55;background:#f8f3eb}
+.city-choose b{color:#8b6941}
+.city-popover .city-choose{margin-top:6px}
+.top-city>div small{color:#68726a;line-height:1.5}
+.checkout-option[hidden]{display:none!important}

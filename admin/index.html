@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="./admin-luxe.css?v=premium1">
   <link rel="stylesheet" href="./admin-2026.css?v=premium3">
   <link rel="stylesheet" href="./site-settings.css?v=20260928-hero1">
+  <link rel="stylesheet" href="./city-catalog.css?v=20260930-1">
   <link rel="stylesheet" href="./banner-settings.css?v=20260930-2">
 </head>
 <body>
@@ -35,7 +36,7 @@
   <div id="app" class="app hide">
     <aside class="side">
       <div class="side-head"><img class="admin-logo" src="../assets/logo-noktena-final.png" alt="НОКТЕНА"><small>ПАНЕЛЬ УПРАВЛЕНИЯ</small></div>
-      <div class="side-nav"><span class="side-label">МАГАЗИН</span><button class="side-link is-current" type="button" data-admin-open="catalog"><span aria-hidden="true">◫</span>Обзор и товары</button><button class="side-link" type="button" data-admin-open="orders"><span aria-hidden="true">▤</span>Заказы <span id="sideOrdersBadge" class="side-badge" hidden></span></button><button class="side-link" type="button" data-admin-open="popular"><span aria-hidden="true">✦</span>Популярные модели</button><span class="side-label">НАСТРОЙКИ</span><button class="side-link" type="button" data-admin-open="banners"><span aria-hidden="true">▣</span>Баннеры</button><button class="side-link" type="button" data-admin-open="site-settings"><span aria-hidden="true">⚙</span>Настройки и SEO</button><button class="side-link" type="button" data-admin-open="notifications"><span aria-hidden="true">✉</span>Уведомления</button><button class="side-link" type="button" data-admin-open="prices"><span aria-hidden="true">◈</span>Цены</button><button class="side-link" type="button" data-admin-open="delivery"><span aria-hidden="true">↗</span>Доставка</button><button class="side-link" type="button" data-admin-open="contacts"><span aria-hidden="true">☎</span>Контакты</button><button class="side-link" type="button" data-admin-open="password"><span aria-hidden="true">◇</span>Пароль</button></div>
+      <div class="side-nav"><span class="side-label">МАГАЗИН</span><button class="side-link is-current" type="button" data-admin-open="catalog"><span aria-hidden="true">◫</span>Обзор и товары</button><button class="side-link" type="button" data-admin-open="orders"><span aria-hidden="true">▤</span>Заказы <span id="sideOrdersBadge" class="side-badge" hidden></span></button><button class="side-link" type="button" data-admin-open="cities"><span aria-hidden="true">⌖</span>Города и каталоги</button><button class="side-link" type="button" data-admin-open="popular"><span aria-hidden="true">✦</span>Популярные модели</button><span class="side-label">НАСТРОЙКИ</span><button class="side-link" type="button" data-admin-open="banners"><span aria-hidden="true">▣</span>Баннеры</button><button class="side-link" type="button" data-admin-open="site-settings"><span aria-hidden="true">⚙</span>Настройки и SEO</button><button class="side-link" type="button" data-admin-open="notifications"><span aria-hidden="true">✉</span>Уведомления</button><button class="side-link" type="button" data-admin-open="prices"><span aria-hidden="true">◈</span>Цены</button><button class="side-link" type="button" data-admin-open="delivery"><span aria-hidden="true">↗</span>Доставка</button><button class="side-link" type="button" data-admin-open="contacts"><span aria-hidden="true">☎</span>Контакты</button><button class="side-link" type="button" data-admin-open="password"><span aria-hidden="true">◇</span>Пароль</button></div>
       <div class="bottom"><a class="side-site-link" href="/" target="_blank" rel="noopener">Открыть магазин ↗</a><div id="adminEmail" class="muted"></div><button id="logout" class="btn secondary" type="button">Выйти</button></div>
     </aside>
 
@@ -157,6 +158,30 @@
     </form>
     <section class="site-settings-block" aria-labelledby="siteHistoryHeading"><div class="site-settings-section-head"><h2 id="siteHistoryHeading">История SEO и политики</h2><p>До 100 последних версий этих полей и исходная. Восстановление создаёт новую запись.</p></div><div id="siteSettingsHistory" class="site-history" aria-live="polite">Загрузка…</div></section>
     <section class="site-settings-block" aria-labelledby="siteBackupHeading"><div class="site-settings-section-head"><h2 id="siteBackupHeading">Резервная копия</h2><p>Каталог, настройки цен и доставки, контакты, SEO и политика одним JSON‑файлом. Сами файлы фотографий в копию не входят; сохраняются только ссылки.</p></div><button id="siteSettingsBackup" class="btn secondary" type="button">Скачать резервную копию</button></section>
+  </template>
+
+  <template id="cityCatalogTemplate">
+    <header class="site-settings-head"><span class="admin-overline">НОКТЕНА / УПРАВЛЕНИЕ</span><h1>Города и каталоги</h1><p class="muted">Для каждого города выбирайте доступные товары, добавляйте свои карточки и загружайте каталог файлом.</p></header>
+    <section class="site-settings-block">
+      <div class="site-settings-section-head"><h2>Город</h2><p>Екатеринбург продолжит показывать текущий каталог. Новый город создаётся с пустым каталогом.</p></div>
+      <div class="city-toolbar"><label>Редактировать город<select id="cityAdminSelect"></select></label><form id="cityAddForm"><label>Новый город<input id="cityAddName" type="text" maxlength="80" required placeholder="Например, Казань"></label><button class="btn secondary" type="submit">+ Добавить город</button></form></div>
+      <form id="cityDetailsForm" class="city-details"><label>Название<input id="cityAdminName" type="text" maxlength="80" required></label><label>Город склада<input id="cityAdminWarehouse" type="text" maxlength="120" placeholder="Пусто — самовывоз недоступен"></label><label>Доставка по городу, ₽<input id="cityAdminDelivery" type="number" min="0" max="1000000" placeholder="Уточняется менеджером"></label><button class="btn secondary" type="submit">Сохранить данные города</button></form>
+      <small class="site-settings-hint">Для Екатеринбурга действуют прежние настройки доставки. Для других городов пустая стоимость означает «уточняется менеджером» и не добавляется к сумме заказа.</small>
+    </section>
+    <section class="site-settings-block">
+      <div class="site-settings-section-head"><h2>Товары города</h2><p>Отметьте позиции, которые будут видны покупателям. Изменения карточки для города сохраняются отдельно от остальных городов.</p></div>
+      <div class="city-actions"><button id="cityCopyCatalog" class="btn secondary" type="button">Скопировать из Екатеринбурга</button><button id="citySelectAll" class="btn secondary" type="button">Выбрать все товары</button><button id="cityClear" class="btn secondary" type="button">Очистить выбор</button><button id="cityAddProduct" class="btn secondary" type="button">+ Создать товар для города</button></div>
+      <label class="city-search-label">Поиск по каталогу<input id="cityCatalogSearch" type="search" placeholder="Название или артикул"></label>
+      <p id="cityCatalogCount" class="site-settings-hint"></p><div id="cityCatalogList" class="city-catalog-list"></div>
+      <div class="city-savebar"><span id="cityCatalogStatus" role="status" aria-live="polite"></span><button id="cityCatalogSave" class="btn primary" type="button">Сохранить товары города</button></div>
+    </section>
+    <section class="site-settings-block">
+      <div class="site-settings-section-head"><h2>Загрузить весь каталог</h2><p>Поддерживаются CSV и JSON. Файл может содержать товары и несколько размеров для каждой модели; загрузка меняет только выбранный город.</p></div>
+      <div class="city-actions"><button id="cityCatalogExport" class="btn secondary" type="button">Скачать каталог CSV</button><button id="cityCatalogDownloadTemplate" class="btn secondary" type="button">Скачать пустой шаблон CSV</button></div>
+      <div class="city-import-form"><label>Файл каталога<input id="cityCatalogFile" type="file" accept=".csv,.json,text/csv,application/json"></label><label>Как загрузить<select id="cityImportMode"><option value="merge">Добавить и обновить товары из файла</option><option value="replace">Заменить каталог города товарами из файла</option></select></label></div>
+      <p id="cityImportPreview" class="site-settings-hint" role="status"></p><button id="cityImportSave" class="btn primary" type="button" disabled>Загрузить каталог в город</button>
+      <small class="site-settings-hint">Фото в CSV указываются HTTPS-ссылками через знак |. Для загрузки фото с компьютера откройте карточку товара после импорта. Перед заменой скачайте текущий каталог.</small>
+    </section>
   </template>
 
   <div id="editor" class="modal hide">
@@ -296,7 +321,7 @@
     </div>
   </div>
 
-  <script src="./admin.js?v=6" defer></script>
+  <script src="./admin.js?v=20260930-city1" defer></script>
   <script src="./admin-enhancements.js?v=10" defer></script>
   <script src="./admin-card-settings.js?v=20260930-width1" defer></script>
   <script src="./admin-mattress-card-settings.js?v=20260922-2" defer></script>
@@ -304,11 +329,14 @@
   <script src="./orders.js?v=3" defer></script>
   <script src="./global-promo-settings.js?v=20260922-1" defer></script>
 <script src="./global-discount-settings.js?v=20260922-1" defer></script>
-  <script src="./admin-shell-2026.js?v=20260930-banner1" defer></script>
+  <script src="./admin-shell-2026.js?v=20260930-city1" defer></script>
   <script src="./store-settings.js?v=20260925-2" defer></script>
   <script src="../assets/home-banners-config.js?v=20260930-2" defer></script>
   <script src="./banner-settings.js?v=20260930-2" defer></script>
-  <script src="./site-settings.js?v=20260930-banner2" defer></script>
+  <script src="./site-settings.js?v=20260930-city1" defer></script>
   <script src="./notification-settings.js?v=20260930-1" defer></script>
+  <script src="../assets/city-catalog-core.js?v=20260930-1" defer></script>
+  <script src="./city-import.js?v=20260930-1" defer></script>
+  <script src="./city-catalog.js?v=20260930-1" defer></script>
 </body>
 </html>

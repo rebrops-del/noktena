@@ -114,6 +114,7 @@
   }
   async function open(){
     if(!pane.classList.contains('hide')&&!submit.disabled)return;
+    $('#adminCityPane')?.classList.add('hide');
     $('#adminCatalogPane')?.classList.add('hide');
     $('#adminOrdersPane')?.classList.add('hide');
     $('#adminTabs')?.classList.add('hide');

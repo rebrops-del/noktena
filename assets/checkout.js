@@ -12,7 +12,7 @@
   function bedQty(){return items().filter(x=>x.category==='beds').reduce((n,x)=>n+(Number(x.qty)||1),0)}
   function subtotal(){return items().reduce((n,x)=>n+(Number(x.price)||0)*(Number(x.qty)||1),0)}
   function selected(name){return document.querySelector(`input[name="${name}"]:checked`)?.value||''}
-  function itemKey(x){return [x.kind,x.key,x.size||'',x.color||'',Number(x.price)||0].join('|')}
+  function itemKey(x){return [x.catalog_key||`${x.kind}:${x.key}`,x.size||'',x.color||'',Number(x.price)||0].join('|')}
   function serviceFor(x){
     const key=itemKey(x),max=Math.max(1,Number(x.qty)||1);
     let state=serviceState.get(key);
@@ -83,7 +83,7 @@
     $('#assemblyQtyLabel')?.classList.toggle('hide',!$('#orderAssembly')?.checked);
   }
   function updateServiceLabels(){
-    const s=settings();$('#deliveryOptionText').textContent=s.free_delivery_from>0?`${money(s.delivery_price)} · бесплатно от ${money(s.free_delivery_from)}`:money(s.delivery_price);
+    const s=settings();$('#deliveryOptionText').textContent=s.delivery_pending?'Стоимость уточнит менеджер':s.free_delivery_from>0?`${money(s.delivery_price)} · бесплатно от ${money(s.free_delivery_from)}`:money(s.delivery_price);
     const sch=$('#deliverySchedule');if(s.delivery_schedule){sch.textContent=`График доставки: ${s.delivery_schedule}`;sch.classList.remove('hide')}else sch.classList.add('hide')
   }
   function updateServiceRow(i){
@@ -100,17 +100,18 @@
     items().forEach((_,i)=>updateServiceRow(i));renderAssembly();updateSummary();
   }
   function updateSummary(){
-    const c=costs();$('#sumProducts').textContent=money(c.sub);$('#sumDelivery').textContent=c.delivery?money(c.delivery):'Бесплатно';
+    const c=costs(),pending=settings().delivery_pending&&selected('deliveryMethod')==='delivery';$('#sumProducts').textContent=money(c.sub);$('#sumDelivery').textContent=pending?'Уточняется':c.delivery?money(c.delivery):'Бесплатно';
+    const totalLabel=document.querySelector('.summary-row.total span');if(totalLabel)totalLabel.textContent=pending?'Итого без доставки':'Итого';
     const liftRow=$('#sumLiftRow');liftRow?.classList.toggle('hide',c.liftCount===0);if($('#sumLift'))$('#sumLift').textContent=c.lift?money(c.lift):'0 ₽';if($('#sumLiftLabel'))$('#sumLiftLabel').textContent=c.liftCount?`Подъём (${c.liftCount} ед.)`:'Подъём';
     const beds=bedQty();$('#sumAssemblyRow')?.classList.toggle('hide',beds===0);if($('#sumAssembly'))$('#sumAssembly').textContent=c.assembly?money(c.assembly):'0 ₽';if($('#sumAssemblyLabel'))$('#sumAssemblyLabel').textContent=c.assemblyQty?`Сборка (${c.assemblyQty} ${c.assemblyQty===1?'кровать':'кровати'})`:'Сборка кровати';
     $('#sumTotal').textContent=money(c.total);
   }
-  function orderItems(){return items().map(x=>{const st=serviceFor(x);return{kind:x.kind,category:x.category,key:x.key,name:x.name,size:x.size||'',color:x.color||'',price:Number(x.price)||0,qty:Number(x.qty)||1,url:x.url||'',lift_method:st.method,lift_qty:st.method==='none'?0:Math.max(1,Math.min(Number(x.qty)||1,Number(st.qty)||1)),lift_floor:st.method==='stairs'?Math.max(1,Number(st.floor)||1):0}})}
+  function orderItems(){return items().map(x=>{const st=serviceFor(x);return{kind:x.kind,category:x.category,key:x.key,catalog_key:x.catalog_key||`${x.kind}:${x.key}`,name:x.name,size:x.size||'',color:x.color||'',price:Number(x.price)||0,qty:Number(x.qty)||1,url:x.url||'',lift_method:st.method,lift_qty:st.method==='none'?0:Math.max(1,Math.min(Number(x.qty)||1,Number(st.qty)||1)),lift_floor:st.method==='stairs'?Math.max(1,Number(st.floor)||1):0}})}
   async function submit(e){
     e.preventDefault();const list=items();if(!list.length)return;const deliveryMethod=selected('deliveryMethod')||'delivery';const address=$('#orderAddress').value.trim();const error=$('#checkoutError');if(error){error.textContent='';error.classList.add('hide')}if(deliveryMethod==='delivery'&&!address){$('#orderAddress').focus();return}
     const btn=$('#checkoutSubmit');btn.disabled=true;btn.textContent='Оформляем…';const itemPayload=orderItems();const activeMethods=[...new Set(itemPayload.filter(x=>x.lift_qty>0).map(x=>x.lift_method))];const maxFloor=Math.max(0,...itemPayload.map(x=>Number(x.lift_floor)||0));
-    const payload={customer_name:$('#orderName').value.trim(),phone:$('#orderPhone').value.trim(),email:$('#orderEmail').value.trim(),city:$('#orderCity').value.trim(),address,comment:$('#orderComment').value.trim(),delivery_method:deliveryMethod,lift_method:activeMethods.length===0?'none':activeMethods.length===1?activeMethods[0]:'mixed',floor:maxFloor,assembly_requested:!!$('#orderAssembly').checked,assembly_qty:assemblyQty(),items:itemPayload};
-    try{const r=await fetch(API+'?action=create-order',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(payload)});const data=await r.json().catch(()=>({}));if(!r.ok||!data.ok)throw new Error(data.error||'Не удалось оформить заказ');const order=data.order||{};cart().clear();$('#checkoutApp').classList.add('hide');const success=$('#checkoutSuccess');success.classList.remove('hide');success.innerHTML=`<h1>Заказ оформлен</h1><p>Номер вашего заказа</p><strong>№ ${esc(order.order_no||'—')}</strong><p>Сумма: <b>${money(order.total||0)}</b></p><p>Менеджер НОКТЕНА свяжется с вами для подтверждения заказа.</p><a class="checkout-submit" style="display:inline-flex;width:auto;padding:0 24px;align-items:center;text-decoration:none" href="/">Вернуться в каталог</a>`;window.scrollTo({top:0,behavior:'smooth'})}catch(err){if(error){error.textContent=err.message||'Не удалось оформить заказ. Попробуйте ещё раз.';error.classList.remove('hide');error.scrollIntoView({block:'nearest',behavior:'smooth'})}btn.disabled=false;btn.textContent='Оформить заказ'}
+    const city=window.NoktenaCities?.current();const payload={customer_name:$('#orderName').value.trim(),phone:$('#orderPhone').value.trim(),email:$('#orderEmail').value.trim(),city:city?.name||$('#orderCity').value.trim(),city_id:city?.id||'ekaterinburg',address,comment:$('#orderComment').value.trim(),delivery_method:deliveryMethod,lift_method:activeMethods.length===0?'none':activeMethods.length===1?activeMethods[0]:'mixed',floor:maxFloor,assembly_requested:!!$('#orderAssembly').checked,assembly_qty:assemblyQty(),items:itemPayload};
+    try{const r=await fetch(API+'?action=create-order',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(payload)});const data=await r.json().catch(()=>({}));if(!r.ok||!data.ok)throw new Error(({CITY_UNAVAILABLE:'Выбранный город больше не доступен. Обновите страницу.',PRODUCT_UNAVAILABLE:'Один из товаров больше не продаётся в этом городе. Обновите каталог и корзину.',PICKUP_UNAVAILABLE:'Самовывоз в этом городе недоступен. Выберите доставку.'})[data.error]||data.error||'Не удалось оформить заказ');const order=data.order||{},pending=settings().delivery_pending&&deliveryMethod==='delivery';cart().clear();$('#checkoutApp').classList.add('hide');const success=$('#checkoutSuccess');success.classList.remove('hide');success.innerHTML=`<h1>Заказ оформлен</h1><p>Номер вашего заказа</p><strong>№ ${esc(order.order_no||'—')}</strong><p>${pending?'Сумма без доставки':'Сумма'}: <b>${money(order.total||0)}</b></p><p>Менеджер НОКТЕНА свяжется с вами для подтверждения заказа${pending?' и стоимости доставки':''}.</p><a class="checkout-submit" style="display:inline-flex;width:auto;padding:0 24px;align-items:center;text-decoration:none" href="/">Вернуться в каталог</a>`;window.scrollTo({top:0,behavior:'smooth'})}catch(err){if(error){error.textContent=err.message||'Не удалось оформить заказ. Попробуйте ещё раз.';error.classList.remove('hide');error.scrollIntoView({block:'nearest',behavior:'smooth'})}btn.disabled=false;btn.textContent='Оформить заказ'}
   }
   document.addEventListener('click',e=>{
     const rem=e.target.closest('[data-remove]');if(rem){cart().remove(Number(rem.dataset.remove));renderItems();return}
