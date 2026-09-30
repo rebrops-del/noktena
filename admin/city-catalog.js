@@ -9,6 +9,7 @@
   let state=core.normalize(),base=[],selectedId='ekaterinburg',pending=null,busy=false,loaded=false;
   const city=()=>state.cities.find(c=>c.id===selectedId);
   const catalog=()=>state.catalogs[selectedId];
+  const contentFields={hero_description:'cityHeroDescription',delivery_description:'cityDeliveryDescription',service_description:'cityServiceDescription',about_description:'cityAboutDescription',seo_title:'citySeoTitle',seo_description:'citySeoDescription'};
   const keyOf=item=>item._key||item._catalogKey||core.keyFor(item._kind,item);
   const nameOf=item=>item.model||item.title||'Без названия';
   const ownKeys=c=>c.keys===null?[...new Set([...base.map(keyOf),...Object.keys(c.products)])]:c.keys;
@@ -29,10 +30,14 @@
     for(const item of state.cities){const opt=document.createElement('option');opt.value=item.id;opt.textContent=item.name;select.append(opt)}
     select.value=selectedId;
   }
-  function render(){
+  function fillCityForms(){
     optionList();const c=city();if(!c)return;
     $('#cityAdminName').value=c.name;$('#cityAdminWarehouse').value=c.warehouse;
     $('#cityAdminDelivery').value=c.delivery_price??'';
+    for(const [key,id] of Object.entries(contentFields))$('#'+id).value=c[key]||'';
+  }
+  function render(){
+    const c=city();if(!c)return;
     const selected=new Set(ownKeys(catalog())),filter=$('#cityCatalogSearch').value.trim().toLowerCase();
     const rows=sourceItems().filter(item=>!filter||[nameOf(item),keyOf(item)].join(' ').toLowerCase().includes(filter));
     const list=$('#cityCatalogList');list.replaceChildren();
@@ -59,7 +64,7 @@
     const [data,bootstrap]=await Promise.all([request('catalog'),readBootstrap()]);
     base=Array.isArray(data.items)?data.items:[];state=core.fromBootstrap(bootstrap);
     if(!state.cities.some(x=>x.id===selectedId))selectedId='ekaterinburg';
-    loaded=true;render();status('Изменения появятся на сайте после сохранения и обновления страницы.');
+    loaded=true;fillCityForms();render();status('Изменения появятся на сайте после сохранения и обновления страницы.');
   }
   async function open(){
     $('#adminCatalogPane')?.classList.add('hide');$('#adminOrdersPane')?.classList.add('hide');$('#adminTabs')?.classList.add('hide');$('#adminSiteSettingsPane')?.classList.add('hide');pane.classList.remove('hide');
@@ -74,7 +79,7 @@
     busy=true;$('#cityCatalogSave').disabled=true;$('#cityImportSave').disabled=true;status('Сохраняем…');
     try{
       await request('save',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({key:core.KEY,kind:'mattress',item:payload,hidden:false,is_custom:false})});
-      state=payload;status(message);toast(message);render();
+      state=payload;fillCityForms();status(message);toast(message);render();
     }catch(error){status(error.message,true);throw error}
     finally{busy=false;$('#cityCatalogSave').disabled=false;$('#cityImportSave').disabled=!pending}
   }
@@ -108,7 +113,7 @@
   }
   link.addEventListener('click',()=>open());
   $('#catalogTab')?.addEventListener('click',close);$('#ordersTab')?.addEventListener('click',close);
-  $('#cityAdminSelect').addEventListener('change',event=>{selectedId=event.target.value;pending=null;$('#cityCatalogFile').value='';$('#cityImportPreview').textContent='';$('#cityImportSave').disabled=true;render();status('Выбран город '+city().name)});
+  $('#cityAdminSelect').addEventListener('change',event=>{selectedId=event.target.value;pending=null;$('#cityCatalogFile').value='';$('#cityImportPreview').textContent='';$('#cityImportSave').disabled=true;fillCityForms();render();status('Выбран город '+city().name)});
   $('#cityAddForm').addEventListener('submit',async event=>{
     event.preventDefault();const name=$('#cityAddName').value.trim();if(!name)return;
     if(state.cities.some(x=>x.name.toLocaleLowerCase('ru')===name.toLocaleLowerCase('ru')))return toast('Такой город уже добавлен',true);
@@ -122,6 +127,15 @@
     if(raw!==''&&(!Number.isFinite(Number(raw))||Number(raw)<0||Number(raw)>1000000))return toast('Проверьте стоимость доставки',true);
     Object.assign(city(),{name,warehouse,delivery_price:raw===''?null:Number(raw)});
     try{await persist('Данные города сохранены')}catch(error){toast(error.message,true)}
+  });
+  $('#cityContentForm').addEventListener('input',event=>{
+    const field=Object.entries(contentFields).find(([,id])=>id===event.target.id);
+    if(field){city()[field[0]]=event.target.value.trim().slice(0,core.TEXT_LIMITS[field[0]]);status('Описание ещё не сохранено.')}
+  });
+  $('#cityContentForm').addEventListener('submit',async event=>{
+    event.preventDefault();const selected=city();
+    for(const [key,id] of Object.entries(contentFields))selected[key]=$('#'+id).value.trim().slice(0,core.TEXT_LIMITS[key]);
+    try{await persist('Описание города сохранено')}catch(error){toast(error.message,true)}
   });
   $('#cityCopyCatalog').addEventListener('click',()=>{
     if(selectedId==='ekaterinburg')return;

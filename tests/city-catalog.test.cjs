@@ -2,6 +2,9 @@ const test=require('node:test');
 const assert=require('node:assert/strict');
 const core=require('../assets/city-catalog-core.js');
 const importer=require('../admin/city-import.js');
+const fs=require('node:fs');
+const vm=require('node:vm');
+const path=require('node:path');
 
 test('new cities start empty, and overrides and added products affect only that city',()=>{
   const base=[{model:'Матрас А',variants:[{size:'80×190',price:12000}]},{model:'Матрас Б',variants:[{size:'90×190',price:14000}]}];
@@ -41,4 +44,43 @@ test('invalid import rows are rejected before changing any catalog',()=>{
   assert.throws(()=>importer.parseJSON('{"items":[{"type":"sofas","name":"Диван","variants":[]}]}' ,'city-kazan'),/размеры и цены/);
   const items=importer.parseJSON(JSON.stringify({items:[{type:'sofas',name:'Диван',variants:[{size:'90×190',color:'Серый',price:25000}]}]}),'city-kazan');
   assert.equal(items[0].category,'sofas');assert.equal(items[0].price,25000);
+});
+
+test('city descriptions survive normalization and update only the selected city page',()=>{
+  const payload=core.normalize({cities:[
+    {id:'ekaterinburg',name:'Екатеринбург'},
+    {id:'city-kazan',name:'Казань',hero_description:'Матрасы для Казани',delivery_description:'Доставка по Казани',service_description:'Поможем в Казани',about_description:'О магазине в Казани',seo_title:'Каталог Казань — НОКТЕНА',seo_description:'Кровати и матрасы для Казани'}
+  ]});
+  const restored=core.normalize(payload);
+  assert.equal(restored.cities[1].about_description,'О магазине в Казани');
+  assert.equal(restored.cities[0].hero_description,'');
+  const selectors=new Map([
+    ['.hero-copy',{textContent:''}],['.hero-copy p',{textContent:'Исходный текст'}],
+    ['.delivery-lead',{textContent:'Исходная доставка'}],['#homeService .service-layout p',{textContent:''}],['.networkbox > div > p',{textContent:''}]
+  ]);
+  const metas=new Map(['description','og:title','og:description','twitter:title','twitter:description'].map(key=>[key,{content:'Исходное значение'}]));
+  const document={readyState:'complete',title:'Исходный заголовок',querySelector:s=>selectors.get(s)||null,
+    querySelectorAll:s=>s.startsWith('meta[')?[...metas].filter(([key])=>s.includes(`name="${key}"`)||s.includes(`property="${key}"`)).map(([,el])=>el):[],addEventListener(){}};
+  const context={document,window:{NoktenaCityCatalogCore:core,NOKTENA_CATALOG_BOOTSTRAP:{rows:[{product_key:core.KEY,payload:restored}]}},
+    location:{search:'?city=city-kazan',pathname:'/',href:'https://noktena.ru/?city=city-kazan'},URL,URLSearchParams,
+    localStorage:{getItem(){return''},setItem(){}}};
+  vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../assets/city-catalog.js'),'utf8'),context);
+  assert.equal(selectors.get('.hero-copy p').textContent,'Матрасы для Казани');
+  assert.equal(selectors.get('.delivery-lead').textContent,'Доставка по Казани');
+  assert.equal(selectors.get('.networkbox > div > p').textContent,'О магазине в Казани');
+  assert.equal(document.title,'Каталог Казань — НОКТЕНА');
+  assert.equal(metas.get('description').content,'Кровати и матрасы для Казани');
+  assert.equal(metas.get('og:title').content,'Каталог Казань — НОКТЕНА');
+});
+
+test('an empty Ekaterinburg description leaves the current homepage copy and SEO intact',()=>{
+  const hero={textContent:'Текущий текст'},meta={content:'Текущее описание'},document={readyState:'complete',title:'Текущий заголовок',
+    querySelector:s=>s==='.hero-copy'?{}:s==='.hero-copy p'?hero:null,
+    querySelectorAll:s=>s.startsWith('meta[')?[meta]:[],addEventListener(){}};
+  const context={document,window:{NoktenaCityCatalogCore:core,NOKTENA_CATALOG_BOOTSTRAP:{rows:[]}},
+    location:{search:'',pathname:'/',href:'https://noktena.ru/'},URL,URLSearchParams,localStorage:{getItem(){return''},setItem(){}}};
+  vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../assets/city-catalog.js'),'utf8'),context);
+  assert.equal(hero.textContent,'Текущий текст');
+  assert.equal(meta.content,'Текущее описание');
+  assert.equal(document.title,'Текущий заголовок');
 });

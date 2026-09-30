@@ -5,7 +5,8 @@
 })(typeof window!=='undefined'?window:null,()=>{
   'use strict';
   const KEY='settings:city_catalogs_v1';
-  const DEFAULT_CITY={id:'ekaterinburg',name:'Екатеринбург',warehouse:'Берёзовский',delivery_price:null};
+  const TEXT_LIMITS=Object.freeze({hero_description:500,delivery_description:350,service_description:500,about_description:800,seo_title:100,seo_description:250});
+  const DEFAULT_CITY={id:'ekaterinburg',name:'Екатеринбург',warehouse:'Берёзовский',delivery_price:null,...Object.fromEntries(Object.keys(TEXT_LIMITS).map(key=>[key,'']))};
   const validId=id=>/^[a-z0-9][a-z0-9-]{0,47}$/.test(String(id||''));
   const keyFor=(kind,product)=>String(product?._catalogKey||product?._key||`${kind}:${kind==='furniture'?product?.id||'':product?.model||''}`);
   function normalize(payload){
@@ -14,6 +15,7 @@
     for(const city of Array.isArray(raw.cities)?raw.cities:[]){
       if(!validId(city?.id))continue;
       const value={id:city.id,name:String(city.name||'').trim().slice(0,80),warehouse:String(city.warehouse||'').trim().slice(0,120),delivery_price:city.delivery_price==null||city.delivery_price===''?null:Math.max(0,Number(city.delivery_price)||0)};
+      for(const [key,limit] of Object.entries(TEXT_LIMITS))value[key]=String(city[key]||'').trim().slice(0,limit);
       if(city.id===DEFAULT_CITY.id){Object.assign(cities[0],value);continue}
       if(value.name&&!cities.some(x=>x.id===value.id))cities.push(value);
     }
@@ -38,5 +40,5 @@
     }).filter(Boolean);
   }
   function fromBootstrap(bootstrap){return normalize((bootstrap?.rows||[]).find(row=>row.product_key===KEY)?.payload)}
-  return Object.freeze({KEY,DEFAULT_CITY,normalize,keyFor,applyCatalog,fromBootstrap});
+  return Object.freeze({KEY,DEFAULT_CITY,TEXT_LIMITS,normalize,keyFor,applyCatalog,fromBootstrap});
 });

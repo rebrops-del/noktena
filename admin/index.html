@@ -12,7 +12,7 @@
   <link rel="stylesheet" href="./admin-luxe.css?v=premium1">
   <link rel="stylesheet" href="./admin-2026.css?v=premium3">
   <link rel="stylesheet" href="./site-settings.css?v=20260928-hero1">
-  <link rel="stylesheet" href="./city-catalog.css?v=20260930-1">
+  <link rel="stylesheet" href="./city-catalog.css?v=20260930-2">
   <link rel="stylesheet" href="./banner-settings.css?v=20260930-2">
 </head>
 <body>
@@ -167,6 +167,17 @@
       <div class="city-toolbar"><label>Редактировать город<select id="cityAdminSelect"></select></label><form id="cityAddForm"><label>Новый город<input id="cityAddName" type="text" maxlength="80" required placeholder="Например, Казань"></label><button class="btn secondary" type="submit">+ Добавить город</button></form></div>
       <form id="cityDetailsForm" class="city-details"><label>Название<input id="cityAdminName" type="text" maxlength="80" required></label><label>Город склада<input id="cityAdminWarehouse" type="text" maxlength="120" placeholder="Пусто — самовывоз недоступен"></label><label>Доставка по городу, ₽<input id="cityAdminDelivery" type="number" min="0" max="1000000" placeholder="Уточняется менеджером"></label><button class="btn secondary" type="submit">Сохранить данные города</button></form>
       <small class="site-settings-hint">Для Екатеринбурга действуют прежние настройки доставки. Для других городов пустая стоимость означает «уточняется менеджером» и не добавляется к сумме заказа.</small>
+    </section>
+    <section class="site-settings-block">
+      <div class="site-settings-section-head"><h2>Описание города на сайте</h2><p>Тексты показываются покупателю при выборе этого города. Если оставить поле пустым, останется обычный текст сайта для Екатеринбурга или автоматическое описание нового города.</p></div>
+      <form id="cityContentForm" class="city-content-form">
+        <label>Описание на первом экране<textarea id="cityHeroDescription" rows="3" maxlength="500" placeholder="Например, матрасы, кровати и диваны с доставкой по вашему городу"></textarea></label>
+        <label>Текст о доставке<textarea id="cityDeliveryDescription" rows="2" maxlength="350" placeholder="Условия доставки и подъёма для выбранного города"></textarea></label>
+        <label>Текст в разделе «Сервис»<textarea id="cityServiceDescription" rows="2" maxlength="500" placeholder="Как вы помогаете с выбором и доставкой"></textarea></label>
+        <label>Текст в разделе «О нас»<textarea id="cityAboutDescription" rows="3" maxlength="800" placeholder="Описание работы магазина в выбранном городе"></textarea></label>
+        <div class="city-content-grid"><label>Title для поисковиков<input id="citySeoTitle" type="text" maxlength="100" placeholder="Название магазина и город"></label><label>Description для поисковиков<textarea id="citySeoDescription" rows="3" maxlength="250" placeholder="Краткое описание товаров и доставки в этом городе"></textarea></label></div>
+        <div class="city-savebar"><span class="site-settings-hint">Эти поля действуют только для выбранного города. Пустое поле возвращает стандартный текст.</span><button class="btn primary" type="submit">Сохранить описание города</button></div>
+      </form>
     </section>
     <section class="site-settings-block">
       <div class="site-settings-section-head"><h2>Товары города</h2><p>Отметьте позиции, которые будут видны покупателям. Изменения карточки для города сохраняются отдельно от остальных городов.</p></div>
@@ -335,8 +346,8 @@
   <script src="./banner-settings.js?v=20260930-2" defer></script>
   <script src="./site-settings.js?v=20260930-city1" defer></script>
   <script src="./notification-settings.js?v=20260930-1" defer></script>
-  <script src="../assets/city-catalog-core.js?v=20260930-1" defer></script>
+  <script src="../assets/city-catalog-core.js?v=20260930-2" defer></script>
   <script src="./city-import.js?v=20260930-1" defer></script>
-  <script src="./city-catalog.js?v=20260930-1" defer></script>
+  <script src="./city-catalog.js?v=20260930-2" defer></script>
 </body>
 </html>

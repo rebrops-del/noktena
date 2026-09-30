@@ -44,33 +44,46 @@
     text('.mobile-location','Ваш город · '+selected.name);
     text('.nav-contact span',selected.name+' · онлайн-магазин');
     const cityInput=document.querySelector('#orderCity');if(cityInput){cityInput.value=selected.name;cityInput.readOnly=true}
-    if(selected.id==='ekaterinburg')return;
-    text('.hero-copy .eyebrow','НОКТЕНА · '+selected.name.toUpperCase());
-    text('.hero-copy p','Матрасы, кровати и диваны для комфортного сна. Выберите модель из каталога вашего города, а условия доставки подтвердит менеджер.');
-    text('.hero-assurance span:last-child','Каталог для '+selected.name);
-    text('.delivery-lead','Условия доставки для города '+selected.name+' подтвердит менеджер при оформлении заказа.');
-    text('.deliverybox .dgrid .d:first-child small',selected.delivery_price==null?'Стоимость и сроки уточнит менеджер':'Доставка по городу '+selected.name);
-    text('.deliverybox .dgrid .d:first-child b',selected.delivery_price==null?'Уточняется':selected.delivery_price===0?'Бесплатно':Number(selected.delivery_price).toLocaleString('ru-RU')+' ₽');
-    text('.deliverybox .dgrid .d:nth-child(5) b','Уточняется');
-    text('#homeService .service-layout p','Подберём размер, комплектацию и условия доставки для города '+selected.name+'.');
-    text('.networkbox > div > p','Выберите товары вашего города и отправьте заказ. Менеджер подтвердит наличие, комплектацию и условия доставки.');
-    text('.networkfacts .fact:nth-child(2) span','г. '+selected.name);
-    text('.networkfacts .fact:nth-child(3) span',selected.warehouse?'г. '+selected.warehouse:'Уточняется при заказе');
-    text('.premium-footer > div:first-child > span',selected.name+(selected.warehouse?' · склад: '+selected.warehouse:''));
-    text('.pd-service-item:first-child b',selected.warehouse?'Склад: г. '+selected.warehouse:'Наличие уточнит менеджер');
-    text('.pd-service-item:nth-child(2) b','Доставка по г. '+selected.name);
-    text('.pd-service-item:nth-child(2) span','Стоимость и сроки уточнит менеджер');
-    text('.site-top-warehouse',selected.warehouse?'склад: г. '+selected.warehouse:'наличие уточняется');
-    const footer=document.querySelector('.pd-footer span');if(footer){const privacy=footer.querySelector('a');footer.replaceChildren(document.createTextNode(selected.name+(selected.warehouse?' · склад: г. '+selected.warehouse:'')+' · '));if(privacy)footer.append(privacy)}
-    text('.checkout-intro .overline','ВАШ ЗАКАЗ · '+selected.name.toUpperCase());
-    const pickup=document.querySelector('input[name="deliveryMethod"][value="pickup"]');if(pickup){pickup.closest('label').hidden=!selected.warehouse;if(!selected.warehouse&&pickup.checked){const delivery=document.querySelector('input[name="deliveryMethod"][value="delivery"]');if(delivery)delivery.checked=true}}
-    const pickupLabel=document.querySelector('input[name="deliveryMethod"][value="pickup"] ~ span small');if(pickupLabel&&selected.warehouse)pickupLabel.textContent='Со склада в г. '+selected.warehouse+' — бесплатно';
-    if(document.title.includes('Екатеринбург'))document.title=document.title.replace(/Екатеринбург[еа]?/g,selected.name);
-    for(const meta of document.querySelectorAll('meta[name="description"],meta[property="og:title"],meta[property="og:description"],meta[name="twitter:title"],meta[name="twitter:description"]')){
-      const old=meta.content;if(old.includes('Екатеринбург'))meta.content=old.replace(/Екатеринбург[еа]?/g,selected.name);
+    const regional=selected.id!=='ekaterinburg';
+    if(regional){
+      text('.hero-copy .eyebrow','НОКТЕНА · '+selected.name.toUpperCase());
+      text('.hero-copy p','Матрасы, кровати и диваны для комфортного сна. Выберите модель из каталога вашего города, а условия доставки подтвердит менеджер.');
+      text('.hero-assurance span:last-child','Каталог для '+selected.name);
+      text('.delivery-lead','Условия доставки для города '+selected.name+' подтвердит менеджер при оформлении заказа.');
+      text('.deliverybox .dgrid .d:first-child small',selected.delivery_price==null?'Стоимость и сроки уточнит менеджер':'Доставка по городу '+selected.name);
+      text('.deliverybox .dgrid .d:first-child b',selected.delivery_price==null?'Уточняется':selected.delivery_price===0?'Бесплатно':Number(selected.delivery_price).toLocaleString('ru-RU')+' ₽');
+      text('.deliverybox .dgrid .d:nth-child(5) b','Уточняется');
+      text('#homeService .service-layout p','Подберём размер, комплектацию и условия доставки для города '+selected.name+'.');
+      text('.networkbox > div > p','Выберите товары вашего города и отправьте заказ. Менеджер подтвердит наличие, комплектацию и условия доставки.');
+      text('.networkfacts .fact:nth-child(2) span','г. '+selected.name);
+      text('.networkfacts .fact:nth-child(3) span',selected.warehouse?'г. '+selected.warehouse:'Уточняется при заказе');
+      text('.premium-footer > div:first-child > span',selected.name+(selected.warehouse?' · склад: '+selected.warehouse:''));
+      text('.pd-service-item:first-child b',selected.warehouse?'Склад: г. '+selected.warehouse:'Наличие уточнит менеджер');
+      text('.pd-service-item:nth-child(2) b','Доставка по г. '+selected.name);
+      text('.pd-service-item:nth-child(2) span','Стоимость и сроки уточнит менеджер');
+      text('.site-top-warehouse',selected.warehouse?'склад: г. '+selected.warehouse:'наличие уточняется');
+      const footer=document.querySelector('.pd-footer span');if(footer){const privacy=footer.querySelector('a');footer.replaceChildren(document.createTextNode(selected.name+(selected.warehouse?' · склад: г. '+selected.warehouse:'')+' · '));if(privacy)footer.append(privacy)}
+      text('.checkout-intro .overline','ВАШ ЗАКАЗ · '+selected.name.toUpperCase());
+      const pickup=document.querySelector('input[name="deliveryMethod"][value="pickup"]');if(pickup){pickup.closest('label').hidden=!selected.warehouse;if(!selected.warehouse&&pickup.checked){const delivery=document.querySelector('input[name="deliveryMethod"][value="delivery"]');if(delivery)delivery.checked=true}}
+      const pickupLabel=document.querySelector('input[name="deliveryMethod"][value="pickup"] ~ span small');if(pickupLabel&&selected.warehouse)pickupLabel.textContent='Со склада в г. '+selected.warehouse+' — бесплатно';
     }
-    for(const script of document.querySelectorAll('script[type="application/ld+json"]')){
-      try{const data=JSON.parse(script.textContent);if(data['@type']==='Store'&&data.areaServed){data.areaServed={'@type':'City',name:selected.name};script.textContent=JSON.stringify(data)}}catch{}
+    for(const [field,selector] of [['hero_description','.hero-copy p'],['delivery_description','.delivery-lead'],['service_description','#homeService .service-layout p'],['about_description','.networkbox > div > p']]){
+      if(selected[field])text(selector,selected[field]);
+    }
+    if(regional){
+      if(document.title.includes('Екатеринбург'))document.title=document.title.replace(/Екатеринбург[еа]?/g,selected.name);
+      for(const meta of document.querySelectorAll('meta[name="description"],meta[property="og:title"],meta[property="og:description"],meta[name="twitter:title"],meta[name="twitter:description"]')){
+        const old=meta.content;if(old.includes('Екатеринбург'))meta.content=old.replace(/Екатеринбург[еа]?/g,selected.name);
+      }
+      for(const script of document.querySelectorAll('script[type="application/ld+json"]')){
+        try{const data=JSON.parse(script.textContent);if(data['@type']==='Store'&&data.areaServed){data.areaServed={'@type':'City',name:selected.name};script.textContent=JSON.stringify(data)}}catch{}
+      }
+    }
+    if(document.querySelector('.hero-copy')){
+      const title=selected.seo_title||(regional?`Матрасы, кровати и диваны — НОКТЕНА, г. ${selected.name}`:'');
+      const description=selected.seo_description||(regional?`Матрасы, кровати и диваны в г. ${selected.name}. Подбор размера, заказ онлайн и доставка. Условия подтвердит менеджер.`:'');
+      if(title){document.title=title;for(const meta of document.querySelectorAll('meta[property="og:title"],meta[name="twitter:title"]'))meta.content=title}
+      if(description)for(const meta of document.querySelectorAll('meta[name="description"],meta[property="og:description"],meta[name="twitter:description"]'))meta.content=description;
     }
   }
   window.NoktenaCities=Object.freeze({settings,current,id:()=>selected.id,change,apply});
