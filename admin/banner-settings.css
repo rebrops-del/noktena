@@ -7,9 +7,12 @@
 .site-banner-card-body{display:grid;grid-template-columns:1.1fr .9fr;gap:25px;padding:19px}
 .site-banner-fields,.site-banner-media{display:grid;align-content:start;gap:13px}
 .site-banner-fields label,.site-banner-media label:not(.site-banner-upload){display:grid;gap:6px;font-size:.83rem;font-weight:700;color:#3c4e42}
-.site-banner-card input:not([type=file]):not([type=checkbox]),.site-banner-card textarea{width:100%;padding:11px 12px;border:1px solid #d9d7d0;background:#fff;border-radius:5px;color:#283c32;font:inherit;min-width:0}
+.site-banner-card input:not([type=file]):not([type=checkbox]),.site-banner-card textarea,.site-banner-card select{width:100%;padding:11px 12px;border:1px solid #d9d7d0;background:#fff;border-radius:5px;color:#283c32;font:inherit;min-width:0}
+.site-banner-card select{height:auto;min-height:45px;cursor:pointer}
 .site-banner-card textarea{resize:vertical;min-height:95px}
-.site-banner-card input:focus-visible,.site-banner-card textarea:focus-visible{outline:2px solid #568769;outline-offset:2px}
+.site-banner-card input:focus-visible,.site-banner-card textarea:focus-visible,.site-banner-card select:focus-visible{outline:2px solid #568769;outline-offset:2px}
+.site-banner-custom-link[hidden]{display:none!important}
+.site-banner-destination-note{display:block;color:#576d5e;font-size:.78rem;line-height:1.5;margin-top:-4px;overflow-wrap:anywhere}
 .site-banner-inline{display:grid;grid-template-columns:1fr 1.2fr;gap:10px}
 .site-banner-active{display:flex!important;align-items:center;gap:9px!important;font-weight:750!important}.site-banner-active input{width:18px;height:18px;accent-color:#2e6347}
 .site-banner-preview{height:198px;display:grid;place-items:center;border:1px solid #dfdcd5;background:#e9e7de;color:#67786b;text-align:center;font-size:.82rem;overflow:hidden}

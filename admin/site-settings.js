@@ -124,7 +124,7 @@
       bootstrap=await readBootstrap();
       saved=(bootstrap.rows||[]).find(row=>row.product_key===KEY)?.payload||{};
       heroSaved=(bootstrap.rows||[]).find(row=>row.product_key===HERO_KEY)?.payload||{};
-      banners?.fill((bootstrap.rows||[]).find(row=>row.product_key===BANNER_KEY)?.payload);
+      banners?.fill((bootstrap.rows||[]).find(row=>row.product_key===BANNER_KEY)?.payload,(bootstrap.rows||[]).find(row=>row.product_key==='settings:contacts_v1')?.payload);
       fill(saved);fillHero(heroSaved);renderHistory();submit.disabled=false;heroSubmit.disabled=false;heroReset.disabled=false;
     }catch(error){toast(error.message,true)}
   }

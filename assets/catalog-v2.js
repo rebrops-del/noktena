@@ -34,11 +34,11 @@
   }
 
   function routeFromHash(){const raw=(location.hash||'#home').slice(1).split('?')[0];return views.has(raw)?raw:'home';}
-  function sections(){const cta=$('.cta')?.closest('section');return{hero:$('.hero'),categories:$('#homeCategories'),journey:$('#homeJourney'),service:$('#homeService'),faq:$('#homeFaq'),delivery:$('#delivery'),about:$('#about'),guide:$('#guide'),catalog:$('#catalog'),hits:$('#homeHits'),furniture:$('#furnitureCatalog'),cta};}
+  function sections(){const cta=$('.cta')?.closest('section');return{hero:$('.hero'),banners:$('#homeBanners'),categories:$('#homeCategories'),journey:$('#homeJourney'),service:$('#homeService'),faq:$('#homeFaq'),delivery:$('#delivery'),about:$('#about'),guide:$('#guide'),catalog:$('#catalog'),hits:$('#homeHits'),furniture:$('#furnitureCatalog'),cta};}
   function show(el,on){if(el)el.classList.toggle('shop-view-hidden',!on)}
   function applyView(view,{scroll=true}={}){
     if(!views.has(view))view='home';const s=sections();
-    show(s.hero,view==='home');show(s.categories,view==='home');show(s.journey,view==='home');show(s.service,view==='home');show(s.faq,view==='home');show(s.delivery,view==='delivery');show(s.about,view==='home');show(s.guide,view==='guide');show(s.hits,view==='home');show(s.catalog,view==='mattresses');show(s.furniture,view==='beds'||view==='sofas');show(s.cta,true);
+    show(s.hero,view==='home');show(s.banners,view==='home');show(s.categories,view==='home');show(s.journey,view==='home');show(s.service,view==='home');show(s.faq,view==='home');show(s.delivery,view==='delivery');show(s.about,view==='home');show(s.guide,view==='guide');show(s.hits,view==='home');show(s.catalog,view==='mattresses');show(s.furniture,view==='beds'||view==='sofas');show(s.cta,true);
     $$('[data-shop-view]').forEach(a=>a.classList.toggle('is-active',a.dataset.shopView===view));document.body.dataset.shopView=view;
     if(view==='beds'||view==='sofas')renderFurniture(view);if(view==='home')renderHomeHits();if(scroll)window.scrollTo({top:0,behavior:'smooth'});
   }
@@ -183,7 +183,7 @@
       const catLink=e.target.closest('a[href="#catalog"]');if(catLink){e.preventDefault();location.hash='mattresses';}
     });
     document.addEventListener('change',e=>{const select=e.target.closest('[data-card-size]');if(!select)return;const card=select.closest('.f-card');if(!card)return;card.dataset.selectedSize=select.value;updateCardVariant(card);});
-    window.addEventListener('hashchange',()=>{const h=(location.hash||'#home').slice(1).split('?')[0];if(views.has(h)){applyView(h);return;}if(['top','delivery','about'].includes(h)){applyView('home',{scroll:false});requestAnimationFrame(()=>document.getElementById(h)?.scrollIntoView({behavior:'smooth',block:'start'}));return;}applyView('home');});
+    window.addEventListener('hashchange',()=>{const h=(location.hash||'#home').slice(1).split('?')[0];if(views.has(h)){applyView(h);return;}if(['top','about','homeHits'].includes(h)){applyView('home',{scroll:false});requestAnimationFrame(()=>document.getElementById(h)?.scrollIntoView({behavior:'smooth',block:'start'}));return;}applyView('home');});
     window.addEventListener('noktena:mattresses-ready',()=>{syncPopularMattresses();if(state.loaded&&routeFromHash()==='home')renderHomeHits()});
     $('#fSearch')?.addEventListener('input',e=>{const v=routeFromHash();if(v==='beds'||v==='sofas'){state.query[v]=e.target.value;state.page[v]=1;renderFurniture(v);}});
     $('#fSort')?.addEventListener('change',e=>{const v=routeFromHash();if(v==='beds'||v==='sofas'){state.sort[v]=e.target.value;state.page[v]=1;renderFurniture(v);}});

@@ -4,6 +4,7 @@
   const section=document.getElementById('homeBanners');
   if(!config||!section)return;
   const payload=(window.NOKTENA_CATALOG_BOOTSTRAP?.rows||[]).find(row=>row.product_key===config.KEY)?.payload;
+  const contacts=(window.NOKTENA_CATALOG_BOOTSTRAP?.rows||[]).find(row=>row.product_key==='settings:contacts_v1')?.payload;
   const banners=config.fromPayload(payload).filter(item=>item.enabled&&item.title);
   if(!banners.length)return;
   const slides=document.getElementById('homeBannersSlides');
@@ -16,9 +17,10 @@
     if(banner.label){const label=document.createElement('span');label.className='home-banner-label';label.textContent=banner.label;copy.append(label)}
     const title=document.createElement('h2');title.textContent=banner.title;copy.append(title);
     if(banner.description){const description=document.createElement('p');description.textContent=banner.description;copy.append(description)}
-    if(banner.button&&banner.link){
-      const link=document.createElement('a');link.className='home-banner-button';link.href=banner.link;link.textContent=banner.button;
-      if(link.origin!==location.origin){link.target='_blank';link.rel='noopener noreferrer'}
+    const href=config.resolveLink(banner.link,contacts);
+    if(banner.button&&href){
+      const link=document.createElement('a');link.className='home-banner-button';link.href=href;link.textContent=banner.button;
+      if(link.protocol==='https:'&&link.origin!==location.origin){link.target='_blank';link.rel='noopener noreferrer'}
       const arrow=document.createElement('span');arrow.setAttribute('aria-hidden','true');arrow.textContent=' ↗';link.append(arrow);copy.append(link);
     }
     card.append(copy);

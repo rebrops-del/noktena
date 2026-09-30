@@ -9,11 +9,20 @@
     const add=pane.querySelector('#siteBannerAdd');
     const save=pane.querySelector('#siteBannersSave');
     const status=pane.querySelector('#siteBannersStatus');
-    let draft=[],busy=false;
+    let draft=[],busy=false,contacts={};
     save.disabled=true;
+    const destinationFor=link=>link?config.DESTINATIONS.find(item=>item.value===link)?.value||'custom':'';
+    function destinationNote(banner){
+      const chosen=config.DESTINATIONS.find(item=>item.value===banner.destinationMode);
+      if(chosen)return `${chosen.hint}. Адрес: ${config.resolveLink(banner.link,contacts)}`;
+      if(banner.destinationMode==='custom')return config.validLink(banner.link)?`Откроет адрес: ${config.validLink(banner.link)}`:'Введите ссылку HTTPS, #раздел или /страница.';
+      return 'Выберите назначение — станет понятно, куда ведёт кнопка.';
+    }
     function render(){
       list.innerHTML=draft.length?draft.map((banner,index)=>{
         const preview=config.validImage(banner.image);
+        const mode=banner.destinationMode??destinationFor(banner.link);
+        const destinations=config.DESTINATIONS.map(item=>`<option value="${escape(item.value)}" ${mode===item.value?'selected':''}>${escape(item.label)} — ${escape(item.hint)}</option>`).join('');
         return `<article class="site-banner-card" data-banner-id="${escape(banner.id)}">
           <div class="site-banner-card-head"><div><span>БАННЕР ${index+1}</span><strong>${escape(banner.title||'Новое предложение')}</strong></div><div class="site-banner-card-actions"><button type="button" class="btn secondary" data-banner-action="up" ${index===0?'disabled':''} aria-label="Поднять баннер ${index+1}">↑</button><button type="button" class="btn secondary" data-banner-action="down" ${index===draft.length-1?'disabled':''} aria-label="Опустить баннер ${index+1}">↓</button><button type="button" class="btn secondary" data-banner-action="remove" aria-label="Удалить баннер ${index+1}">Удалить</button></div></div>
           <div class="site-banner-card-body"><div class="site-banner-fields">
@@ -21,7 +30,9 @@
             <label>Надпись над заголовком<input data-field="label" maxlength="60" value="${escape(banner.label)}" placeholder="СПЕЦИАЛЬНОЕ ПРЕДЛОЖЕНИЕ"></label>
             <label>Заголовок *<input data-field="title" maxlength="100" value="${escape(banner.title)}" placeholder="Например, Всё для уютной спальни"></label>
             <label>Описание<textarea data-field="description" maxlength="240" rows="3" placeholder="Коротко расскажите об акции или подборке">${escape(banner.description)}</textarea></label>
-            <div class="site-banner-inline"><label>Текст кнопки<input data-field="button" maxlength="50" value="${escape(banner.button)}" placeholder="Смотреть товары"></label><label>Ссылка кнопки<input data-field="link" maxlength="1000" value="${escape(banner.link)}" placeholder="#beds или https://…"></label></div>
+            <div class="site-banner-inline"><label>Куда ведёт кнопка<select data-banner-destination><option value="" ${mode===''?'selected':''}>Без кнопки</option>${destinations}<option value="custom" ${mode==='custom'?'selected':''}>Своя ссылка — указать адрес вручную</option></select></label><label>Надпись на кнопке<input data-field="button" maxlength="50" value="${escape(banner.button)}" placeholder="Например, Смотреть каталог" ${mode===''?'disabled':''}></label></div>
+            <label class="site-banner-custom-link" ${mode==='custom'?'':'hidden'}>Своя ссылка<input data-field="link" maxlength="1000" value="${mode==='custom'?escape(banner.link):''}" placeholder="https://… или #раздел"></label>
+            <small class="site-banner-destination-note">${escape(destinationNote(banner))}</small>
           </div><div class="site-banner-media">
             <div class="site-banner-preview">${preview?`<img src="${escape(preview)}" alt="Предпросмотр баннера">`:'<span>Добавьте изображение для баннера</span>'}</div>
             <label class="site-banner-upload btn secondary">Загрузить картинку<input type="file" data-banner-file accept="image/jpeg,image/png,image/webp"></label>
@@ -33,22 +44,34 @@
       add.disabled=busy||draft.length>=8;
       save.disabled=busy;
     }
-    function fill(payload){
-      draft=config.fromPayload(payload).map((banner,index)=>({...banner,id:banner.id||`banner-${index}`}));
+    function fill(payload,contactSettings={}){
+      contacts=contactSettings||{};
+      draft=config.fromPayload(payload).map((banner,index)=>({...banner,id:banner.id||`banner-${index}`,destinationMode:destinationFor(banner.link)}));
       status.textContent='';render();
     }
     add.addEventListener('click',()=>{
       if(busy||draft.length>=8)return;
-      draft.push({id:`banner-${Date.now().toString(36)}-${Math.random().toString(36).slice(2,8)}`,label:'',title:'',description:'',button:'',link:'',image:'',alt:'',enabled:true});
+      draft.push({id:`banner-${Date.now().toString(36)}-${Math.random().toString(36).slice(2,8)}`,label:'',title:'',description:'',button:'',link:'',image:'',alt:'',enabled:true,destinationMode:''});
       render();list.lastElementChild?.querySelector('[data-field="title"]')?.focus();
       status.textContent='Заполните баннер и нажмите «Сохранить баннеры».';
     });
     list.addEventListener('input',event=>{
-      const field=event.target.dataset.field;
       const banner=draft.find(item=>item.id===event.target.closest('[data-banner-id]')?.dataset.bannerId);
+      if(event.target.dataset.bannerDestination!==undefined&&banner){
+        const previous=config.DESTINATIONS.find(item=>item.value===banner.link);
+        const chosen=config.DESTINATIONS.find(item=>item.value===event.target.value);
+        const automatic=!banner.button||banner.button===previous?.button;
+        banner.destinationMode=event.target.value;
+        banner.link=chosen?.value||'';
+        if(!event.target.value)banner.button='';
+        else if(chosen&&automatic)banner.button=chosen.button;
+        render();return;
+      }
+      const field=event.target.dataset.field;
       if(!field||!banner)return;
       banner[field]=field==='enabled'?event.target.checked:event.target.value;
       if(field==='title')event.target.closest('.site-banner-card').querySelector('.site-banner-card-head strong').textContent=banner.title||'Новое предложение';
+      if(field==='link')event.target.closest('.site-banner-card').querySelector('.site-banner-destination-note').textContent=destinationNote(banner);
       if(field==='image'){
         const preview=event.target.closest('.site-banner-card').querySelector('.site-banner-preview');
         const image=config.validImage(banner.image);
@@ -96,7 +119,8 @@
       for(const [index,banner] of draft.entries()){
         const number=index+1;
         if(!banner.title.trim()){toast(`Баннер ${number}: укажите заголовок`,true);return}
-        if(!!banner.button.trim()!==!!banner.link.trim()||banner.link&&!config.validLink(banner.link)){toast(`Баннер ${number}: укажите текст кнопки и корректную ссылку (#раздел, /страница или HTTPS)`,true);return}
+        if(banner.destinationMode==='custom'&&!banner.link.trim()){toast(`Баннер ${number}: укажите свою ссылку или выберите «Без кнопки»`,true);return}
+        if(!!banner.button.trim()!==!!banner.link.trim()||banner.link&&!config.validLink(banner.link)){toast(`Баннер ${number}: выберите назначение, укажите текст кнопки и корректную ссылку`,true);return}
         if(banner.image&&!config.validImage(banner.image)){toast(`Баннер ${number}: укажите ссылку на картинку HTTPS`,true);return}
       }
       busy=true;save.disabled=true;add.disabled=true;status.textContent='Сохраняем баннеры…';
