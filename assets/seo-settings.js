@@ -2,8 +2,9 @@
   'use strict';
   const settings=window.NoktenaCitySettings?.seo(window.NOKTENA_CATALOG_BOOTSTRAP?.rows);
   if(!settings)return;
-  const title=String(settings.home_title||'').trim().slice(0,100);
-  const description=String(settings.home_description||'').trim().slice(0,250);
+  const brand=window.NoktenaBrand;
+  const title=(brand?.replace(String(settings.home_title||''))||String(settings.home_title||'')).trim().slice(0,100);
+  const description=(brand?.replace(String(settings.home_description||''))||String(settings.home_description||'')).trim().slice(0,250);
   if(!title||!description)return;
   function meta(selector,value){
     const node=document.querySelector(selector);

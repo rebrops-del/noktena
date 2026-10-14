@@ -48,7 +48,7 @@
     const cityInput=document.querySelector('#orderCity');if(cityInput){cityInput.value=selected.name;cityInput.readOnly=true}
     const regional=selected.id!=='ekaterinburg';
     if(regional){
-      text('.hero-copy .eyebrow','НОКТЕНА · '+selected.name.toUpperCase());
+      text('.hero-copy .eyebrow',(window.NoktenaBrand?.name||'НОКТЕНА')+' · '+selected.name.toUpperCase());
       text('.hero-copy p','Матрасы, кровати и диваны для комфортного сна. Выберите модель из каталога вашего города, а условия доставки подтвердит менеджер.');
       text('.hero-assurance span:last-child','Каталог для '+selected.name);
       text('.delivery-lead','Условия доставки для города '+selected.name+' подтвердит менеджер при оформлении заказа.');
@@ -87,7 +87,7 @@
     }
     const ownSeo=window.NoktenaCitySettings?.ownRow(window.NOKTENA_CATALOG_BOOTSTRAP?.rows,'settings:seo_v1',selected.id);
     if(document.querySelector('.hero-copy')&&!ownSeo){
-      const title=selected.seo_title||(regional?`Матрасы, кровати и диваны — НОКТЕНА, г. ${selected.name}`:'');
+      const title=(selected.seo_title?(window.NoktenaBrand?.replace(selected.seo_title)||selected.seo_title):'')||(regional?`Матрасы, кровати и диваны — ${window.NoktenaBrand?.name||'НОКТЕНА'}, г. ${selected.name}`:'');
       const description=selected.seo_description||(regional?`Матрасы, кровати и диваны в г. ${selected.name}. Подбор размера, заказ онлайн и доставка. Условия подтвердит менеджер.`:'');
       if(title){document.title=title;for(const meta of document.querySelectorAll('meta[property="og:title"],meta[name="twitter:title"]'))meta.content=title}
       if(description)for(const meta of document.querySelectorAll('meta[name="description"],meta[property="og:description"],meta[name="twitter:description"]'))meta.content=description;

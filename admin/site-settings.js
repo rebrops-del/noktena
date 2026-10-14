@@ -35,7 +35,8 @@
 
   function snapshot(data){
     const privacy=data?.privacy||{};
-    return {home_title:String(data?.home_title||DEFAULT_TITLE),home_description:String(data?.home_description||DEFAULT_DESCRIPTION),og_image:String(data?.og_image||''),privacy:Object.fromEntries(Object.keys(fields).map(key=>[key,String(privacy[key]||'')]))};
+    const replace=value=>window.NoktenaBrand?.replace(value)||value;
+    return {home_title:replace(String(data?.home_title||DEFAULT_TITLE)),home_description:replace(String(data?.home_description||DEFAULT_DESCRIPTION)),og_image:String(data?.og_image||''),privacy:Object.fromEntries(Object.keys(fields).map(key=>[key,String(privacy[key]||'')]))};
   }
   function readForm(){
     return {home_title:$('#siteSeoTitle').value.trim(),home_description:$('#siteSeoDescription').value.trim(),og_image:$('#siteOgUrl').value.trim(),privacy:Object.fromEntries(Object.entries(fields).map(([key,id])=>[key,$('#'+id).value.trim()]))};

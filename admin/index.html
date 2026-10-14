@@ -14,6 +14,7 @@
   <link rel="stylesheet" href="./site-settings.css?v=20260928-hero1">
   <link rel="stylesheet" href="./city-catalog.css?v=20261001-4">
   <link rel="stylesheet" href="./banner-settings.css?v=20260930-2">
+  <link rel="stylesheet" href="./brand-theme.css?v=20261014-1">
 </head>
 <body>
   <div id="toast" class="toast hide"></div>
@@ -21,10 +22,10 @@
   <section id="login" class="login">
     <div class="login-story" aria-hidden="true"><div class="login-story-top">НОКТЕНА <span>УПРАВЛЕНИЕ МАГАЗИНОМ</span></div><div class="login-story-bottom"><span>ПРОСТРАНСТВО ДЛЯ РАБОТЫ</span><p>Красота в деталях.<br>Порядок в каждом заказе.</p></div></div>
     <form id="loginForm" class="box">
-      <img class="admin-logo" src="../assets/logo-noktena-hq.svg" alt="НОКТЕНА" width="920" height="250">
+      <img class="admin-logo" data-brand-logo src="../assets/logo-noktena-hq.svg" alt="НОКТЕНА" width="920" height="250">
       <span class="login-overline">ЛИЧНЫЙ КАБИНЕТ</span>
       <h1>Добро пожаловать</h1>
-      <p class="muted">Управляйте товарами и заказами НОКТЕНЫ в одном месте.</p>
+      <p class="muted">Управляйте товарами и заказами магазина в одном месте.</p>
       <label>E-mail<input id="email" type="email" autocomplete="username" required></label>
       <label>Пароль<input id="password" type="password" autocomplete="current-password" required></label>
       <button id="loginBtn" class="btn primary" type="submit">Войти</button>
@@ -35,7 +36,7 @@
 
   <div id="app" class="app hide">
     <aside class="side">
-      <div class="side-head"><img class="admin-logo" src="../assets/logo-noktena-final.png" alt="НОКТЕНА"><small>ПАНЕЛЬ УПРАВЛЕНИЯ</small></div>
+      <div class="side-head"><img class="admin-logo" data-brand-logo src="../assets/logo-noktena-final.png" alt="НОКТЕНА"><small>ПАНЕЛЬ УПРАВЛЕНИЯ</small></div>
       <div class="side-nav"><span class="side-label">МАГАЗИН</span><button class="side-link is-current" type="button" data-admin-open="catalog"><span aria-hidden="true">◫</span>Обзор и товары</button><button class="side-link" type="button" data-admin-open="orders"><span aria-hidden="true">▤</span>Заказы <span id="sideOrdersBadge" class="side-badge" hidden></span></button><button class="side-link" type="button" data-admin-open="cities"><span aria-hidden="true">⌖</span>Города и каталоги</button><button class="side-link" type="button" data-admin-open="popular"><span aria-hidden="true">✦</span>Популярные модели</button><span class="side-label">НАСТРОЙКИ</span><button class="side-link" type="button" data-admin-open="banners"><span aria-hidden="true">▣</span>Баннеры</button><button class="side-link" type="button" data-admin-open="site-settings"><span aria-hidden="true">⚙</span>Настройки и SEO</button><button class="side-link" type="button" data-admin-open="notifications"><span aria-hidden="true">✉</span>Уведомления</button><button class="side-link" type="button" data-admin-open="prices"><span aria-hidden="true">◈</span>Цены</button><button class="side-link" type="button" data-admin-open="delivery"><span aria-hidden="true">↗</span>Доставка</button><button class="side-link" type="button" data-admin-open="contacts"><span aria-hidden="true">☎</span>Контакты</button><button class="side-link" type="button" data-admin-open="password"><span aria-hidden="true">◇</span>Пароль</button></div>
       <div class="bottom"><a class="side-site-link" href="/" target="_blank" rel="noopener">Открыть магазин ↗</a><div id="adminEmail" class="muted"></div><button id="logout" class="btn secondary" type="button">Выйти</button></div>
     </aside>
@@ -83,6 +84,27 @@
 
   <template id="siteSettingsTemplate">
     <header class="site-settings-head"><span class="admin-overline">НОКТЕНА / УПРАВЛЕНИЕ</span><h1>Настройки и SEO</h1><p class="muted">Главная страница, поисковое представление, политика конфиденциальности и резервная копия магазина.</p></header>
+    <section class="site-settings-block" aria-labelledby="siteBrandHeading">
+      <div class="site-settings-section-head"><h2 id="siteBrandHeading">Бренд и цвета</h2><p>Название, логотип и оформление общие для всех городов. После сохранения они меняются на сайте и в админ-панели.</p></div>
+      <form id="siteBrandForm">
+        <div class="site-brand-grid">
+          <div class="site-brand-fields">
+            <label>Название компании<input id="brandName" type="text" maxlength="80" required placeholder="Название магазина"></label>
+            <div><label class="site-upload-label">Загрузить логотип<input id="brandLogoFile" type="file" accept="image/png,image/jpeg,image/webp"></label><small class="site-settings-hint">PNG, JPEG или WebP до 12 МБ. Подойдёт прозрачный горизонтальный логотип.</small></div>
+            <label>Или вставить ссылку на логотип<input id="brandLogoUrl" type="url" maxlength="1000" placeholder="https://…/logo.png"></label>
+            <div class="site-brand-colors">
+              <label>Основной цвет сайта<input id="brandSiteColor" type="color" value="#243a31"></label>
+              <label>Цвет админ-панели<input id="brandAdminColor" type="color" value="#25372e"></label>
+              <label>Цвет акцентов<input id="brandAccentColor" type="color" value="#a3815f"></label>
+            </div>
+            <small class="site-settings-hint">Основные цвета должны быть достаточно тёмными для белого текста. Цвет акцентов используется для подписей, выделения и рамок.</small>
+          </div>
+          <div class="site-brand-preview" aria-live="polite"><span>Предпросмотр</span><img id="brandLogoPreview" src="/assets/logo-noktena-final.png" alt="Логотип"><strong id="brandPreviewName">НОКТЕНА</strong><div class="site-brand-preview-colors"><i id="brandPreviewSite" title="Сайт"></i><i id="brandPreviewAdmin" title="Админ-панель"></i><i id="brandPreviewAccent" title="Акценты"></i></div></div>
+        </div>
+        <div class="site-brand-actions"><button type="submit" class="btn primary">Сохранить бренд и цвета</button><button id="brandLogoReset" class="btn secondary" type="button">Вернуть исходный логотип</button><button id="brandColorsReset" class="btn secondary" type="button">Вернуть исходные цвета</button></div>
+        <p id="brandStatus" class="site-settings-hint" role="status" aria-live="polite"></p>
+      </form>
+    </section>
     <section class="site-settings-block" aria-labelledby="shopSettingsHeading">
       <div class="site-settings-section-head"><h2 id="shopSettingsHeading">Настройки магазина</h2><p>Изменения контактов и подборки появляются на сайте после сохранения.</p></div>
       <div class="site-settings-grid">
@@ -341,6 +363,9 @@
     </div>
   </div>
 
+  <script src="https://admin-proxy-v2-production.up.railway.app/catalog-bootstrap.js?v=20261014-brand1" defer></script>
+  <script src="../assets/brand-core.js?v=20261014-1" defer></script>
+  <script src="../assets/brand-runtime.js?v=20261014-1" defer></script>
   <script src="../assets/city-settings-core.js?v=20261001-4" defer></script>
   <script src="./admin.js?v=20261001-4" defer></script>
   <script src="./admin-enhancements.js?v=20261001-3" defer></script>
@@ -355,6 +380,7 @@
   <script src="../assets/home-banners-config.js?v=20260930-2" defer></script>
   <script src="./banner-settings.js?v=20261001-4" defer></script>
   <script src="./site-settings.js?v=20261001-4" defer></script>
+  <script src="./brand-settings.js?v=20261014-1" defer></script>
   <script src="./notification-settings.js?v=20261001-4" defer></script>
   <script src="../assets/city-catalog-core.js?v=20261001-3" defer></script>
   <script src="./city-import.js?v=20260930-1" defer></script>

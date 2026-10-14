@@ -44,17 +44,17 @@
   }
   function swatchCss(name){const n=String(name||'').toLowerCase().replace(/ё/g,'е');const map=[['молоч','#eee7d8'],['крем','#eadcc5'],['айвор','#eee6d5'],['беж','#d8c4a6'],['песоч','#cbb58b'],['капуч','#a98970'],['тауп','#8b7c70'],['графит','#555b5d'],['антрац','#44494c'],['темно сер','#66686b'],['светло сер','#b9b8b4'],['сер','#8b8c90'],['бирюз','#49a5a9'],['мят','#91b8a4'],['изумруд','#39705c'],['олив','#7d8662'],['зел','#718b77'],['голуб','#91b9cf'],['син','#4c6687'],['борд','#7c3340'],['винн','#7c3340'],['пудр','#d8a8b4'],['роз','#d8a8b4'],['сирен','#9b83a8'],['фиолет','#806b8c'],['корич','#76584a'],['шокол','#5f4438'],['террак','#b96f52'],['оранж','#c9824d'],['горч','#b99a4d'],['желт','#d9b957'],['бел','#f7f5ef'],['черн','#222']];const hit=map.find(([k])=>n.includes(k));return hit?hit[1]:'#b7afa5';}
   function colorKey(value){let n=String(value||'').toLowerCase().replace(/ё/g,'е').replace(/[^a-zа-я0-9]+/g,'');if(n==='бордо')n='бордовый';return n;}
-  function setDocumentMeta(title,description){document.title=/НОКТЕНА/i.test(title)?title:`${title} — НОКТЕНА`;const summary=String(description||`Характеристики и цена: ${title}.`).replace(/\s+/g,' ').slice(0,180);const meta=document.querySelector('meta[name="description"]');if(meta)meta.content=summary;for(const [key,value] of [['og:title',document.title],['og:description',summary]]){const el=document.querySelector(`meta[property="${key}"]`);if(el)el.content=value;}}
+  function setDocumentMeta(title,description){const brand=window.NoktenaBrand,brandName=brand?.name||'НОКТЕНА',brandedTitle=brand?.replace(title)||title;document.title=brandedTitle.toLocaleLowerCase('ru-RU').includes(brandName.toLocaleLowerCase('ru-RU'))?brandedTitle:`${brandedTitle} — ${brandName}`;const summary=(brand?.replace(String(description||`Характеристики и цена: ${title}.`))||String(description||`Характеристики и цена: ${title}.`)).replace(/\s+/g,' ').slice(0,180);const meta=document.querySelector('meta[name="description"]');if(meta)meta.content=summary;for(const [key,value] of [['og:title',document.title],['og:description',summary]]){const el=document.querySelector(`meta[property="${key}"]`);if(el)el.content=value;}}
   function productSEO(product,kind,price){
     const title=product.title||product.model||'';
     const photo=product.images?.[0];
     const og=document.querySelector('meta[property="og:image"]')||document.head.appendChild(document.createElement('meta'));
-    og.setAttribute('property','og:image');og.content=new URL(photo||'assets/logo-noktena-final.png',location.href).href;
+    og.setAttribute('property','og:image');og.content=new URL(photo||window.NoktenaBrand?.logoUrl||'assets/logo-noktena-final.png',location.href).href;
     const canonical=document.querySelector('link[rel="canonical"]')||document.head.appendChild(document.createElement('link'));
     canonical.rel='canonical';canonical.href=location.href.split('#')[0];
     const node=document.querySelector('#productStructuredData')||document.head.appendChild(document.createElement('script'));
     node.id='productStructuredData';node.type='application/ld+json';
-    const data={'@context':'https://schema.org','@type':'Product',name:title,description:product.description||product.intro||'',image:photo?[new URL(photo,location.href).href]:undefined,brand:{'@type':'Brand',name:'НОКТЕНА'},category:kind==='mattress'?'Матрасы':product.category==='beds'?'Кровати':'Диваны'};
+    const data={'@context':'https://schema.org','@type':'Product',name:title,description:product.description||product.intro||'',image:photo?[new URL(photo,location.href).href]:undefined,brand:{'@type':'Brand',name:window.NoktenaBrand?.name||'НОКТЕНА'},category:kind==='mattress'?'Матрасы':product.category==='beds'?'Кровати':'Диваны'};
     if(Number(price)>0){data.offers={'@type':'Offer',priceCurrency:'RUB',price:Number(price),url:location.href.split('#')[0]};if(product.available===true)data.offers.availability='https://schema.org/InStock';if(product.available===false)data.offers.availability='https://schema.org/PreOrder'}
     node.textContent=JSON.stringify(data).replace(/</g,'\\u003c');
   }

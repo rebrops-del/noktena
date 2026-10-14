@@ -27,7 +27,8 @@
     if(saved||id===BASE_CITY)return saved||null;
     const city=(rows||[]).find(row=>row.product_key==='settings:city_catalogs_v1')?.payload?.cities?.find(value=>value.id===id);
     const name=city?.name||'вашем городе';
-    return {...(payload(rows,'settings:seo_v1',BASE_CITY)||{}),history:[],home_title:city?.seo_title||`Матрасы, кровати и диваны — НОКТЕНА, г. ${name}`,home_description:city?.seo_description||`Матрасы, кровати и диваны в г. ${name}. Подбор размера, заказ онлайн и доставка. Условия подтвердит менеджер.`};
+    const brand=typeof window!=='undefined'?window.NoktenaBrand?.name||'НОКТЕНА':'НОКТЕНА';
+    return {...(payload(rows,'settings:seo_v1',BASE_CITY)||{}),history:[],home_title:city?.seo_title||`Матрасы, кровати и диваны — ${brand}, г. ${name}`,home_description:city?.seo_description||`Матрасы, кровати и диваны в г. ${name}. Подбор размера, заказ онлайн и доставка. Условия подтвердит менеджер.`};
   }
   return Object.freeze({BASE_CITY,CITY_KEYS,key,cityId,ownRow,payload,seo});
 });

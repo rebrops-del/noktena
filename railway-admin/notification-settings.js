@@ -31,5 +31,8 @@ export function parseNotificationBootstrap(source,environment={},cityId='ekateri
   const id=validatedCityId(bootstrap,cityId);
   const payload=(bootstrap.rows||[]).find(row=>row.product_key===notificationKey(id))?.payload
     ||(bootstrap.rows||[]).find(row=>row.product_key===NOTIFICATION_KEY)?.payload;
-  return normalizeNotifications(payload,environment);
+  const settings=normalizeNotifications(payload,environment);
+  const brand=String((bootstrap.rows||[]).find(row=>row.product_key==='settings:brand_v1')?.payload?.name||'').trim();
+  if(brand)settings.brand_name=brand.replace(/[<>\r\n]/g,'').slice(0,80)||'НОКТЕНА';
+  return settings;
 }

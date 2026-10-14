@@ -1,0 +1,17 @@
+/* Loaded after the admin skins so saved brand colors take precedence. */
+body.brand-admin-theme{--green:var(--brand-admin);--side:var(--brand-admin);--admin-brass:var(--brand-accent)}
+body.brand-admin-theme .side{background:var(--brand-admin)!important}
+body.brand-admin-theme .login-story{background:linear-gradient(180deg,transparent,var(--brand-admin)),url('../assets/noktena-editorial-bedroom.webp') center/cover!important}
+body.brand-admin-theme .primary,
+body.brand-admin-theme .primary:hover:not(:disabled){background:var(--brand-admin)!important;border-color:var(--brand-admin)!important;color:#fff!important}
+body.brand-admin-theme .admin-overview strong,
+body.brand-admin-theme .site-settings-section-head h2,
+body.brand-admin-theme .site-settings-card h3{color:var(--brand-admin)!important}
+body.brand-admin-theme .side-link.is-current{border-left:3px solid var(--brand-accent)!important}
+body.brand-admin-theme .side-badge,
+body.brand-admin-theme .site-state-dot{background:var(--brand-accent)!important}
+body.brand-admin-theme .login-overline,
+body.brand-admin-theme .admin-overline,
+body.brand-admin-theme .side-head small,
+body.brand-admin-theme .side-link>span:first-child{color:var(--brand-accent)!important}
+body.brand-admin-theme :where(a,button,input,select,textarea):focus-visible{outline-color:var(--brand-accent)!important}

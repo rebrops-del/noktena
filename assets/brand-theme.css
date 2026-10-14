@@ -1,0 +1,32 @@
+/* Applied only when an editor chooses a custom storefront palette. */
+body.brand-site-theme{
+  --n-deep:var(--brand-site);
+  --n-bronze:var(--brand-accent);
+  --forest:var(--brand-site);
+  --green:var(--brand-site);
+  --brand-green:var(--brand-site);
+}
+body.brand-site-theme .top,
+body.brand-site-theme .pd-top,
+body.brand-site-theme .pd-footer,
+body.brand-site-theme .footer{background:var(--brand-site)!important;color:#fff!important}
+body.brand-site-theme .cta,
+body.brand-site-theme .hero-primary,
+body.brand-site-theme .checkout-submit,
+body.brand-site-theme .pd-add-cart,
+body.brand-site-theme .pd-order-btn,
+body.brand-site-theme .btn:not(.max-btn).primary{background:var(--brand-site)!important;border-color:var(--brand-site)!important;color:#fff!important}
+body.brand-site-theme .navlinks a:hover,
+body.brand-site-theme .pd-header-links a:hover,
+body.brand-site-theme .overline,
+body.brand-site-theme .eyebrow,
+body.brand-site-theme .footer-brand,
+body.brand-site-theme .privacy-head a{color:var(--brand-accent)!important}
+body.brand-site-theme .hero-secondary,
+body.brand-site-theme .pd-back-btn{border-color:var(--brand-site)!important;color:var(--brand-site)!important}
+body.brand-site-theme .deliverybox,
+body.brand-site-theme .pd-help-box{border-color:var(--brand-accent)!important}
+body.brand-site-theme .shop-tab.is-active{background:var(--brand-site)!important;border-color:var(--brand-site)!important}
+body.brand-site-theme .footer a,
+body.brand-site-theme .pd-footer a{color:inherit!important}
+body.brand-site-theme :where(a,button,input,select,textarea):focus-visible{outline-color:var(--brand-accent)!important}

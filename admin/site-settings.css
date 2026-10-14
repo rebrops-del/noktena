@@ -1,4 +1,18 @@
 .site-settings-pane{max-width:1120px}
+.site-brand-grid{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(250px,.8fr);gap:24px;align-items:start}
+.site-brand-fields{display:grid;gap:16px}
+.site-brand-fields label{display:grid;gap:7px;font-size:.83rem;font-weight:700}
+.site-brand-fields input[type="text"],.site-brand-fields input[type="url"]{width:100%}
+.site-brand-colors{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.site-brand-colors input[type="color"]{width:100%;min-height:48px;padding:4px;cursor:pointer}
+.site-brand-preview{padding:18px;border:1px solid #e5e0d7;background:#fbf8f3;min-width:0}
+.site-brand-preview>span{display:block;margin-bottom:14px;color:#69756c;font-size:.8rem}
+.site-brand-preview img{display:block;max-width:100%;max-height:110px;width:auto;object-fit:contain;margin-bottom:12px}
+.site-brand-preview strong{display:block;font-size:1rem;overflow-wrap:anywhere}
+.site-brand-preview-colors{display:flex;gap:7px;margin-top:20px}
+.site-brand-preview-colors i{height:35px;flex:1;min-width:0;border-radius:4px}
+.site-brand-actions{display:flex;flex-wrap:wrap;gap:9px;align-items:center;margin-top:22px}
+.site-brand-actions .primary{margin-right:auto}
 .site-settings-head{margin-bottom:28px}
 .site-settings-head h1{font-family:Georgia,"Times New Roman",serif;font-size:clamp(2.3rem,3vw,3.5rem);font-weight:400;letter-spacing:-.045em;line-height:1.1;margin:9px 0 8px}
 .site-settings-head p{margin:0}
@@ -50,3 +64,4 @@
 @media(max-width:700px){.site-og-grid,.site-fields-row,.site-hero-grid{grid-template-columns:1fr}.site-og-preview{max-width:360px}.site-hero-preview{max-width:520px}}
 @media(max-width:800px){.site-settings-block{padding:19px}.site-settings-grid{grid-template-columns:1fr 1fr}}
 @media(max-width:580px){.site-settings-block{padding:16px}.site-settings-grid{grid-template-columns:1fr}.site-settings-card{min-height:155px}.site-settings-save{align-items:stretch;flex-direction:column}.site-settings-save .btn{width:100%}.site-hero-actions,.site-notification-actions{flex-direction:column}.site-hero-actions .btn,.site-notification-actions .btn{width:100%}.site-notification-destination{grid-template-columns:1fr}}
+@media(max-width:700px){.site-brand-grid,.site-brand-colors{grid-template-columns:1fr}.site-brand-actions .primary{width:100%}}

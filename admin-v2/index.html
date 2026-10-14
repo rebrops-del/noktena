@@ -6,13 +6,15 @@
   <meta name="robots" content="noindex,nofollow">
   <title>НОКТЕНА — ADMIN v2</title>
   <link rel="stylesheet" href="./styles.css?v=4">
+  <link rel="stylesheet" href="../admin/brand-theme.css?v=20261014-1">
+  <style>.brand-logo-legacy{display:block;max-width:190px;max-height:80px;width:auto;height:auto;object-fit:contain;margin-bottom:10px}.side .brand-logo-legacy{background:#fff;padding:8px;border-radius:5px}</style>
 </head>
 <body>
   <div id="toast" class="toast hide"></div>
 
   <section id="login" class="login">
     <form id="loginForm" class="box">
-      <div class="brand">НОКТЕНА</div>
+      <img class="brand-logo-legacy" data-brand-logo src="../assets/logo-noktena-final.png" alt="НОКТЕНА"><div class="brand">НОКТЕНА</div>
       <h1>Админ-панель</h1>
       <p class="muted">Цены, карточки и фотографии через единый защищённый API.</p>
       <label>E-mail<input id="email" type="email" autocomplete="username" required></label>
@@ -25,7 +27,7 @@
 
   <div id="app" class="app hide">
     <aside class="side">
-      <div><div class="brand">НОКТЕНА</div><small>ADMIN v2</small></div>
+      <div><img class="brand-logo-legacy" data-brand-logo src="../assets/logo-noktena-final.png" alt="НОКТЕНА"><div class="brand">НОКТЕНА</div><small>ADMIN v2</small></div>
       <a href="https://noktena.ru" target="_blank" rel="noopener">Открыть сайт ↗</a>
       <div class="bottom">
         <div id="adminEmail" class="muted" style="color:#bdd1c8;margin-bottom:9px"></div>
@@ -149,6 +151,9 @@
     </div>
   </div>
 
+  <script src="https://admin-proxy-v2-production.up.railway.app/catalog-bootstrap.js?v=20261014-brand1" defer></script>
+  <script src="../assets/brand-core.js?v=20261014-1" defer></script>
+  <script src="../assets/brand-runtime.js?v=20261014-1" defer></script>
   <script src="./app.js?v=4" defer></script>
 </body>
 </html>

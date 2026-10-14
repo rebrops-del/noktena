@@ -19,7 +19,7 @@
     id:String(x?.key||x?.id||x?.name||''),
     name:String(x?.name||x?.key||'Товар'),
     price:money(x?.price),
-    brand:'НОКТЕНА',
+    brand:window.NoktenaBrand?.name||'НОКТЕНА',
     category:categoryName(x?.category),
     variant:[x?.size,x?.color].filter(Boolean).join(' / '),
     quantity:Math.max(1,Number(qty??x?.qty)||1)
