@@ -3,6 +3,7 @@
   const b=window.NOKTENA_CATALOG_BOOTSTRAP||{};
   const rows=Array.isArray(b.rows)?b.rows:[];
   const overrides=new Map(rows.filter(r=>r.kind==='mattress').map(r=>[String(r.product_key||'').replace(/^mattress:/,''),r.payload||{}]));
+  const globalPromo=window.NoktenaCitySettings?.payload(rows,'settings:promo_global_v1');
 
   const style=document.createElement('style');
   style.textContent=`
@@ -58,8 +59,8 @@
 
     const promo=card.querySelector('.promo');
     if(promo){
-      const title=Object.prototype.hasOwnProperty.call(o,'promoLabel')?String(o.promoLabel??'').trim():'';
-      const subtitle=Object.prototype.hasOwnProperty.call(o,'promoSubtext')?String(o.promoSubtext??'').trim():'';
+      const title=globalPromo?.enabled===true?String(globalPromo.title??'').trim():Object.prototype.hasOwnProperty.call(o,'promoLabel')?String(o.promoLabel??'').trim():'';
+      const subtitle=globalPromo?.enabled===true?String(globalPromo.subtitle??'').trim():Object.prototype.hasOwnProperty.call(o,'promoSubtext')?String(o.promoSubtext??'').trim():'';
       promo.style.display=title||subtitle?'':'none';
       const bEl=promo.querySelector('b'),sEl=promo.querySelector('span');
       if(bEl){bEl.textContent=title;bEl.style.display=title?'':'none'}
